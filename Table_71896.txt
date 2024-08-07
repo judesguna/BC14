@@ -1,0 +1,37 @@
+OBJECT Table 71896 User Group Company
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    CaptionML=ENU=User Group Company;
+    LookupPageID=Page71899;
+  }
+  FIELDS
+  {
+    { 1   ;   ;User Group          ;Code20        ;TableRelation="User Groups";
+                                                   CaptionML=ENU=User Group }
+    { 2   ;   ;Company Access      ;Text30        ;TableRelation=Company;
+                                                   CaptionML=ENU=Company Access }
+  }
+  KEYS
+  {
+    {    ;User Group,Company Access               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,114 @@
+OBJECT Table 71003 Application Mark
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 04. VANDHANA
+               "User ID" := USERID;
+               "Academic Year" := Eduvertical.GetAdmissionYear;
+               // Stop 04. VANDHANA
+             END;
+
+    CaptionML=ENU=Application Mark;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Application No      ;Code20        ;CaptionML=ENU=Application No }
+    { 2   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 3   ;   ;Mark Obtained       ;Decimal       ;OnValidate=BEGIN
+                                                                // Start 02.KATHIR
+                                                                IF Maximum < "Mark Obtained" THEN BEGIN
+                                                                  MESSAGE(Text000);
+                                                                  "Mark Obtained" := 0;
+                                                                END
+                                                                // Stop 02.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Mark Obtained;
+                                                   BlankZero=Yes }
+    { 4   ;   ;Maximum             ;Decimal       ;OnValidate=BEGIN
+                                                                // Start 03.KATHIR
+                                                                IF Maximum < "Mark Obtained" THEN BEGIN
+                                                                  MESSAGE(Text000);
+                                                                  "Mark Obtained" := 0;
+                                                                END
+                                                                // Stop 03.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Maximum;
+                                                   BlankZero=Yes }
+    { 5   ;   ;Month               ;Option        ;CaptionML=ENU=Month;
+                                                   OptionCaptionML=ENU=" ,January,February,March,April,May,June,July,August,September,October,November,December";
+                                                   OptionString=[ ,January,February,March,April,May,June,July,August,September,October,November,December] }
+    { 6   ;   ;Year of passing     ;Integer       ;CaptionML=ENU=Year of passing;
+                                                   BlankZero=Yes }
+    { 7   ;   ;Register Number     ;Code20        ;CaptionML=ENU=Register Number }
+    { 8   ;   ;Exam Code           ;Code20        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Code }
+    { 11  ;   ;Academic Year       ;Code20        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 12  ;   ;Subject Code        ;Code10        ;TableRelation=Subject;
+                                                   OnValidate=BEGIN
+                                                                // Start 01. KATHIR
+                                                                IF PreQual.GET("Subject Code") THEN
+                                                                  Description := PreQual.Description
+                                                                ELSE
+                                                                  Description := '';
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Subject Code }
+    { 13  ;   ;Grade               ;Code10        ;TableRelation="Admission Grade";
+                                                   OnValidate=BEGIN
+                                                                IF Grade <> '' THEN
+                                                                BEGIN
+                                                                  AdmissionGrade.RESET;
+                                                                  AdmissionGrade.SETRANGE(AdmissionGrade.Code,Grade);
+                                                                  AdmissionGrade.SETRANGE(AdmissionGrade."Academic Year","Academic Year");
+                                                                  IF AdmissionGrade.FINDFIRST THEN
+                                                                  BEGIN
+                                                                    "Mark Obtained" := AdmissionGrade."Obtained Mark";
+                                                                    Maximum := AdmissionGrade."Maximum Mark";
+                                                                  END;
+                                                                END;
+                                                              END;
+                                                               }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Application No,Subject Code             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PreQual@1102155000 : Record 71004;
+      Text000@1102155001 : TextConst 'ENU=Please ener valid mark';
+      AdmissionGrade@1102159000 : Record 71017;
+      Eduvertical@1102159001 : Codeunit 71880;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+        01  21/09/09  KATHIR    PreQualification Code        Code Added to Get PreQualification description
+                                OnValidate()
+        02  22/09/09  KATHIR    Mark Obtained - OnValidate() Code Added to Validate Marks Obtained
+        03  22/09/09  KATHIR    Maximum - OnValidate()       Code Added to Validate Marks Obtained
+        04  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

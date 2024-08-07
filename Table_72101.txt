@@ -1,0 +1,156 @@
+OBJECT Table 72101 Income Tax
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    LookupPageID=Page72138;
+    DrillDownPageID=Page72138;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup" }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan" }
+    { 3   ;   ;Assessment Year     ;Code20        ;TableRelation="Payroll Year"."Year Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Year Type=CONST(Income Tax Year)) }
+    { 4   ;   ;Salary Year         ;Code20        ;TableRelation="Payroll Year"."Year Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Year Type=CONST(Salary Year)) }
+    { 5   ;   ;Salary Cyclic Code  ;Code20        ;TableRelation="Payroll Month & Year"."Salary Cyclic Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                    Salary Plan Code=FIELD(Salary Plan Code)) }
+    { 6   ;   ;Employee No         ;Code20        ;TableRelation=Employee.No. WHERE (No.=FILTER(<>'')) }
+    { 7   ;   ;Name                ;Text50         }
+    { 8   ;   ;Designation         ;Text50         }
+    { 9   ;   ;P.A.N.No            ;Code20         }
+    { 10  ;   ;Sex                 ;Option        ;OptionCaptionML=ENU=" ,Female,Male,Sr.Citizen";
+                                                   OptionString=[ ,Female,Male,Sr.Citizen] }
+    { 11  ;   ;Physically Handicapped;Boolean      }
+    { 12  ;   ;Senior Citizen      ;Boolean        }
+    { 13  ;   ;Projection Not Required;Boolean     }
+    { 14  ;   ;Remaining Month for Projection;Integer }
+    { 15  ;   ;Last Month Gross Salary;Decimal     }
+    { 16  ;   ;Salary Gross Earning Actual;Decimal }
+    { 17  ;   ;Salary Gross Earning Projected;Decimal }
+    { 18  ;   ;Salary Gross Earning Total;Decimal  }
+    { 19  ;   ;Bonus               ;Decimal        }
+    { 20  ;   ;Leave Salary        ;Decimal        }
+    { 21  ;   ;Arrears Amount      ;Decimal        }
+    { 22  ;   ;D.A Arrears - 1     ;Decimal        }
+    { 23  ;   ;D.A Arrears - 2     ;Decimal        }
+    { 24  ;   ;HRA Arrears         ;Decimal        }
+    { 25  ;   ;Hon Amount          ;Decimal        }
+    { 26  ;   ;Medical Reimburement;Decimal        }
+    { 27  ;   ;Previous Job Earnings;Decimal       }
+    { 28  ;   ;LTA                 ;Decimal        }
+    { 29  ;   ;Perk-1              ;Decimal        }
+    { 30  ;   ;Perk-2              ;Decimal        }
+    { 31  ;   ;Other Earnings-1    ;Decimal        }
+    { 32  ;   ;Other Earnings-2    ;Decimal        }
+    { 33  ;   ;Other Earnings Total;Decimal        }
+    { 34  ;   ;HRA                 ;Decimal        }
+    { 35  ;   ;Conv.Allowance      ;Decimal        }
+    { 36  ;   ;Transport Conveyance;Decimal        }
+    { 37  ;   ;Exemptions Totals   ;Decimal        }
+    { 38  ;   ;Professional Tax    ;Decimal        }
+    { 39  ;   ;Entertainment Tax   ;Decimal        }
+    { 40  ;   ;Gross Salary Income ;Decimal        }
+    { 41  ;   ;Housing Loan Interest;Decimal       }
+    { 42  ;   ;Gross Total Income  ;Decimal        }
+    { 43  ;   ;Actual - PF (Salary);Decimal        }
+    { 44  ;   ;Actual - PF (Direct);Decimal        }
+    { 45  ;   ;Actual - Total PF   ;Decimal        }
+    { 46  ;   ;Actual - LIC Premium (Salary);Decimal }
+    { 47  ;   ;Actual - LIC Premium (Direct);Decimal }
+    { 48  ;   ;Actual - Total LIC Premium;Decimal  }
+    { 49  ;   ;Actual - NSC (Direct);Decimal       }
+    { 50  ;   ;Actual - NSC Interest;Decimal       }
+    { 51  ;   ;Actual - ULIP       ;Decimal        }
+    { 52  ;   ;Actual - NSS Self   ;Decimal        }
+    { 53  ;   ;Actual - Mutal Fund ;Decimal        }
+    { 54  ;   ;Actual -Housing Loan Principal;Decimal }
+    { 55  ;   ;Actual -Infra Development Bond;Decimal }
+    { 56  ;   ;Actual -Other 80 Deduction - 1;Decimal }
+    { 57  ;   ;Actual -Other 80 Deduction - 2;Decimal }
+    { 58  ;   ;Actual - Total 80 Deduction;Decimal }
+    { 59  ;   ;Actual - 80CCC (Pension Fund);Decimal }
+    { 60  ;   ;Actual - 80D (Mediclaim);Decimal    }
+    { 61  ;   ;Actual - 80DD(Handicapped Dep);Decimal }
+    { 62  ;   ;Actual - 80DDB(Medical Ex Spl);Decimal }
+    { 63  ;   ;Actual - 80G (Donations);Decimal    }
+    { 64  ;   ;Actual - 80U(Physically Handi);Decimal }
+    { 65  ;   ;Actual - Total 80A-Z Deduction;Decimal }
+    { 66  ;   ;Proj - PF (Salary)  ;Decimal        }
+    { 67  ;   ;Proj - PF (Direct)  ;Decimal        }
+    { 68  ;   ;Proj - Total PF     ;Decimal        }
+    { 69  ;   ;Proj - LIC Premium (Salary);Decimal }
+    { 70  ;   ;Proj - LIC Premium (Direct);Decimal }
+    { 71  ;   ;Proj - Total LIC Premium;Decimal    }
+    { 72  ;   ;Proj - NSC (Direct) ;Decimal        }
+    { 73  ;   ;Proj - NSC Interest ;Decimal        }
+    { 74  ;   ;Proj - ULIP         ;Decimal        }
+    { 75  ;   ;Proj - NSS Self     ;Decimal        }
+    { 76  ;   ;Proj - Mutal Fund   ;Decimal        }
+    { 77  ;   ;Proj - Housing Loan Principal;Decimal }
+    { 78  ;   ;Proj - Infra Development Bond;Decimal }
+    { 79  ;   ;Proj - Other 80 Deduction - 1;Decimal }
+    { 80  ;   ;Proj - Other 80 Deduction - 2;Decimal }
+    { 81  ;   ;Proj - Total 80 Deduction;Decimal   }
+    { 82  ;   ;Proj - 80CCC (Pension Fund);Decimal }
+    { 83  ;   ;Proj - 80D (Mediclaim);Decimal      }
+    { 84  ;   ;Proj - 80DD(Handicapped Dep);Decimal }
+    { 85  ;   ;Proj - 80DDB(Medical Ex Spl);Decimal }
+    { 86  ;   ;Proj - 80G (Donations);Decimal      }
+    { 87  ;   ;Proj - 80U(Physically Handi);Decimal }
+    { 88  ;   ;Proj - Total 80A-Z Deduction;Decimal }
+    { 89  ;   ;Taxable Income      ;Decimal        }
+    { 90  ;   ;Income Tax Amount   ;Decimal        }
+    { 91  ;   ;Higher Edu Cess Amount;Decimal      }
+    { 92  ;   ;Cess Amount         ;Decimal        }
+    { 93  ;   ;Surcharge Amount    ;Decimal        }
+    { 94  ;   ;Total Tax Amount    ;Decimal        }
+    { 95  ;   ;Tax Paid            ;Decimal        }
+    { 96  ;   ;Tax Refund          ;Decimal        }
+    { 97  ;   ;Tax Balance         ;Decimal        }
+    { 98  ;   ;Tax Per Month       ;Decimal        }
+    { 99  ;   ;Food Plus Card Allow;Decimal        }
+    { 100 ;   ;Rent Received       ;Decimal        }
+    { 101 ;   ;Medical Bill        ;Decimal        }
+    { 102 ;   ;Medical Allow       ;Decimal        }
+    { 103 ;   ;Proj -  80E (Educational Loan);Decimal }
+    { 104 ;   ;Actu -  80E (Educational Loan);Decimal }
+    { 105 ;   ;Printed             ;Boolean        }
+    { 106 ;   ;Verified            ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Assessment Year,Employee No;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EmpRec@1102159000 : Record 5200;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

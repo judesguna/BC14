@@ -1,0 +1,1021 @@
+OBJECT Table 5200 Employee
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=16:36:24;
+    Modified=Yes;
+    Version List=NAVW114.53;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=No.,First Name,Middle Name,Last Name;
+    OnInsert=VAR
+               ResourcesSetup@1000 : Record 314;
+               Resource@1001 : Record 156;
+             BEGIN
+               "Last Modified Date Time" := CURRENTDATETIME;
+               HumanResSetup.GET;
+               IF "No." = '' THEN BEGIN
+                 HumanResSetup.TESTFIELD("Employee Nos.");
+                 NoSeriesMgt.InitSeries(HumanResSetup."Employee Nos.",xRec."No. Series",0D,"No.","No. Series");
+               END;
+               IF HumanResSetup."Automatically Create Resource" THEN BEGIN
+                 ResourcesSetup.GET;
+                 Resource.INIT;
+                 IF NoSeriesMgt.ManualNoAllowed(ResourcesSetup."Resource Nos.") THEN BEGIN
+                   Resource."No." := "No.";
+                   Resource.INSERT(TRUE);
+                 END ELSE
+                   Resource.INSERT(TRUE);
+                 "Resource No." := Resource."No.";
+               END;
+
+               DimMgt.UpdateDefaultDim(
+                 DATABASE::Employee,"No.",
+                 "Global Dimension 1 Code","Global Dimension 2 Code");
+               UpdateSearchName;
+             END;
+
+    OnModify=BEGIN
+               "Last Modified Date Time" := CURRENTDATETIME;
+               "Last Date Modified" := TODAY;
+               IF Res.READPERMISSION THEN
+                 EmployeeResUpdate.HumanResToRes(xRec,Rec);
+               IF SalespersonPurchaser.READPERMISSION THEN
+                 EmployeeSalespersonUpdate.HumanResToSalesPerson(xRec,Rec);
+               UpdateSearchName;
+             END;
+
+    OnDelete=BEGIN
+               AlternativeAddr.SETRANGE("Employee No.","No.");
+               AlternativeAddr.DELETEALL;
+
+               EmployeeQualification.SETRANGE("Employee No.","No.");
+               EmployeeQualification.DELETEALL;
+
+               Relative.SETRANGE("Employee No.","No.");
+               Relative.DELETEALL;
+
+               EmployeeAbsence.SETRANGE("Employee No.","No.");
+               EmployeeAbsence.DELETEALL;
+
+               MiscArticleInformation.SETRANGE("Employee No.","No.");
+               MiscArticleInformation.DELETEALL;
+
+               ConfidentialInformation.SETRANGE("Employee No.","No.");
+               ConfidentialInformation.DELETEALL;
+
+               HumanResComment.SETRANGE("No.","No.");
+               HumanResComment.DELETEALL;
+
+               DimMgt.DeleteDefaultDim(DATABASE::Employee,"No.");
+             END;
+
+    OnRename=BEGIN
+               DimMgt.RenameDefaultDim(DATABASE::Employee,xRec."No.","No.");
+               "Last Modified Date Time" := CURRENTDATETIME;
+               "Last Date Modified" := TODAY;
+               UpdateSearchName;
+             END;
+
+    CaptionML=[ENU=Employee;
+               ENN=Employee];
+    LookupPageID=Page5201;
+    DrillDownPageID=Page5201;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  HumanResSetup.GET;
+                                                                  NoSeriesMgt.TestManual(HumanResSetup."Employee Nos.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   AltSearchField=Search Name;
+                                                   CaptionML=[ENU=No.;
+                                                              ENN=No.] }
+    { 2   ;   ;First Name          ;Text30        ;CaptionML=[ENU=First Name;
+                                                              ENN=First Name] }
+    { 3   ;   ;Middle Name         ;Text30        ;CaptionML=[ENU=Middle Name;
+                                                              ENN=Middle Name] }
+    { 4   ;   ;Last Name           ;Text30        ;CaptionML=[ENU=Last Name;
+                                                              ENN=Last Name] }
+    { 5   ;   ;Initials            ;Text30        ;OnValidate=BEGIN
+                                                                IF ("Search Name" = UPPERCASE(xRec.Initials)) OR ("Search Name" = '') THEN
+                                                                  "Search Name" := Initials;
+                                                              END;
+
+                                                   CaptionML=[ENU=Initials;
+                                                              ENN=Initials] }
+    { 6   ;   ;Job Title           ;Text30        ;CaptionML=[ENU=Job Title;
+                                                              ENN=Job Title] }
+    { 7   ;   ;Search Name         ;Code250       ;OnValidate=BEGIN
+                                                                IF "Search Name" = '' THEN
+                                                                  "Search Name" := SetSearchNameToFullnameAndInitials;
+                                                              END;
+
+                                                   CaptionML=[ENU=Search Name;
+                                                              ENN=Search Name] }
+    { 8   ;   ;Address             ;Text100       ;CaptionML=[ENU=Address;
+                                                              ENN=Address] }
+    { 9   ;   ;Address 2           ;Text50        ;CaptionML=[ENU=Address 2;
+                                                              ENN=Address 2] }
+    { 10  ;   ;City                ;Text30        ;TableRelation=IF (Country/Region Code=CONST()) "Post Code".City
+                                                                 ELSE IF (Country/Region Code=FILTER(<>'')) "Post Code".City WHERE (Country/Region Code=FIELD(Country/Region Code));
+                                                   OnValidate=BEGIN
+                                                                PostCode.ValidateCity(City,"Post Code",County,"Country/Region Code",(CurrFieldNo <> 0) AND GUIALLOWED);
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              PostCode.LookupPostCode(City,"Post Code",County,"Country/Region Code");
+                                                            END;
+
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=[ENU=City;
+                                                              ENN=City] }
+    { 11  ;   ;Post Code           ;Code20        ;TableRelation=IF (Country/Region Code=CONST()) "Post Code"
+                                                                 ELSE IF (Country/Region Code=FILTER(<>'')) "Post Code" WHERE (Country/Region Code=FIELD(Country/Region Code));
+                                                   OnValidate=BEGIN
+                                                                PostCode.ValidatePostCode(City,"Post Code",County,"Country/Region Code",(CurrFieldNo <> 0) AND GUIALLOWED);
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              PostCode.LookupPostCode(City,"Post Code",County,"Country/Region Code");
+                                                            END;
+
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=[ENU=Post Code;
+                                                              ENN=Postcode] }
+    { 12  ;   ;County              ;Text30        ;CaptionML=[ENU=County;
+                                                              ENN=County];
+                                                   CaptionClass='5,1,' + "Country/Region Code" }
+    { 13  ;   ;Phone No.           ;Text30        ;ExtendedDatatype=Phone No.;
+                                                   CaptionML=[ENU=Phone No.;
+                                                              ENN=Phone No.] }
+    { 14  ;   ;Mobile Phone No.    ;Text30        ;ExtendedDatatype=Phone No.;
+                                                   CaptionML=[ENU=Mobile Phone No.;
+                                                              ENN=Mobile Phone No.] }
+    { 15  ;   ;E-Mail              ;Text80        ;OnValidate=VAR
+                                                                MailManagement@1000 : Codeunit 9520;
+                                                              BEGIN
+                                                                MailManagement.ValidateEmailAddressField("E-Mail");
+                                                              END;
+
+                                                   ExtendedDatatype=E-Mail;
+                                                   CaptionML=[ENU=Email;
+                                                              ENN=Email] }
+    { 16  ;   ;Alt. Address Code   ;Code10        ;TableRelation="Alternative Address".Code WHERE (Employee No.=FIELD(No.));
+                                                   CaptionML=[ENU=Alt. Address Code;
+                                                              ENN=Alt. Address Code] }
+    { 17  ;   ;Alt. Address Start Date;Date       ;CaptionML=[ENU=Alt. Address Start Date;
+                                                              ENN=Alt. Address Start Date] }
+    { 18  ;   ;Alt. Address End Date;Date         ;CaptionML=[ENU=Alt. Address End Date;
+                                                              ENN=Alt. Address End Date] }
+    { 19  ;   ;Picture             ;BLOB          ;ObsoleteState=Pending;
+                                                   ObsoleteReason=Replaced by Image field;
+                                                   CaptionML=[ENU=Picture;
+                                                              ENN=Picture];
+                                                   SubType=Bitmap }
+    { 20  ;   ;Birth Date          ;Date          ;CaptionML=[ENU=Birth Date;
+                                                              ENN=Birth Date] }
+    { 21  ;   ;Social Security No. ;Text30        ;CaptionML=[ENU=Social Security No.;
+                                                              ENN=Social Security No.] }
+    { 22  ;   ;Union Code          ;Code10        ;TableRelation=Union;
+                                                   CaptionML=[ENU=Union Code;
+                                                              ENN=Union Code] }
+    { 23  ;   ;Union Membership No.;Text30        ;CaptionML=[ENU=Union Membership No.;
+                                                              ENN=Union Membership No.] }
+    { 24  ;   ;Gender              ;Option        ;CaptionML=[ENU=Gender;
+                                                              ENN=Gender];
+                                                   OptionCaptionML=[ENU=" ,Female,Male";
+                                                                    ENN=" ,Female,Male"];
+                                                   OptionString=[ ,Female,Male] }
+    { 25  ;   ;Country/Region Code ;Code10        ;TableRelation=Country/Region;
+                                                   OnValidate=BEGIN
+                                                                PostCode.CheckClearPostCodeCityCounty(City,"Post Code",County,"Country/Region Code",xRec."Country/Region Code");
+                                                              END;
+
+                                                   CaptionML=[ENU=Country/Region Code;
+                                                              ENN=Country/Region Code] }
+    { 26  ;   ;Manager No.         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=[ENU=Manager No.;
+                                                              ENN=Manager No.] }
+    { 27  ;   ;Emplymt. Contract Code;Code10      ;TableRelation="Employment Contract";
+                                                   CaptionML=[ENU=Emplymt. Contract Code;
+                                                              ENN=Emplymt. Contract Code] }
+    { 28  ;   ;Statistics Group Code;Code10       ;TableRelation="Employee Statistics Group";
+                                                   CaptionML=[ENU=Statistics Group Code;
+                                                              ENN=Statistics Group Code] }
+    { 29  ;   ;Employment Date     ;Date          ;CaptionML=[ENU=Employment Date;
+                                                              ENN=Employment Date] }
+    { 31  ;   ;Status              ;Option        ;OnValidate=BEGIN
+                                                                EmployeeQualification.SETRANGE("Employee No.","No.");
+                                                                EmployeeQualification.MODIFYALL("Employee Status",Status);
+                                                                MODIFY;
+                                                              END;
+
+                                                   CaptionML=[ENU=Status;
+                                                              ENN=Status];
+                                                   OptionCaptionML=[ENU=Active,Inactive,Terminated;
+                                                                    ENN=Active,Inactive,Terminated];
+                                                   OptionString=Active,Inactive,Terminated }
+    { 32  ;   ;Inactive Date       ;Date          ;CaptionML=[ENU=Inactive Date;
+                                                              ENN=Inactive Date] }
+    { 33  ;   ;Cause of Inactivity Code;Code10    ;TableRelation="Cause of Inactivity";
+                                                   CaptionML=[ENU=Cause of Inactivity Code;
+                                                              ENN=Cause of Inactivity Code] }
+    { 34  ;   ;Termination Date    ;Date          ;CaptionML=[ENU=Termination Date;
+                                                              ENN=Termination Date] }
+    { 35  ;   ;Grounds for Term. Code;Code10      ;TableRelation="Grounds for Termination";
+                                                   CaptionML=[ENU=Grounds for Term. Code;
+                                                              ENN=Grounds for Term. Code] }
+    { 36  ;   ;Global Dimension 1 Code;Code20     ;TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(1));
+                                                   OnValidate=BEGIN
+                                                                ValidateShortcutDimCode(1,"Global Dimension 1 Code");
+                                                              END;
+
+                                                   CaptionML=[ENU=Global Dimension 1 Code;
+                                                              ENN=Global Dimension 1 Code];
+                                                   CaptionClass='1,1,1' }
+    { 37  ;   ;Global Dimension 2 Code;Code20     ;TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(2));
+                                                   OnValidate=BEGIN
+                                                                ValidateShortcutDimCode(2,"Global Dimension 2 Code");
+                                                              END;
+
+                                                   CaptionML=[ENU=Global Dimension 2 Code;
+                                                              ENN=Global Dimension 2 Code];
+                                                   CaptionClass='1,1,2' }
+    { 38  ;   ;Resource No.        ;Code20        ;TableRelation=Resource WHERE (Type=CONST(Person));
+                                                   OnValidate=BEGIN
+                                                                IF ("Resource No." <> '') AND Res.WRITEPERMISSION THEN BEGIN
+                                                                  CheckIfAnEmployeeIsLinkedToTheResource("Resource No.");
+                                                                  EmployeeResUpdate.ResUpdate(Rec);
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=[ENU=Resource No.;
+                                                              ENN=Resource No.] }
+    { 39  ;   ;Comment             ;Boolean       ;FieldClass=FlowField;
+                                                   CalcFormula=Exist("Human Resource Comment Line" WHERE (Table Name=CONST(Employee),
+                                                                                                          No.=FIELD(No.)));
+                                                   CaptionML=[ENU=Comment;
+                                                              ENN=Comment];
+                                                   Editable=No }
+    { 40  ;   ;Last Date Modified  ;Date          ;CaptionML=[ENU=Last Date Modified;
+                                                              ENN=Last Date Modified];
+                                                   Editable=No }
+    { 41  ;   ;Date Filter         ;Date          ;FieldClass=FlowFilter;
+                                                   CaptionML=[ENU=Date Filter;
+                                                              ENN=Date Filter] }
+    { 42  ;   ;Global Dimension 1 Filter;Code20   ;FieldClass=FlowFilter;
+                                                   TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(1));
+                                                   CaptionML=[ENU=Global Dimension 1 Filter;
+                                                              ENN=Global Dimension 1 Filter];
+                                                   CaptionClass='1,3,1' }
+    { 43  ;   ;Global Dimension 2 Filter;Code20   ;FieldClass=FlowFilter;
+                                                   TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(2));
+                                                   CaptionML=[ENU=Global Dimension 2 Filter;
+                                                              ENN=Global Dimension 2 Filter];
+                                                   CaptionClass='1,3,2' }
+    { 44  ;   ;Cause of Absence Filter;Code10     ;FieldClass=FlowFilter;
+                                                   TableRelation="Cause of Absence";
+                                                   CaptionML=[ENU=Cause of Absence Filter;
+                                                              ENN=Cause of Absence Filter] }
+    { 45  ;   ;Total Absence (Base);Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Employee Absence"."Quantity (Base)" WHERE (Employee No.=FIELD(No.),
+                                                                                                               Cause of Absence Code=FIELD(Cause of Absence Filter),
+                                                                                                               From Date=FIELD(Date Filter)));
+                                                   CaptionML=[ENU=Total Absence (Base);
+                                                              ENN=Total Absence (Base)];
+                                                   DecimalPlaces=0:5;
+                                                   Editable=No }
+    { 46  ;   ;Extension           ;Text30        ;CaptionML=[ENU=Extension;
+                                                              ENN=Extension] }
+    { 47  ;   ;Employee No. Filter ;Code20        ;FieldClass=FlowFilter;
+                                                   TableRelation=Employee;
+                                                   CaptionML=[ENU=Employee No. Filter;
+                                                              ENN=Employee No. Filter] }
+    { 48  ;   ;Pager               ;Text30        ;CaptionML=[ENU=Pager;
+                                                              ENN=Pager] }
+    { 49  ;   ;Fax No.             ;Text30        ;CaptionML=[ENU=Fax No.;
+                                                              ENN=Fax No.] }
+    { 50  ;   ;Company E-Mail      ;Text80        ;OnValidate=VAR
+                                                                MailManagement@1000 : Codeunit 9520;
+                                                              BEGIN
+                                                                MailManagement.ValidateEmailAddressField("Company E-Mail");
+                                                              END;
+
+                                                   ExtendedDatatype=E-Mail;
+                                                   CaptionML=[ENU=Company Email;
+                                                              ENN=Company Email] }
+    { 51  ;   ;Title               ;Text30        ;CaptionML=[ENU=Title;
+                                                              ENN=Title] }
+    { 52  ;   ;Salespers./Purch. Code;Code20      ;TableRelation=Salesperson/Purchaser WHERE (Blocked=CONST(No));
+                                                   CaptionML=[ENU=Salespers./Purch. Code;
+                                                              ENN=Salespers./Purch. Code] }
+    { 53  ;   ;No. Series          ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=[ENU=No. Series;
+                                                              ENN=No. Series];
+                                                   Editable=No }
+    { 54  ;   ;Last Modified Date Time;DateTime   ;CaptionML=[ENU=Last Modified Date Time;
+                                                              ENN=Last Modified Date Time];
+                                                   Editable=No }
+    { 55  ;   ;Employee Posting Group;Code20      ;TableRelation="Employee Posting Group";
+                                                   CaptionML=[ENU=Employee Posting Group;
+                                                              ENN=Employee Posting Group] }
+    { 56  ;   ;Bank Branch No.     ;Text20        ;CaptionML=[ENU=Bank Branch No.;
+                                                              ENN=Bank Sort Code] }
+    { 57  ;   ;Bank Account No.    ;Text30        ;CaptionML=[ENU=Bank Account No.;
+                                                              ENN=Bank Account No.] }
+    { 58  ;   ;IBAN                ;Code50        ;OnValidate=VAR
+                                                                CompanyInfo@1000 : Record 79;
+                                                              BEGIN
+                                                                CompanyInfo.CheckIBAN(IBAN);
+                                                              END;
+
+                                                   CaptionML=[ENU=IBAN;
+                                                              ENN=IBAN] }
+    { 59  ;   ;Balance             ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=-Sum("Detailed Employee Ledger Entry".Amount WHERE (Employee No.=FIELD(No.),
+                                                                                                                   Initial Entry Global Dim. 1=FIELD(Global Dimension 1 Filter),
+                                                                                                                   Initial Entry Global Dim. 2=FIELD(Global Dimension 2 Filter),
+                                                                                                                   Posting Date=FIELD(Date Filter)));
+                                                   CaptionML=[ENU=Balance;
+                                                              ENN=Balance];
+                                                   Editable=No;
+                                                   AutoFormatType=1 }
+    { 60  ;   ;SWIFT Code          ;Code20        ;TableRelation="SWIFT Code";
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=[ENU=SWIFT Code;
+                                                              ENN=SWIFT Code] }
+    { 80  ;   ;Application Method  ;Option        ;CaptionML=[ENU=Application Method;
+                                                              ENN=Application Method];
+                                                   OptionCaptionML=[ENU=Manual,Apply to Oldest;
+                                                                    ENN=Manual,Apply to Oldest];
+                                                   OptionString=Manual,Apply to Oldest }
+    { 140 ;   ;Image               ;Media         ;ExtendedDatatype=Person;
+                                                   CaptionML=[ENU=Image;
+                                                              ENN=Image] }
+    { 150 ;   ;Privacy Blocked     ;Boolean       ;CaptionML=[ENU=Privacy Blocked;
+                                                              ENN=Privacy Blocked] }
+    { 1100;   ;Cost Center Code    ;Code20        ;TableRelation="Cost Center";
+                                                   CaptionML=[ENU=Cost Center Code;
+                                                              ENN=Cost Centre Code] }
+    { 1101;   ;Cost Object Code    ;Code20        ;TableRelation="Cost Object";
+                                                   CaptionML=[ENU=Cost Object Code;
+                                                              ENN=Cost Object Code] }
+    { 8000;   ;Id                  ;GUID          ;CaptionML=[ENU=Id;
+                                                              ENN=Id] }
+    { 50000;  ;Change Department Code;Code10      ;TableRelation=Departments.Code;
+                                                   OnValidate=VAR
+                                                                Departments@1000000000 : Record 72001;
+                                                              BEGIN
+                                                                IF Departments.GET("Department Code") THEN
+                                                                   "Department Name" := Departments.Description
+                                                                ELSE
+                                                                   "Department Name" := '';
+                                                              END;
+
+                                                   DataClassification=ToBeClassified }
+    { 50001;  ;Employee No Old     ;Code20        ;DataClassification=ToBeClassified }
+    { 50002;  ;Employee No New     ;Code20        ;DataClassification=ToBeClassified }
+    { 50003;  ;U.G Qualification   ;Text30        ;DataClassification=ToBeClassified }
+    { 50004;  ;P.G Qualification   ;Text30        ;DataClassification=ToBeClassified }
+    { 50005;  ;B.Ed                ;Boolean       ;DataClassification=ToBeClassified }
+    { 50006;  ;M.Ed                ;Boolean       ;DataClassification=ToBeClassified }
+    { 50007;  ;Scale               ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=,UT,TGT,PGT;
+                                                   OptionString=,UT,TGT,PGT }
+    { 50008;  ;DOJ EPF             ;Date          ;DataClassification=ToBeClassified }
+    { 50009;  ;DOJ EPS             ;Date          ;DataClassification=ToBeClassified }
+    { 50010;  ;Date of Exit EPF    ;Date          ;DataClassification=ToBeClassified }
+    { 50011;  ;Date of Exit EPS    ;Date          ;DataClassification=ToBeClassified }
+    { 50012;  ;Nominee Name        ;Text50        ;DataClassification=ToBeClassified }
+    { 50013;  ;International Worker;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=Y,N;
+                                                   OptionString=Y,N }
+    { 50102;  ;Class Handled       ;Text30        ;DataClassification=ToBeClassified }
+    { 50200;  ;Relationship With the Member;Option;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=F,S;
+                                                   OptionString=F,S }
+    { 50201;  ;Reason for Leaving  ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=" ,Cessation,Superannuation,Retirement,Death in Service,Permanent Disablement";
+                                                   OptionString=[ ,Cessation,Superannuation,Retirement,Death in Service,Permanent Disablement] }
+    { 51000;  ;Class From          ;Code10        ;TableRelation=Class;
+                                                   OnValidate=VAR
+                                                                RecNewEMp@1102155000 : Record 71091;
+                                                              BEGIN
+                                                                RecNewEMp.RESET;
+                                                                RecNewEMp.SETRANGE("Employee No.","No.");
+                                                                RecNewEMp.SETRANGE("Company Name",COMPANYNAME);
+                                                                IF RecNewEMp.FINDFIRST THEN
+                                                                BEGIN
+                                                                  RecNewEMp."Class From" := "Class From";
+                                                                  RecNewEMp.MODIFY;
+                                                                END;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified }
+    { 51001;  ;Class To            ;Code10        ;TableRelation=Class;
+                                                   OnValidate=VAR
+                                                                RecNewEMp@1102155000 : Record 71091;
+                                                              BEGIN
+                                                                RecNewEMp.RESET;
+                                                                RecNewEMp.SETRANGE("Employee No.","No.");
+                                                                RecNewEMp.SETRANGE("Company Name",COMPANYNAME);
+                                                                IF RecNewEMp.FINDFIRST THEN
+                                                                BEGIN
+                                                                  RecNewEMp."Class To" := "Class To";
+                                                                  RecNewEMp.MODIFY;
+                                                                END;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified }
+    { 70121;  ;Employee Image File ;Text250       ;OnValidate=BEGIN
+                                                                RecNewEmp.SETRANGE("Employee No.","No.");
+                                                                RecNewEmp.SETRANGE("Company Name",COMPANYNAME);
+                                                                IF RecNewEmp.FINDFIRST THEN BEGIN
+                                                                  // >> SJ6.01
+                                                                  //RecNewEmp.INIT;
+                                                                  //RecNewEmp."Employee No." := "No.";
+                                                                  //RecNewEmp."Company Name" := COMPANYNAME;
+                                                                  // << SJ6.01
+
+                                                                  RecNewEmp.Name := "First Name";
+                                                                  RecNewEmp."Employee Category" := "Employee Category";
+                                                                  RecNewEmp.Gender := Gender;
+                                                                  RecNewEmp."Employee Image File" := "Employee Image File";
+                                                                  RecNewEmp."Employment Date" := "Employment Date";
+
+                                                                  RecNewEmp.MODIFY;
+                                                                END;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=ENU=Employee Image File }
+    { 70122;  ;Employee Type       ;Option        ;OnValidate=VAR
+                                                                RecEmpnew@1102155000 : Record 71091;
+                                                              BEGIN
+                                                                RecNewEmp.RESET;
+                                                                RecNewEmp.SETRANGE("Employee No.","No.");
+                                                                RecNewEmp.SETRANGE("Company Name",COMPANYNAME);
+                                                                IF RecNewEmp.FINDFIRST THEN
+                                                                BEGIN
+                                                                  RecNewEmp."Employee Type" := "Employee Type";
+                                                                  RecNewEmp.MODIFY;
+                                                                END;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=ENU=Employee Type;
+                                                   OptionCaptionML=ENU=" ,Teaching,Non-Teaching,HOD,Principal,Sub Staff,HM";
+                                                   OptionString=[ ,Teaching,Non-Teaching,HOD,Principal,Sub Staff,HM] }
+    { 70123;  ;Department          ;Code20        ;TableRelation=Department;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=ENU=Department }
+    { 71120;  ;Working Shift Code  ;Code20        ;TableRelation=Shift.Code WHERE (Location Code=FIELD(Location Code),
+                                                                                   Salary Plan Code=FIELD(Salary Plan Code));
+                                                   DataClassification=ToBeClassified }
+    { 71121;  ;Driving Licence No  ;Code20        ;DataClassification=ToBeClassified }
+    { 71122;  ;Driving Expiry Date ;Date          ;DataClassification=ToBeClassified }
+    { 71123;  ;Passport No         ;Code20        ;DataClassification=ToBeClassified }
+    { 71124;  ;Passport Expiry Date;Date          ;DataClassification=ToBeClassified }
+    { 71125;  ;Voter ID No         ;Code20        ;DataClassification=ToBeClassified }
+    { 71126;  ;PAN No              ;Code20        ;DataClassification=ToBeClassified }
+    { 71127;  ;PF No               ;Code20        ;DataClassification=ToBeClassified }
+    { 71128;  ;ESI No              ;Code20        ;DataClassification=ToBeClassified }
+    { 71129;  ;ESI Dispensary Location;Text50     ;DataClassification=ToBeClassified }
+    { 71130;  ;Payment Method      ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionString=Cash,Cheque,Bank Transfer }
+    { 71131;  ;Bank Code           ;Code10        ;DataClassification=ToBeClassified }
+    { 71132;  ;Bank Name           ;Code50        ;DataClassification=ToBeClassified }
+    { 71133;  ;Bank Branch         ;Code50        ;DataClassification=ToBeClassified }
+    { 71134;  ;Account Type        ;Text30        ;DataClassification=ToBeClassified }
+    { 71135;  ;Account No          ;Code20        ;DataClassification=ToBeClassified }
+    { 71136;  ;Father's / Husband  Name;Text50    ;DataClassification=ToBeClassified }
+    { 71137;  ;Spouse Name         ;Text50        ;DataClassification=ToBeClassified }
+    { 71138;  ;Spouse Education    ;Text50        ;DataClassification=ToBeClassified }
+    { 71139;  ;Marital Status      ;Boolean       ;DataClassification=ToBeClassified }
+    { 71140;  ;Marriage Date       ;Date          ;DataClassification=ToBeClassified }
+    { 71141;  ;No of Children      ;Integer       ;DataClassification=ToBeClassified }
+    { 71142;  ;Blood Donar         ;Boolean       ;DataClassification=ToBeClassified }
+    { 71143;  ;Blood Group         ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=" ,A+,A-,B+,B-,AB+,AB-,O+,O-,A1+,A1-";
+                                                   OptionString=[ ,A+,A-,B+,B-,AB+,AB-,O+,O-,A1+,A1-] }
+    { 71144;  ;Nationality         ;Text50        ;DataClassification=ToBeClassified }
+    { 71145;  ;Religion            ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=" ,Hindu,Muslim,Christian";
+                                                   OptionString=[ ,Hindu,Muslim,Christian] }
+    { 71146;  ;Caste               ;Text50        ;DataClassification=ToBeClassified }
+    { 71147;  ;Date of Joining     ;Date          ;DataClassification=ToBeClassified }
+    { 71148;  ;Date of Confirmation;Date          ;DataClassification=ToBeClassified }
+    { 71149;  ;Retirement Type     ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionString=[ ,VRS,Family Pension,Pension] }
+    { 71150;  ;Accommodation       ;Boolean       ;DataClassification=ToBeClassified }
+    { 71151;  ;Accommodation Type  ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionString=[ ,Residential,Company Quaters] }
+    { 71152;  ;Quarter No          ;Code20        ;DataClassification=ToBeClassified }
+    { 71153;  ;Grade Code          ;Code20        ;TableRelation=Grades."Grade Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                            Salary Plan Code=FIELD(Salary Plan Code));
+                                                   OnValidate=BEGIN
+                                                                "Insert Pay Elements";
+                                                              END;
+
+                                                   DataClassification=ToBeClassified }
+    { 71154;  ;PF Applicable       ;Boolean       ;DataClassification=ToBeClassified }
+    { 71155;  ;EPS Applicable      ;Boolean       ;DataClassification=ToBeClassified }
+    { 71156;  ;VPF Applicable      ;Boolean       ;DataClassification=ToBeClassified }
+    { 71157;  ;ESI Applicable      ;Boolean       ;DataClassification=ToBeClassified }
+    { 71158;  ;PT Applicable       ;Boolean       ;DataClassification=ToBeClassified }
+    { 71159;  ;LWF Applicable      ;Boolean       ;DataClassification=ToBeClassified }
+    { 71160;  ;OT Applicable       ;Boolean       ;DataClassification=ToBeClassified }
+    { 71161;  ;Leave Encashment Applicable;Boolean;DataClassification=ToBeClassified }
+    { 71162;  ;Bonus Applicable    ;Boolean       ;DataClassification=ToBeClassified }
+    { 71163;  ;Gratuity Applicable ;Boolean       ;DataClassification=ToBeClassified }
+    { 71164;  ;Probationary        ;Boolean       ;DataClassification=ToBeClassified }
+    { 71165;  ;Emp Posting Group   ;Code20        ;TableRelation="Payroll Employee Posting Group".Code WHERE (Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code));
+                                                   DataClassification=ToBeClassified }
+    { 71166;  ;Pay Bus. Posting Group;Code20      ;TableRelation="Payroll Business Posting Group".Code WHERE (Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code));
+                                                   DataClassification=ToBeClassified }
+    { 71167;  ;PT Branch Code      ;Code20        ;TableRelation="Professional Tax Header"."Branch Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                Salary Plan Code=FIELD(Salary Plan Code));
+                                                   DataClassification=ToBeClassified }
+    { 71168;  ;Stop Payment        ;Boolean       ;DataClassification=ToBeClassified }
+    { 71169;  ;Blocked             ;Boolean       ;DataClassification=ToBeClassified }
+    { 71170;  ;Mail Send To HR     ;Boolean       ;DataClassification=ToBeClassified;
+                                                   Editable=Yes }
+    { 71171;  ;Current Status      ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU="Current Employee,Retirement,Job Resigned,Terminated,Death,Transfer, ";
+                                                   OptionString=[Current Employee,Retirement,Job Resigned,Terminated,Death,Transfer, ] }
+    { 71172;  ;Date of Relieving   ;Date          ;DataClassification=ToBeClassified }
+    { 71173;  ;Final Settlement Over;Boolean      ;DataClassification=ToBeClassified;
+                                                   Editable=No }
+    { 71174;  ;Designation Code    ;Code20        ;TableRelation=Designation;
+                                                   DataClassification=ToBeClassified }
+    { 71175;  ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   DataClassification=ToBeClassified }
+    { 71176;  ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   DataClassification=ToBeClassified }
+    { 71177;  ;Over Time Multiplier;Decimal       ;DataClassification=ToBeClassified }
+    { 71178;  ;PF Enrollment Date  ;Date          ;DataClassification=ToBeClassified }
+    { 71179;  ;Employee VPF ( Employee) %;Decimal ;DataClassification=ToBeClassified }
+    { 71180;  ;Attendance Generated;Boolean       ;DataClassification=ToBeClassified }
+    { 71181;  ;Leave Generated     ;Boolean       ;DataClassification=ToBeClassified }
+    { 71182;  ;Scale of Pay        ;Text50        ;DataClassification=ToBeClassified }
+    { 71183;  ;Non Teaching / Teaching;Option     ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=" ,Non Teaching,Teaching";
+                                                   OptionString=[ ,Non Teaching,Teaching] }
+    { 71184;  ;CVAttachment1       ;Text50        ;DataClassification=ToBeClassified }
+    { 71185;  ;CVAttachment2       ;Text50        ;DataClassification=ToBeClassified }
+    { 71186;  ;OT Type             ;Option        ;OnValidate=BEGIN
+                                                                IF "OT Type" = "OT Type"::"Fixed Amount" THEN
+                                                                   "Over Time Multiplier" := 0;
+
+                                                                IF "OT Type" = "OT Type"::"Hourly Based" THEN
+                                                                   "OT Fixed Amount" := 0;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=" ,Fixed Amount,Hourly Based,Per Daily Amount  ";
+                                                   OptionString=[ ,Fixed Amount,Hourly Based,Per Daily Amount  ] }
+    { 71187;  ;OT Fixed Amount     ;Decimal       ;DataClassification=ToBeClassified }
+    { 71188;  ;Attendance Bonus Applicable;Boolean;DataClassification=ToBeClassified }
+    { 71189;  ;Attendance Bonus Amount;Decimal    ;DataClassification=ToBeClassified }
+    { 71190;  ;Salary Advance      ;Decimal       ;DataClassification=ToBeClassified;
+                                                   Editable=No }
+    { 71191;  ;Credit Days Applicable;Boolean     ;DataClassification=ToBeClassified }
+    { 71192;  ;Insurance Applicable;Boolean       ;DataClassification=ToBeClassified }
+    { 71193;  ;Medical Reimbu. Applicable;Boolean ;DataClassification=ToBeClassified }
+    { 71194;  ;Calc. Based on Gross Amount;Boolean;OnValidate=BEGIN
+                                                                "Calc. Based on Daily Wages" := FALSE;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified }
+    { 71195;  ;Calc. Based on Daily Wages;Boolean ;OnValidate=BEGIN
+                                                                "Calc. Based on Gross Amount" := FALSE;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified }
+    { 71196;  ;Employee Category   ;Option        ;OnValidate=BEGIN
+                                                                IF "Employee Category" = "Employee Category"::"Staff Permanent" THEN BEGIN
+                                                                   "ESI Applicable" := FALSE;
+                                                                   "PF Applicable"  := TRUE;
+                                                                   "EPS Applicable" := TRUE;
+                                                                   "VPF Applicable" := FALSE;
+                                                                   "PT Applicable"  := TRUE;
+                                                                   "LWF Applicable" := TRUE;
+                                                                   "OT Applicable"  := FALSE;
+                                                                   "Leave Encashment Applicable" := FALSE;
+                                                                   "Bonus Applicable" := FALSE;
+                                                                   "Gratuity Applicable" := FALSE;
+                                                                   "Calc. Based on Gross Amount" := FALSE;
+                                                                   "Calc. Based on Daily Wages" := FALSE;
+                                                                   "Weekly Off Cut" := FALSE;
+                                                                   "Weekly Off / Holiday Cut" := FALSE;
+                                                                   "Layoff Applicable" := FALSE;
+                                                                   "Attendance Bonus Applicable" := FALSE;
+                                                                   "Attendance Bonus Amount" := 0;
+                                                                   "Extra Allowance Applicable" := FALSE;
+                                                                END;
+
+                                                                IF "Employee Category" = "Employee Category"::"Staff Temporary" THEN BEGIN
+                                                                   "ESI Applicable" := FALSE;
+                                                                   "PF Applicable"  := FALSE;
+                                                                   "EPS Applicable" := FALSE;
+                                                                   "VPF Applicable" := FALSE;
+                                                                   "PT Applicable"  := FALSE;
+                                                                   "LWF Applicable" := FALSE;
+                                                                   "OT Applicable"  := FALSE;
+                                                                   "Leave Encashment Applicable" := FALSE;
+                                                                   "Bonus Applicable"   := FALSE;
+                                                                   "Gratuity Applicable" := FALSE;
+                                                                   "Calc. Based on Gross Amount" := FALSE;
+                                                                   "Calc. Based on Daily Wages" := FALSE;
+                                                                   "Weekly Off Cut" := FALSE;
+                                                                   "Weekly Off / Holiday Cut" := FALSE;
+                                                                   "Layoff Applicable" := FALSE;
+                                                                   "Attendance Bonus Applicable" := FALSE;
+                                                                   "Attendance Bonus Amount" := 0;
+                                                                   "Extra Allowance Applicable" := FALSE;
+                                                                END;
+
+                                                                IF "Employee Category" = "Employee Category"::"Class IV Permanent" THEN BEGIN
+                                                                   "ESI Applicable" := FALSE;
+                                                                   "PF Applicable"  := TRUE;
+                                                                   "EPS Applicable" := TRUE;
+                                                                   "VPF Applicable" := FALSE;
+                                                                   "PT Applicable"  := TRUE;
+                                                                   "LWF Applicable" := TRUE;
+                                                                   "OT Applicable"  := FALSE;
+                                                                   "OT Type" := "OT Type"::"Hourly Based";
+                                                                   "Over Time Multiplier" := 1;
+                                                                   "Leave Encashment Applicable" := FALSE;
+                                                                   "Bonus Applicable"   := FALSE;
+                                                                   "Gratuity Applicable" := FALSE;
+                                                                   "Calc. Based on Gross Amount" := FALSE;
+                                                                   "Calc. Based on Daily Wages" := FALSE;
+                                                                   "Weekly Off Cut" := FALSE;
+                                                                   "Weekly Off / Holiday Cut" := FALSE;
+                                                                   "Layoff Applicable" := FALSE;
+                                                                   "Attendance Bonus Applicable" := FALSE;
+                                                                   "Attendance Bonus Amount" := 0;
+                                                                   "Extra Allowance Applicable" := FALSE;
+                                                                END;
+
+                                                                IF "Employee Category" = "Employee Category"::"Class IV Temporary" THEN BEGIN
+                                                                   "ESI Applicable" := FALSE;
+                                                                   "PF Applicable"  := FALSE;
+                                                                   "EPS Applicable" := FALSE;
+                                                                   "VPF Applicable" := FALSE;
+                                                                   "PT Applicable"  := FALSE;
+                                                                   "LWF Applicable" := FALSE;
+                                                                   "OT Applicable"  := FALSE;
+                                                                   "OT Type" := "OT Type"::"Hourly Based";
+                                                                   "Over Time Multiplier" := 1;
+                                                                   "Leave Encashment Applicable" := FALSE;
+                                                                   "Bonus Applicable"   := FALSE;
+                                                                   "Gratuity Applicable" := FALSE;
+                                                                   "Calc. Based on Gross Amount" := FALSE;
+                                                                   "Calc. Based on Daily Wages" := FALSE;
+                                                                   "Weekly Off Cut" := FALSE;
+                                                                   "Weekly Off / Holiday Cut" := FALSE;
+                                                                   "Layoff Applicable" := FALSE;
+                                                                   "Attendance Bonus Applicable" := FALSE;
+                                                                   "Attendance Bonus Amount" := 0;
+                                                                   "Extra Allowance Applicable" := FALSE;
+                                                                END;
+                                                              END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary,Class III Permanent,Class III Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary,Class III Permanent,Class III Temporary] }
+    { 71200;  ;Hourly Rated Employee;Boolean      ;DataClassification=ToBeClassified }
+    { 71201;  ;Payment Salary Plan ;Code20        ;TableRelation="Salary Plan";
+                                                   DataClassification=ToBeClassified }
+    { 71202;  ;Division Code       ;Code10        ;TableRelation=Divisions.Code;
+                                                   DataClassification=ToBeClassified }
+    { 71203;  ;Division Name       ;Text50        ;DataClassification=ToBeClassified;
+                                                   Editable=No }
+    { 71204;  ;Department Code     ;Code10        ;TableRelation=Departments.Code;
+                                                   DataClassification=ToBeClassified }
+    { 71205;  ;Department Name     ;Text50        ;DataClassification=ToBeClassified;
+                                                   Editable=No }
+    { 71206;  ;Section Code        ;Code10        ;TableRelation=Sections.Code;
+                                                   DataClassification=ToBeClassified }
+    { 71207;  ;Section Name        ;Text50        ;DataClassification=ToBeClassified;
+                                                   Editable=No }
+    { 71208;  ;Weekly Off Cut      ;Boolean       ;DataClassification=ToBeClassified }
+    { 71209;  ;Weekly Off / Holiday Cut;Boolean   ;DataClassification=ToBeClassified }
+    { 71210;  ;Layoff Applicable   ;Boolean       ;DataClassification=ToBeClassified }
+    { 71211;  ;Extra Allowance Applicable;Boolean ;DataClassification=ToBeClassified }
+    { 71212;  ;Multiple Punch Required;Boolean    ;DataClassification=ToBeClassified }
+    { 71213;  ;Metro / Non Metro   ;Option        ;DataClassification=ToBeClassified;
+                                                   OptionCaptionML=ENU=Metro,Non Metro;
+                                                   OptionString=Metro,Non Metro }
+    { 71214;  ;Filter Employee     ;Boolean       ;DataClassification=ToBeClassified }
+    { 71215;  ;Make Default Punch  ;Boolean       ;DataClassification=ToBeClassified }
+    { 71216;  ;Additional Duties 1 ;Text250       ;DataClassification=ToBeClassified }
+    { 71217;  ;Additional Duties 2 ;Text250       ;DataClassification=ToBeClassified }
+    { 71218;  ;UAN No.             ;Text30        ;DataClassification=ToBeClassified }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Search Name                              }
+    {    ;Status,Union Code                        }
+    {    ;Status,Emplymt. Contract Code            }
+    {    ;Last Name,First Name,Middle Name         }
+  }
+  FIELDGROUPS
+  {
+    { 1   ;DropDown            ;No.,First Name,Last Name,Initials,Job Title }
+    { 2   ;Brick               ;Last Name,First Name,Job Title,Image     }
+  }
+  CODE
+  {
+    VAR
+      HumanResSetup@1000 : Record 5218;
+      Res@1002 : Record 156;
+      PostCode@1003 : Record 225;
+      AlternativeAddr@1004 : Record 5201;
+      EmployeeQualification@1005 : Record 5203;
+      Relative@1006 : Record 5205;
+      EmployeeAbsence@1007 : Record 5207;
+      MiscArticleInformation@1008 : Record 5214;
+      ConfidentialInformation@1009 : Record 5216;
+      HumanResComment@1010 : Record 5208;
+      SalespersonPurchaser@1011 : Record 13;
+      NoSeriesMgt@1012 : Codeunit 396;
+      EmployeeResUpdate@1013 : Codeunit 5200;
+      EmployeeSalespersonUpdate@1014 : Codeunit 5201;
+      DimMgt@1015 : Codeunit 408;
+      Text000@1016 : TextConst 'ENU=Before you can use Online Map, you must fill in the Online Map Setup window.\See Setting Up Online Map in Help.;ENN=Before you can use Online Map, you must fill in the Online Map Setup window.\See Setting Up Online Map in Help.';
+      BlockedEmplForJnrlErr@1001 : TextConst '@@@="%1 = employee no.";ENU=You cannot create this document because employee %1 is blocked due to privacy.;ENN=You cannot create this document because employee %1 is blocked due to privacy.';
+      BlockedEmplForJnrlPostingErr@1017 : TextConst '@@@="%1 = employee no.";ENU=You cannot post this document because employee %1 is blocked due to privacy.;ENN=You cannot post this document because employee %1 is blocked due to privacy.';
+      EmployeeLinkedToResourceErr@1018 : TextConst '@@@="%1 = employee no.";ENU=You cannot link multiple employees to the same resource. Employee %1 is already linked to that resource.;ENN=You cannot link multiple employees to the same resource. Employee %1 is already linked to that resource.';
+      RecNewEmp@1000000000 : Record 71091;
+
+    [External]
+    PROCEDURE AssistEdit@2() : Boolean;
+    BEGIN
+      HumanResSetup.GET;
+      HumanResSetup.TESTFIELD("Employee Nos.");
+      IF NoSeriesMgt.SelectSeries(HumanResSetup."Employee Nos.",xRec."No. Series","No. Series") THEN BEGIN
+        NoSeriesMgt.SetSeries("No.");
+        EXIT(TRUE);
+      END;
+    END;
+
+    [External]
+    PROCEDURE FullName@1() : Text[100];
+    VAR
+      NewFullName@1000 : Text[100];
+      Handled@1001 : Boolean;
+    BEGIN
+      OnBeforeGetFullName(Rec,NewFullName,Handled);
+      IF Handled THEN
+        EXIT(NewFullName);
+
+      IF "Middle Name" = '' THEN
+        EXIT("First Name" + ' ' + "Last Name");
+
+      EXIT("First Name" + ' ' + "Middle Name" + ' ' + "Last Name");
+    END;
+
+    [External]
+    PROCEDURE ValidateShortcutDimCode@29(FieldNumber@1000 : Integer;VAR ShortcutDimCode@1001 : Code[20]);
+    BEGIN
+      DimMgt.ValidateDimValueCode(FieldNumber,ShortcutDimCode);
+      IF NOT ISTEMPORARY THEN BEGIN
+        DimMgt.SaveDefaultDim(DATABASE::Employee,"No.",FieldNumber,ShortcutDimCode);
+        MODIFY;
+      END;
+    END;
+
+    [External]
+    PROCEDURE DisplayMap@7();
+    VAR
+      MapPoint@1001 : Record 800;
+      MapMgt@1000 : Codeunit 802;
+    BEGIN
+      IF MapPoint.FINDFIRST THEN
+        MapMgt.MakeSelection(DATABASE::Employee,GETPOSITION)
+      ELSE
+        MESSAGE(Text000);
+    END;
+
+    LOCAL PROCEDURE UpdateSearchName@4();
+    VAR
+      PrevSearchName@1000 : Code[250];
+    BEGIN
+      PrevSearchName := xRec.FullName + ' ' + xRec.Initials;
+      IF ((("First Name" <> xRec."First Name") OR ("Middle Name" <> xRec."Middle Name") OR ("Last Name" <> xRec."Last Name") OR
+           (Initials <> xRec.Initials)) AND ("Search Name" = PrevSearchName))
+      THEN
+        "Search Name" := SetSearchNameToFullnameAndInitials;
+    END;
+
+    LOCAL PROCEDURE SetSearchNameToFullnameAndInitials@3() : Code[250];
+    BEGIN
+      EXIT(FullName + ' ' + Initials);
+    END;
+
+    [External]
+    PROCEDURE GetBankAccountNo@5() : Text;
+    BEGIN
+      IF IBAN <> '' THEN
+        EXIT(DELCHR(IBAN,'=<>'));
+
+      IF "Bank Account No." <> '' THEN
+        EXIT("Bank Account No.");
+    END;
+
+    [External]
+    PROCEDURE CheckBlockedEmployeeOnJnls@8(IsPosting@1000 : Boolean);
+    BEGIN
+      IF IsOnBeforeCheckBlockedEmployeeHandled(IsPosting) THEN
+        EXIT;
+      IF "Privacy Blocked" THEN BEGIN
+        IF IsPosting THEN
+          ERROR(BlockedEmplForJnrlPostingErr,"No.");
+        ERROR(BlockedEmplForJnrlErr,"No.")
+      END;
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnBeforeGetFullName@6(Employee@1000 : Record 5200;VAR NewFullName@1001 : Text[100];VAR Handled@1002 : Boolean);
+    BEGIN
+    END;
+
+    LOCAL PROCEDURE CheckIfAnEmployeeIsLinkedToTheResource@10(ResourceNo@1000 : Code[20]);
+    VAR
+      Employee@1001 : Record 5200;
+    BEGIN
+      Employee.SETFILTER("No.",'<>%1',"No.");
+      Employee.SETRANGE("Resource No.",ResourceNo);
+      IF Employee.FINDFIRST THEN
+        ERROR(EmployeeLinkedToResourceErr,Employee."No.");
+    END;
+
+    LOCAL PROCEDURE IsOnBeforeCheckBlockedEmployeeHandled@9(IsPosting@1000 : Boolean) IsHandled : Boolean;
+    BEGIN
+      OnBeforeCheckBlockedEmployee(Rec,IsPosting,IsHandled);
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnBeforeCheckBlockedEmployee@11(Employee@1000 : Record 5200;IsPosting@1001 : Boolean;VAR IsHandled@1002 : Boolean);
+    BEGIN
+    END;
+
+    PROCEDURE "Insert Pay Elements"@1000000000();
+    VAR
+      GradeElements@1000000001 : Record 72062;
+      EmployeePayElements@1000000000 : Record 72078;
+      Grade@1102159000 : Record 72061;
+    BEGIN
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code",   "Location Code");
+      EmployeePayElements.SETRANGE("Salary Plan Code","Salary Plan Code");
+      EmployeePayElements.SETRANGE("Employee No", "No.");
+      IF EmployeePayElements.FIND('-') THEN
+
+      IF EmployeePayElements.COUNT > 0 THEN BEGIN
+         IF NOT CONFIRM('Pay Element already defined for the Employee (Do U Want to Delete Previous Record)',FALSE) THEN
+            EXIT
+         ELSE
+            EmployeePayElements.DELETEALL;
+       END;
+
+       GradeElements.RESET;
+       GradeElements.SETRANGE("Location Code",   "Location Code");
+       GradeElements.SETRANGE("Salary Plan Code","Salary Plan Code");
+       GradeElements.SETRANGE("Grade Code",      "Grade Code");
+       IF GradeElements.FIND('-') THEN BEGIN
+
+          IF GradeElements.COUNT < 1 THEN
+             MESSAGE('%1','Pay Element not defined in Grade Pay Element');
+
+         REPEAT
+           EmployeePayElements.INIT;
+           EmployeePayElements."Location Code"           := "Location Code";
+           EmployeePayElements."Salary Plan Code"        := "Salary Plan Code";
+           EmployeePayElements."Effective Date"          := GradeElements."Effective Date";
+           EmployeePayElements."Pay Element Code"        := GradeElements."Pay Element Code";
+           EmployeePayElements."Employee No"             := "No.";
+           EmployeePayElements.Description               := GradeElements.Description;
+           EmployeePayElements."Pay Type"                := GradeElements."Pay Type";
+           EmployeePayElements."Fixed/Percent"           := GradeElements."Fixed / Percent";
+           EmployeePayElements."Amount Calculation Type" := GradeElements."Amount Calculation Type";
+           EmployeePayElements."Base Pay Elements"       := GradeElements."Base Pay Elements";
+           EmployeePayElements."Percent (%)"             := GradeElements."Percent (%)";
+           EmployeePayElements.Amount                    := GradeElements.Amount;
+           EmployeePayElements."Sorting Order"           := GradeElements."Sorting Order";
+           IF EmployeePayElements.INSERT THEN;
+         UNTIL GradeElements.NEXT = 0;
+      END;
+
+      Grade.RESET;
+      Grade.SETRANGE("Location Code",   "Location Code");
+      Grade.SETRANGE("Salary Plan Code","Salary Plan Code");
+      Grade.SETRANGE("Grade Code",      "Grade Code");
+      IF Grade.FIND('-') THEN
+      BEGIN
+         "Scale of Pay"        := Grade."Scale of Pay";
+         "PF Applicable"       := Grade."PF Applicable";
+         "EPS Applicable"      := Grade."EPS Applicable";
+         "VPF Applicable"      := Grade."VPF Applicable";
+         "ESI Applicable"      := Grade."ESI Applicable";
+         "PT Applicable"       := Grade."PT Applicable";
+         "LWF Applicable"      := Grade."LWF Applicable";
+         "OT Applicable"       := Grade."OT Applicable";
+         "Leave Encashment Applicable" := Grade."Leave Encashment Applicable";
+         "Bonus Applicable"    := Grade."Bonus Applicable";
+         "Gratuity Applicable" := Grade."Gratuity Applicable";
+         "PT Branch Code"      := Grade."PT Branch Code";
+         "Over Time Multiplier" := Grade."Over Time Multiplier";
+         "Employee VPF ( Employee) %" := Grade."Employee VPF ( Employee) %";
+      END;
+    END;
+
+    PROCEDURE "Delete Resigned Employee"@1102155000();
+    VAR
+      DailyAttendance@1000000000 : Record 72080;
+      MonthlyAttendance@1000000001 : Record 72082;
+      ProcessedSalary@1000000002 : Record 72090;
+    BEGIN
+      IF NOT CONFIRM('Are you sure, Do you Want to delete all the Attendance Details <Yes/No>...',FALSE) THEN
+         EXIT;
+
+      IF "Date of Relieving" <> 0D THEN BEGIN
+         IF "Current Status" = "Current Status"::"Current Employee" THEN
+             ERROR('Please Change the Current status as Retirement/Resigned/Terminated/Death');
+      END;
+
+      IF "Date of Relieving" <> 0D THEN BEGIN
+         Status          := Status::Inactive;
+         "Inactive Date" := "Date of Relieving";
+      END;
+
+      IF "Date of Relieving" = 0D THEN BEGIN
+         Status          := Status::Active;
+         "Inactive Date" := 0D;
+      END;
+
+      IF "Date of Relieving" <> 0D THEN BEGIN
+           DailyAttendance.RESET;
+           DailyAttendance.SETRANGE("Location Code", "Location Code");
+           DailyAttendance.SETRANGE("Salary Plan Code","Salary Plan Code");
+           DailyAttendance.SETRANGE("Employee No","No.");
+           DailyAttendance.SETFILTER("Attendance Date",'>%1',"Date of Relieving");
+           IF DailyAttendance.FIND('-') THEN
+              DailyAttendance.DELETEALL;
+
+           MonthlyAttendance.RESET;
+           MonthlyAttendance.SETRANGE("Location Code","Location Code");
+           MonthlyAttendance.SETRANGE("Salary Plan Code","Salary Plan Code");
+           MonthlyAttendance.SETRANGE("Employee No","No.");
+           MonthlyAttendance.SETFILTER(Month,'>%1',DATE2DMY("Date of Relieving",2));
+           MonthlyAttendance.SETFILTER(Year, '>=%1',DATE2DMY("Date of Relieving",3));
+           IF MonthlyAttendance.FIND('-') THEN
+              MonthlyAttendance.DELETEALL;
+
+           MonthlyAttendance.RESET;
+           MonthlyAttendance.SETRANGE("Location Code","Location Code");
+           MonthlyAttendance.SETRANGE("Salary Plan Code","Salary Plan Code");
+           MonthlyAttendance.SETRANGE("Employee No","No.");
+           MonthlyAttendance.SETFILTER(Year,'>%1', DATE2DMY("Date of Relieving",3));
+           IF MonthlyAttendance.FIND('-') THEN
+              MonthlyAttendance.DELETEALL;
+
+           ProcessedSalary.RESET;
+           ProcessedSalary.SETRANGE("Location Code","Location Code");
+           ProcessedSalary.SETRANGE("Salary Plan Code","Salary Plan Code");
+           ProcessedSalary.SETRANGE("Employee No","No.");
+           ProcessedSalary.SETFILTER(Month, '>%1', DATE2DMY("Date of Relieving",2));
+           ProcessedSalary.SETFILTER(Year, '>=%1', DATE2DMY("Date of Relieving",3));
+           IF ProcessedSalary.FIND('-') THEN
+              ProcessedSalary.DELETEALL;
+
+           ProcessedSalary.RESET;
+           ProcessedSalary.SETRANGE("Location Code", "Location Code");
+           ProcessedSalary.SETRANGE("Salary Plan Code","Salary Plan Code");
+           ProcessedSalary.SETRANGE("Employee No","No.");
+           ProcessedSalary.SETFILTER(Year, '>%1', DATE2DMY("Date of Relieving",3));
+           IF ProcessedSalary.FIND('-') THEN
+              ProcessedSalary.DELETEALL;
+      END;
+      MESSAGE('Resigned Employee Deleted..!!');
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,281 @@
+OBJECT Codeunit 71042 Promotion
+{
+  OBJECT-PROPERTIES
+  {
+    Date=14-04-22;
+    Time=19:47:15;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Text000@1102155000 : TextConst 'ENU=Please Set Next Academic Year';
+      Text001@1102155001 : TextConst 'ENU=Promotion already done for this class';
+      Text002@1102155002 : TextConst 'ENU=Please Generate Promotion Suggest';
+      Text003@1102155003 : TextConst 'ENU=Promotion done';
+      Text004@1102155004 : TextConst 'ENU=Students Marks Is not generated for Exam Code %1';
+      Text005@1102155005 : TextConst 'ENU=Please Enter Promotion Percentage';
+      Text006@1102155006 : TextConst 'ENU=Please select the Promotional Weightage for Class %1, Curriculum %2';
+      Text007@1102155007 : TextConst 'ENU=Overal Promotional Weightage should be 100';
+      Text008@1102155008 : TextConst 'ENU=No promoted Class is Found, do you want to Send this Student to Alumni';
+      Text009@1102155009 : TextConst 'ENU=Do you want to update the Student Promotion';
+
+    PROCEDURE "Class Promotion"@1102155000(ClassCode@1102155000 : Code[20]);
+    VAR
+      PromotionHistory@1102155004 : Record 71060;
+      PromotionSuggestion@1102155005 : Record 71059;
+      Student@1102155007 : Record 71046;
+      ClassCard@1102155008 : Record 71006;
+      ClassSection@1102155011 : Record 71015;
+      PromotedClass@1102155012 : Code[10];
+      ClassCard1@1102155013 : Record 71006;
+      AcademicYear1@1102155014 : Record 71904;
+      ClassSubjects@1102155009 : Record 71048;
+      ClassSubjects1@1102155010 : Record 71048;
+      ClassSectionSubjects@1102155016 : Record 71016;
+      ClassSectionSubjects1@1102155017 : Record 71016;
+      EduSetup@1102155001 : Record 71884;
+    BEGIN
+      // Start 08.VIGNESH
+      //ClassSection.GET(ClassCode);
+
+      ClassSection.RESET;
+      ClassSection.SETRANGE(ClassSection."Class Code",ClassCode);
+      IF ClassSection.FINDFIRST THEN;
+
+
+      IF ClassSection.Promoted THEN
+        ERROR(Text001);
+
+      IF EduSetup.GET THEN
+        EduSetup.TESTFIELD("Academic Year");
+
+      PromotedClass := '';
+      ClassCard.RESET;
+      ClassCard.SETCURRENTKEY(Sequence);
+      ClassCard.SETRANGE(Class,ClassSection.Class);
+      ClassCard.SETRANGE(Curriculum,ClassSection.Curriculum);
+      ClassCard.SETRANGE("Academic Year",ClassSection."Academic Year");
+      IF ClassCard.FINDSET THEN BEGIN
+        ClassCard1.RESET;
+        ClassCard1.SETCURRENTKEY(Sequence);
+        ClassCard1.SETRANGE(Sequence,ClassCard.Sequence + 1);
+      //  ClassCard1.SETRANGE(Curriculum,ClassSection.Curriculum);
+        IF ClassCard1.FINDFIRST THEN
+          PromotedClass := ClassCard1.Class
+        ELSE
+          IF NOT CONFIRM(Text008,FALSE) THEN
+            EXIT;
+      END;
+
+      //MESSAGE(EduSetup."Academic Year");
+      //MESSAGE(PromotedClass);
+
+      PromotionSuggestion.RESET;
+      PromotionSuggestion.SETRANGE("Class Code",ClassCode);
+      //PromotionSuggestion.SETFILTER(PromotionSuggestion.Result,'<>%1',PromotionSuggestion.Result::Withheld);
+      IF PromotionSuggestion.FINDSET THEN
+        REPEAT
+          Student.GET(PromotionSuggestion."Student No.");
+       //   MESSAGE(Student."No.");
+       //   MESSAGE('%1',PromotionSuggestion.Result);
+          IF PromotionSuggestion.Result = PromotionSuggestion.Result::Withheld THEN
+            Student."Academic Year" := EduSetup."Academic Year"
+          ELSE
+          BEGIN
+          PromotionHistory.INIT;
+          PromotionHistory.TRANSFERFIELDS(PromotionSuggestion);
+          PromotionHistory."Promoted Academic Year" := EduSetup."Academic Year";
+          IF PromotedClass <> '' THEN BEGIN
+            IF PromotionSuggestion.Result = PromotionSuggestion.Result::Promoted THEN
+              PromotionHistory."Promoted Class" := PromotedClass
+            ELSE
+              IF PromotionSuggestion.Result = PromotionSuggestion.Result::Detained THEN
+                PromotionHistory."Promoted Class" := PromotionSuggestion.Class;
+            PromotionHistory."Promoted Academic Year" := EduSetup."Academic Year";
+          END;
+          PromotionHistory.INSERT;
+
+          IF PromotedClass <> '' THEN BEGIN
+            Student.Class := PromotionHistory."Promoted Class";
+            Student."Previous Class" := PromotionSuggestion.Class;
+            Student."Academic Year" := EduSetup."Academic Year";
+            Student."New Student" := FALSE;
+          END ELSE
+            Student."Student Status" := Student."Student Status"::Alumni;
+          Student."Class Code" :=
+            PromotionHistory."Promoted Class" + '-' + ClassSection.Section + '-' + ClassSection.Curriculum +
+            '-' + EduSetup."Academic Year";
+       //   MESSAGE(Student."Class Code");
+          END;
+          Student.MODIFY;
+
+        UNTIL PromotionSuggestion.NEXT = 0;
+      //ERROR('hi');
+      ClassSection.Promoted := TRUE;
+      ClassSection.MODIFY;
+      IF PromotedClass <> '' THEN BEGIN
+        //IF NOT ClassSection.GET(PromotedClass + '-' + PromotionSuggestion.Section + '-' + PromotionSuggestion.Curriculum
+       //    + '-' + EduSetup."Academic Year")
+          IF NOT ClassSection.GET(PromotedClass + '-' + PromotionSuggestion.Section + '-' + PromotionSuggestion.Curriculum
+              + '-' + EduSetup."Academic Year",PromotedClass)
+          THEN BEGIN
+            ClassSection.INIT;
+            ClassSection.Class := PromotedClass;
+            ClassSection.Section := PromotionSuggestion.Section;
+            ClassSection.Curriculum := PromotionSuggestion.Curriculum;
+            ClassSection."Academic Year" := EduSetup."Academic Year";
+            ClassSection."Class Code" := PromotedClass + '-' + PromotionSuggestion.Section + '-' + PromotionSuggestion.Curriculum
+               + '-' + EduSetup."Academic Year";
+
+            IF ClassSection.INSERT THEN;
+          END;
+        ClassSubjects.RESET;
+        ClassSubjects.SETRANGE(Class,PromotedClass);
+        ClassSubjects.SETRANGE(Curriculum,PromotionSuggestion.Curriculum);
+        ClassSubjects.SETRANGE("Academic Year",EduSetup."Academic Year");
+        IF ClassSubjects.ISEMPTY THEN BEGIN
+          ClassSubjects.RESET;
+          ClassSubjects.SETRANGE(Class,PromotedClass);
+          ClassSubjects.SETRANGE(Curriculum,PromotionSuggestion.Curriculum);
+          ClassSubjects.SETRANGE("Academic Year",PromotionSuggestion."Academic Year");
+          IF ClassSubjects.FINDSET THEN
+            REPEAT
+              ClassSubjects1.INIT;
+              ClassSubjects1.TRANSFERFIELDS(ClassSubjects);
+              ClassSubjects1."Academic Year" := EduSetup."Academic Year";
+              ClassSubjects1.INSERT;
+            UNTIL ClassSubjects.NEXT = 0;
+        END;
+
+        ClassSectionSubjects.RESET;
+        ClassSectionSubjects.SETRANGE("Class Code",ClassSection."Class Code");
+        IF ClassSectionSubjects.ISEMPTY THEN BEGIN
+          ClassSectionSubjects.RESET;
+          ClassSectionSubjects.SETRANGE(Class,PromotedClass);
+          ClassSectionSubjects.SETRANGE(Section,PromotionSuggestion.Section);
+          ClassSectionSubjects.SETRANGE(Curriculum,PromotionSuggestion.Curriculum);
+          ClassSectionSubjects.SETRANGE("Academic Year",PromotionSuggestion."Academic Year");
+          IF ClassSectionSubjects.FINDSET THEN
+            REPEAT
+              ClassSectionSubjects1.INIT;
+              ClassSectionSubjects1.TRANSFERFIELDS(ClassSectionSubjects);
+              ClassSectionSubjects1."Academic Year" := EduSetup."Academic Year";
+              ClassSectionSubjects1."Class Code" := ClassSection."Class Code";
+              IF ClassSectionSubjects1.INSERT THEN;
+            UNTIL ClassSectionSubjects.NEXT = 0;
+        END;
+      END;
+      MESSAGE(Text003);
+      // Stop 08.VIGNESH
+    END;
+
+    PROCEDURE ClassPromotionSuggest@1102155001(ClassCode@1102155000 : Code[20]);
+    VAR
+      PromotionWeightage@1102155004 : Record 71058;
+      MarksLine@1102155005 : Record 71053;
+      PromotionSuggestion@1102155006 : Record 71059;
+      Student@1102155007 : Record 71046;
+      ClassSection@1102155008 : Record 71015;
+      TotalmaxMark@1102155009 : Decimal;
+      TotalMarksObtained@1102155010 : Decimal;
+      TotalPromotionalMarks@1102155011 : Decimal;
+      StudentMarkHeader@1102155012 : Record 71055;
+    BEGIN
+      // Start 09.VIGNESH
+      //ClassSection.GET(ClassCode);
+      ClassSection.RESET;
+      ClassSection.SETRANGE(ClassSection."Class Code",ClassCode);
+      IF ClassSection.FINDFIRST THEN;
+
+      IF ClassSection.Promoted THEN
+        ERROR(Text001);
+
+      PromotionSuggestion.RESET;
+      PromotionSuggestion.SETRANGE("Class Code",ClassCode);
+      IF PromotionSuggestion.FINDSET THEN
+        IF CONFIRM(Text009,FALSE) THEN
+          PromotionSuggestion.DELETEALL;
+
+      IF ClassSection."Promotion Percentage" = 0 THEN
+        ERROR(Text005);
+
+      PromotionWeightage.RESET;
+      PromotionWeightage.SETCURRENTKEY("Class Code","Curriculum Code","Academic Year Code","Exam Type Code");
+      PromotionWeightage.SETRANGE("Class Code",ClassSection.Class);
+      PromotionWeightage.SETRANGE("Curriculum Code",ClassSection.Curriculum);
+      PromotionWeightage.SETRANGE("Academic Year Code",ClassSection."Academic Year");
+      IF PromotionWeightage.ISEMPTY THEN
+        ERROR(Text006,ClassSection.Class,ClassSection.Curriculum)
+      ELSE
+        IF PromotionWeightage.FINDFIRST THEN BEGIN
+          PromotionWeightage.CALCSUMS(Weightage);
+          IF PromotionWeightage.Weightage <> 100 THEN
+            ERROR(Text007);
+        END;
+
+      Student.RESET;
+      Student.SETRANGE("Class Code",ClassCode);
+      Student.SETRANGE("Student Status",Student."Student Status"::Student);
+      IF Student.FINDSET THEN
+        REPEAT
+          TotalPromotionalMarks := 0;
+          PromotionWeightage.RESET;
+          PromotionWeightage.SETCURRENTKEY("Class Code","Curriculum Code","Academic Year Code","Exam Type Code");
+          PromotionWeightage.SETRANGE("Class Code",Student.Class);
+          PromotionWeightage.SETRANGE("Curriculum Code",Student.Curriculum);
+          PromotionWeightage.SETRANGE("Academic Year Code",Student."Academic Year");
+          IF PromotionWeightage.FINDSET THEN
+            REPEAT
+              StudentMarkHeader.RESET;
+              StudentMarkHeader.SETRANGE("Class Code",ClassCode);
+              StudentMarkHeader.SETRANGE("Student No.",Student."No.");
+              StudentMarkHeader.SETRANGE("Exam Type",PromotionWeightage."Exam Type Code");
+              IF StudentMarkHeader.FINDFIRST THEN
+                IF StudentMarkHeader.Average <> 0 THEN
+                  TotalPromotionalMarks += (StudentMarkHeader.Average * 100) / PromotionWeightage.Weightage;
+            UNTIL PromotionWeightage.NEXT = 0;
+
+          PromotionSuggestion.INIT;
+          PromotionSuggestion."Student No." := Student."No.";
+          PromotionSuggestion.Class := Student.Class;
+          PromotionSuggestion.Section := Student.Section;
+          PromotionSuggestion.Curriculum := Student.Curriculum;
+          PromotionSuggestion."Pass %" := ClassSection."Promotion Percentage";
+          PromotionSuggestion."Marks Obtained" := TotalPromotionalMarks;
+          IF TotalPromotionalMarks >= ClassSection."Promotion Percentage" THEN
+            PromotionSuggestion.Result := PromotionSuggestion.Result::Promoted
+          ELSE
+            PromotionSuggestion.Result := PromotionSuggestion.Result::Detained;
+          PromotionSuggestion."Student Name" := Student.Name;
+          PromotionSuggestion."Academic Year" := Student."Academic Year";
+          PromotionSuggestion."Class Code" := PromotionSuggestion.Class + '-' + PromotionSuggestion.Section + '-' +
+            PromotionSuggestion.Curriculum + '-' + PromotionSuggestion."Academic Year";
+          PromotionSuggestion.INSERT;
+        UNTIL Student.NEXT = 0;
+      // Stop 09.VIGNESH
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+        01  08/10/09  KATHIR   Class Promotion()          Code added for Class Promotion
+        02  23/11/09  VIGNESH  Class Promotion()          Section Feild is removed in parameters
+        03  23/11/09  VIGNESH  Class Promotion()          filter Section for class card is removed
+        04  23/11/09  VIGNESH  Class Promotion()          Filed removed in Class Card Set current field
+        05  23/11/09  VIGNESH  Class Promotion()          filter Section for Promotion suggestion is removed
+        06  23/11/09  VIGNESH  Class Promotion()          Filed removed in Class Card Set current field
+        07  23/11/09  VIGNESH  Class Promotion()          filter Section for class card is removed
+    }
+    END.
+  }
+}
+

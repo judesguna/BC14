@@ -1,0 +1,67 @@
+OBJECT Table 71884 Education Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=21-03-14;
+    Time=19:17:10;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Education Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 3   ;   ;Rank Generation No. ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Rank Generation No. }
+    { 4   ;   ;Company             ;Option        ;CaptionML=ENU=Company;
+                                                   OptionCaptionML=ENU=" ,School,College";
+                                                   OptionString=[ ,School,College] }
+    { 5   ;   ;Start Date          ;Date          ;CaptionML=ENU=Start Date }
+    { 6   ;   ;End Date            ;Date          ;CaptionML=ENU=End Date }
+    { 7   ;   ;Task No.            ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Task No. }
+    { 8   ;   ;Announcement No.    ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Announcement No. }
+    { 9   ;   ;Image File Path     ;Text250       ;CaptionML=ENU=Image File Path }
+    { 10  ;   ;XML File Path       ;Text250       ;CaptionML=ENU=XML File Path }
+    { 11  ;   ;Assignment No.      ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Assignment No. }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Admission Posting Date;Date         }
+    { 70123;  ;Promotion Academic Year;Code10     ;TableRelation="Academic Year" }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+        No   Date     Sign          Trigger          Description
+       ------------------------------------------------------------------------------------------
+        01  17/09/09  VIGNESH                        Table Created by Vignesh
+        02  19/10/09  VANDHANA      OnInsert         Code to assign User ID.
+        03  06.01.10  GUNA                           New fields Task No and Announcement No is created
+    }
+    END.
+  }
+}
+

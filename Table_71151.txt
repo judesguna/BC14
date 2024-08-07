@@ -1,0 +1,67 @@
+OBJECT Table 71151 Period Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+
+               EduSetup.GET;
+               "Academic Year" :=  EduSetup."Academic Year";
+             END;
+
+    CaptionML=ENU=Period Header;
+    LookupPageID=Page71151;
+    DrillDownPageID=Page71151;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Starting time       ;Time          ;CaptionML=ENU=Starting time }
+    { 3   ;   ;No.Of Periods/Day   ;Integer       ;CaptionML=ENU=No.Of Periods/Day }
+    { 4   ;   ;Minutes/Period      ;Integer       ;CaptionML=ENU=Minutes/Period }
+    { 5   ;   ;Interval Start Time ;Time          ;CaptionML=ENU=Interval Start Time }
+    { 6   ;   ;Interval End Time   ;Time          ;CaptionML=ENU=Interval End Time }
+    { 7   ;   ;Lunch Start Time    ;Time          ;CaptionML=ENU=Lunch Start Time }
+    { 8   ;   ;Lunch End Time      ;Time          ;CaptionML=ENU=Lunch End Time }
+    { 9   ;   ;Working Days Per Week;Integer      ;CaptionML=ENU=Working Days Per Week }
+    { 10  ;   ;No.Of Periods/Half Day;Integer     ;CaptionML=ENU=No.Of Periods/Half Day }
+    { 11  ;   ;Max Lab Hours/Day   ;Integer       ;CaptionML=ENU=Max Lab Hours/Day }
+    { 12  ;   ;End time            ;Time          ;CaptionML=ENU=End time }
+    { 13  ;   ;Academic Year       ;Code20         }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EduSetup@1102159000 : Record 71884;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

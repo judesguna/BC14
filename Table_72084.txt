@@ -1,0 +1,81 @@
+OBJECT Table 72084 Leave Entitlement
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    LookupPageID=Page72116;
+    DrillDownPageID=Page72116;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup" }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan" }
+    { 3   ;   ;Leave Year Code     ;Code20        ;Editable=No }
+    { 4   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN
+                                                                   Name := Employee."First Name"+' '+Employee.Initials;
+                                                              END;
+
+                                                   SQL Data Type=Variant }
+    { 5   ;   ;Name                ;Text50        ;Editable=No }
+    { 6   ;   ;Probationary        ;Boolean        }
+    { 7   ;   ;Leave Code          ;Code20        ;Editable=No }
+    { 8   ;   ;Leave Opening Balance;Decimal      ;OnValidate=BEGIN
+                                                                CALCFIELDS("Total Leave Eligible for Year", "Total Leave Availed");
+                                                                "Total Leave Balance" := "Leave Opening Balance" + "Total Leave Eligible for Year";
+                                                                "Leave Closing Balance" := ("Total Leave Balance" - ("Total Leave Availed" + "Total Leave Encashed"));
+                                                              END;
+                                                               }
+    { 9   ;   ;Total Leave Eligible for Year;Decimal;
+                                                   FieldClass=FlowField;
+                                                   CalcFormula=Sum("Leave Credited"."No. of Leaves" WHERE (Location Code=FIELD(Location Code),
+                                                                                                           Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                           Employee No=FIELD(Employee No),
+                                                                                                           Leave Code=FIELD(Leave Code),
+                                                                                                           No. of Leaves=FILTER(<>0),
+                                                                                                           Leave Year Code=FIELD(Leave Year Code)));
+                                                   Editable=No }
+    { 10  ;   ;Total Leave Balance ;Decimal       ;Editable=No }
+    { 11  ;   ;Total Leave Availed ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Leave Availed" WHERE (Location Code=FIELD(Location Code),
+                                                                                                             Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                             Leave Code=FIELD(Leave Code),
+                                                                                                             Employee No=FIELD(Employee No),
+                                                                                                             Leave Year Code=FIELD(Leave Year Code)));
+                                                   Editable=No }
+    { 12  ;   ;Total Leave Encashed;Decimal       ;Editable=No }
+    { 13  ;   ;Leave Closing Balance;Decimal      ;OnValidate=BEGIN
+                                                                CALCFIELDS("Total Leave Eligible for Year", "Total Leave Availed");
+                                                                "Total Leave Balance"   := "Leave Opening Balance" + "Total Leave Eligible for Year";
+                                                                "Leave Closing Balance" := ("Total Leave Balance" - ("Total Leave Availed" + "Total Leave Encashed"));
+                                                              END;
+
+                                                   Editable=No }
+    { 14  ;   ;Date Filter         ;Date          ;FieldClass=FlowFilter }
+    { 15  ;   ;Synchronize         ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Leave Year Code,Employee No,Leave Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000000 : Record 5200;
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,1209 @@
+OBJECT Codeunit 71883 Common List
+{
+  OBJECT-PROPERTIES
+  {
+    Date=12-04-18;
+    Time=19:22:58;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      EduSetup@1102155000 : Record 71884;
+
+    PROCEDURE GetClass@1102155000() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155000 : Integer;
+      Class@1102155001 : Record 71041;
+    BEGIN
+      // Start 01.GUNA
+      i := 1;
+      Class.SETCURRENTKEY(Sequence);
+      IF Class.FINDSET THEN
+        REPEAT
+          Ret[i] := Class.Code;
+          Ret[i] += ',' + Class.Description;
+          i := i + 1;
+        UNTIL Class.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 01.GUNA
+    END;
+
+    PROCEDURE GetCurriculum@1102155009() Ret : ARRAY [10] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Curriculum@1102155000 : Record 71042;
+    BEGIN
+      // Start 02.GUNA
+      i := 1;
+      IF Curriculum.FINDSET THEN
+        REPEAT
+          Ret[i] := Curriculum.Code;
+          Ret[i] += ',' + Curriculum.Description;
+          i := i + 1;
+        UNTIL Curriculum.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 02.GUNA
+    END;
+
+    PROCEDURE GetCitizenship@1102155014() Ret : ARRAY [50] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Citizenship@1102155000 : Record 71881;
+    BEGIN
+      // Start 03.GUNA
+      i := 1;
+      IF Citizenship.FINDSET THEN
+        REPEAT
+          Ret[i] := Citizenship.Code;
+          Ret[i] += ',' + Citizenship.Description;
+          i := i + 1;
+        UNTIL Citizenship.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 03.GUNA
+    END;
+
+    PROCEDURE GetMedium@1102155015() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Medium@1102155000 : Record 71880;
+    BEGIN
+      // Start 04.GUNA
+      i := 1;
+      IF Medium.FINDSET THEN
+        REPEAT
+          Ret[i] := Medium.Code;
+          Ret[i] += ',' + Medium.Description;
+          i := i + 1;
+        UNTIL Medium.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 04.GUNA
+    END;
+
+    PROCEDURE GetEnquirySource@1102155016() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      EnquirySource@1102155000 : Record 71883;
+    BEGIN
+      // Start 05.GUNA
+      i := 1;
+      IF EnquirySource.FINDSET THEN
+        REPEAT
+          Ret[i] := EnquirySource.Code;
+          Ret[i] += ',' + EnquirySource.Description;
+          i := i + 1;
+        UNTIL EnquirySource.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 05.GUNA
+    END;
+
+    PROCEDURE GetPostcode@1102155018() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Postcode@1102155000 : Record 225;
+    BEGIN
+      // Start 06.GUNA
+      i := 1;
+      IF Postcode.FINDSET THEN
+        REPEAT
+          Ret[i] := Postcode.Code;
+          Ret[i] += ',' + Postcode.City;
+          i := i + 1;
+        UNTIL Postcode.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 06.GUNA
+    END;
+
+    PROCEDURE GetState@1102155019() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      State@1102155000 : Record 13762;
+    BEGIN
+      // Start 07.GUNA
+      i := 1;
+      IF State.FINDSET THEN
+        REPEAT
+          Ret[i] := State.Code;
+          Ret[i] += ',' + State.Description;
+
+          i := i + 1;
+        UNTIL State.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 07.GUNA
+    END;
+
+    PROCEDURE GetCountry@1102155020() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Country@1102155000 : Record 9;
+    BEGIN
+      // Start 08.GUNA
+      i := 1;
+      IF Country.FINDSET THEN
+        REPEAT
+          Ret[i] := Country.Code;
+          Ret[i] += ',' + Country.Name;
+          i := i + 1;
+        UNTIL Country.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 08.GUNA
+    END;
+
+    PROCEDURE GetEnquiryType@1102155031() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      EnquiryType@1102155000 : Record 71882;
+    BEGIN
+      // Start 09.GUNA
+      i := 1;
+      IF EnquiryType.FINDSET THEN
+        REPEAT
+          Ret[i] := EnquiryType.Code;
+          Ret[i] += ',' + EnquiryType.Description;
+          i := i + 1;
+        UNTIL EnquiryType.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 09.GUNA
+    END;
+
+    PROCEDURE GetRelatives@1102155036() Ret : ARRAY [15] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Relative@1102155000 : Record 5204;
+    BEGIN
+      // Start 10.GUNA
+      i := 1;
+      IF Relative.FINDSET THEN
+        REPEAT
+          Ret[i] := Relative.Code;
+          Ret[i] += ',' + Relative.Description;
+          i := i + 1;
+        UNTIL Relative.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 10.GUNA
+    END;
+
+    PROCEDURE GetPaymentMethod@1102155001() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      PaymentMethod@1102155000 : Record 289;
+    BEGIN
+      // Start 11.GUNA
+      i := 1;
+      IF PaymentMethod.FINDSET THEN
+        REPEAT
+          Ret[i] := PaymentMethod.Code;
+          Ret[i] += ',' + PaymentMethod.Description;
+          i := i + 1;
+        UNTIL PaymentMethod.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 11.GUNA
+    END;
+
+    PROCEDURE GetAcademicYear@1102155003() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      AcademicYear@1102155000 : Record 71904;
+    BEGIN
+      // Start 12.GUNA
+      i := 1;
+      IF AcademicYear.FINDSET THEN
+        REPEAT
+          Ret[i] := AcademicYear.Code;
+          Ret[i] += ',' + AcademicYear.Description;
+          i := i + 1;
+        UNTIL AcademicYear.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 12.GUNA
+    END;
+
+    PROCEDURE GetExamCode@1102155005() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      ExamCode@1102155000 : Record 71903;
+    BEGIN
+      // Start 13.GUNA
+      i := 1;
+      ExamCode.SETCURRENTKEY("Exam Order");
+      IF ExamCode.FINDSET THEN
+        REPEAT
+          Ret[i] := ExamCode.Code;
+          Ret[i] += ',' + ExamCode.Description;
+          i := i + 1;
+        UNTIL ExamCode.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 13.GUNA
+    END;
+
+    PROCEDURE GetEvaluationMethod@1102155008() Ret : ARRAY [15] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      EvaluationMethod@1102155000 : Record 71007;
+    BEGIN
+      // Start 14.GUNA
+      i := 1;
+      IF EvaluationMethod.FINDSET THEN
+        REPEAT
+          Ret[i] := EvaluationMethod.Code;
+          Ret[i] += ',' + EvaluationMethod.Description;
+          i := i + 1;
+        UNTIL EvaluationMethod.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 14.GUNA
+    END;
+
+    PROCEDURE GetCommunity@1102155011() Ret : ARRAY [10] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Community@1102155000 : Record 71890;
+    BEGIN
+      // Start 15.GUNA
+      i := 1;
+      IF Community.FINDSET THEN
+        REPEAT
+          Ret[i] := Community.Code;
+          Ret[i] += ',' + Community.Description;
+          i := i + 1;
+        UNTIL Community.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 15.GUNA
+    END;
+
+    PROCEDURE GetMotherTongue@1102155013() Ret : ARRAY [50] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      MotherTongue@1102155000 : Record 71891;
+    BEGIN
+      // Start 16.GUNA
+      i := 1;
+      IF MotherTongue.FINDSET THEN
+        REPEAT
+          Ret[i] := MotherTongue.Code;
+          Ret[i] += ',' + MotherTongue.Description;
+          i := i + 1;
+        UNTIL MotherTongue.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 16.GUNA
+    END;
+
+    PROCEDURE GetQuota@1102155021() Ret : ARRAY [10] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Quota@1102155000 : Record 71885;
+    BEGIN
+      // Start 17.GUNA
+      i := 1;
+      IF Quota.FINDSET THEN
+        REPEAT
+          Ret[i] := Quota.Code;
+          Ret[i] += ',' + Quota.Description;
+          i := i + 1;
+        UNTIL Quota.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 17.GUNA
+    END;
+
+    PROCEDURE GetFeeClassification@1102155024() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      FeeClassification@1102155000 : Record 71907;
+    BEGIN
+      // Start 18.GUNA
+      i := 1;
+      IF FeeClassification.FINDSET THEN
+        REPEAT
+          Ret[i] := FeeClassification.Code;
+          Ret[i] += ',' + FeeClassification.Description;
+          i := i + 1;
+        UNTIL FeeClassification.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 18.GUNA
+    END;
+
+    PROCEDURE GetBookCategory@1102155028() Ret : ARRAY [50] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      BookCategory@1102155000 : Record 71634;
+    BEGIN
+      // Start 19.GUNA
+      i := 1;
+      IF BookCategory.FINDSET THEN
+        REPEAT
+          Ret[i] := BookCategory.Code;
+          Ret[i] += ',' + BookCategory.Description;
+          i := i + 1;
+        UNTIL BookCategory.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 19.GUNA
+    END;
+
+    PROCEDURE GetLanguage@1102155002() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Language@1102155000 : Record 8;
+    BEGIN
+      // Start 20.GUNA
+      i := 1;
+      IF Language.FINDSET THEN
+        REPEAT
+          Ret[i] := Language.Code;
+          Ret[i] += ',' + Language.Name;
+          i := i + 1;
+        UNTIL Language.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 20.GUNA
+    END;
+
+    PROCEDURE GetSection@1102155007() Ret : ARRAY [10] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Section@1102155000 : Record 71902;
+    BEGIN
+      // Start 21.GUNA
+      i := 1;
+      IF Section.FINDSET THEN
+        REPEAT
+          Ret[i] := Section.Code;
+          Ret[i] += ',' + Section.Description;
+          i := i + 1;
+        UNTIL Section.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 21.GUNA
+    END;
+
+    PROCEDURE GetGrade@1102155012() Ret : ARRAY [10] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Grade@1102155000 : Record 71889;
+    BEGIN
+      // Start 22.GUNA
+      i := 1;
+      IF Grade.FINDSET THEN
+        REPEAT
+          Ret[i] := Grade.Code;
+          Ret[i] += ',' + Grade.Description;
+          i := i + 1;
+        UNTIL Grade.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 22.GUNA
+    END;
+
+    PROCEDURE GetLocation@1102155023() Ret : ARRAY [50] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Location@1102155000 : Record 14;
+    BEGIN
+      // Start 23.GUNA
+      i := 1;
+      IF Location.FINDSET THEN
+        REPEAT
+          Ret[i] := Location.Code;
+          Ret[i] += ',' + Location.Name;
+          i := i + 1;
+        UNTIL Location.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 23.GUNA
+    END;
+
+    PROCEDURE GetFeeComponent@1102155027() Ret : ARRAY [20] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      FeeComponents@1102155000 : Record 71905;
+    BEGIN
+      // Start 24.GUNA
+      i := 1;
+      IF FeeComponents.FINDSET THEN
+        REPEAT
+          Ret[i] := FeeComponents.Code;
+          Ret[i] += ',' + FeeComponents.Description;
+          i := i + 1;
+        UNTIL FeeComponents.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 24.GUNA
+    END;
+
+    PROCEDURE GetClassGroup@1102155032() Ret : ARRAY [20] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      ClassGroup@1102155000 : Record 71045;
+    BEGIN
+      // Start 25.GUNA
+      i := 1;
+      IF ClassGroup.FINDSET THEN
+        REPEAT
+          Ret[i] := ClassGroup.Code;
+          Ret[i] += ',' + ClassGroup.Description;
+          i := i + 1;
+        UNTIL ClassGroup.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 25.GUNA
+    END;
+
+    PROCEDURE GetFeeType@1102155004() Ret : ARRAY [25] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      FeeType@1102155000 : Record 71906;
+    BEGIN
+      // Start 26.GUNA
+      i := 1;
+      IF FeeType.FINDSET THEN
+        REPEAT
+          Ret[i] := FeeType.Code;
+          Ret[i] += ',' + FeeType.Description;
+          i := i + 1;
+        UNTIL FeeType.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 26.GUNA
+    END;
+
+    PROCEDURE GetClassSection@1102155006() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      ClassSection@1102155000 : Record 71015;
+    BEGIN
+      // Start 27.GUNA
+      i := 1;
+      IF ClassSection.FINDSET THEN
+        REPEAT
+          Ret[i] := ClassSection.Class;
+          Ret[i] += ',' + ClassSection.Section;
+          Ret[i] += ClassSection.Curriculum;
+          i := i + 1;
+        UNTIL ClassSection.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 27.GUNA
+    END;
+
+    PROCEDURE GetKeyStages@1102155022() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      KeyStages@1102155000 : Record 71044;
+    BEGIN
+      // Start 28.GUNA
+      i := 1;
+      IF KeyStages.FINDSET THEN
+        REPEAT
+          Ret[i] := KeyStages."Divison Code";
+          Ret[i] += ',' + KeyStages.Code;
+          i := i + 1;
+        UNTIL KeyStages.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 28.GUNA
+    END;
+
+    PROCEDURE GetSubject@1102155029() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Subject@1102155000 : Record 71004;
+    BEGIN
+      // Start 29.GUNA
+      i := 1;
+      IF Subject.FINDSET THEN
+        REPEAT
+          Ret[i] := Subject.Code;
+          Ret[i] += ',' +Subject.Description;
+          i := i + 1;
+        UNTIL Subject.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 29.GUNA
+    END;
+
+    PROCEDURE GetChapter@1102155010() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      ChapterMaster@1102155000 : Record 71901;
+    BEGIN
+      // Start 30.GUNA
+      i := 1;
+      IF ChapterMaster.FINDSET THEN
+        REPEAT
+          Ret[i] := ChapterMaster.Code;
+          Ret[i] += ',' + ChapterMaster.Description;
+          i := i + 1;
+        UNTIL ChapterMaster.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 30.GUNA
+    END;
+
+    PROCEDURE GetCurrentYear@1102155017() Ret : Text[50];
+    VAR
+      EducationSetup@1102155000 : Record 71884;
+    BEGIN
+      // Start 31.GUNA
+      EducationSetup.GET;
+      Ret := EducationSetup."Academic Year";
+      Ret += ';' + FORMAT(EducationSetup."Start Date") + ';' + FORMAT(EducationSetup."End Date");
+      // Stop 31.GUNA
+    END;
+
+    PROCEDURE GetCourse@1102155026() Ret : ARRAY [50] OF Text[100];
+    VAR
+      Course@1102155000 : Record 71351;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 32.GUNA
+      i := 1;
+      IF Course.FINDSET THEN
+        REPEAT
+          Ret[i] := Course.Code;
+          Ret[i] += ',' + Course.Description;
+          i := i + 1;
+        UNTIL Course.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 32.GUNA
+    END;
+
+    PROCEDURE GetUniversity@1102155033() Ret : ARRAY [20] OF Text[100];
+    VAR
+      University@1102155000 : Record 71280;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 33.GUNA
+      i := 1;
+      IF University.FINDSET THEN
+        REPEAT
+          Ret[i] := University.Code;
+          Ret[i] += ',' + University.Description;
+          i := i + 1;
+        UNTIL University.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 33.GUNA
+    END;
+
+    PROCEDURE GetPrequalification@1102155037() Ret : ARRAY [50] OF Text[100];
+    VAR
+      Prequalification@1102155000 : Record 71276;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 34.GUNA
+      i := 1;
+      IF Prequalification.FINDSET THEN
+        REPEAT
+          Ret[i] := Prequalification.Code;
+          Ret[i] += ',' + Prequalification.Description;
+          i := i + 1;
+        UNTIL Prequalification.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 34.GUNA
+    END;
+
+    PROCEDURE GetSemester@1102155040() Ret : ARRAY [10] OF Text[100];
+    VAR
+      Semester@1102155000 : Record 71354;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 35.GUNA
+      i := 1;
+      IF Semester.FINDSET THEN
+        REPEAT
+          Ret[i] := Semester.Code;
+          Ret[i] += ',' + Semester.Description;
+          i := i + 1;
+        UNTIL Semester.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 35.GUNA
+    END;
+
+    PROCEDURE GetReligion@1102155043() Ret : ARRAY [20] OF Text[100];
+    VAR
+      Religion@1102155000 : Record 71886;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 36.GUNA
+      i := 1;
+      IF Religion.FINDSET THEN
+        REPEAT
+          Ret[i] := Religion.Code;
+          Ret[i] += ',' + Religion.Description;
+          i := i + 1;
+        UNTIL Religion.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 36.GUNA
+    END;
+
+    PROCEDURE GetCaste@1102155045() Ret : ARRAY [100] OF Text[100];
+    VAR
+      Caste@1102155000 : Record 71887;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 37.GUNA
+      i := 1;
+      IF Caste.FINDSET THEN
+        REPEAT
+          Ret[i] := Caste.Code;
+          Ret[i] += ',' + Caste.Description;
+          i := i + 1;
+        UNTIL Caste.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 37.GUNA
+    END;
+
+    PROCEDURE GetSubjectType@1102155030() Ret : ARRAY [10] OF Text[100];
+    VAR
+      SubjectType@1102155000 : Record 71360;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 38.GUNA
+      i := 1;
+      IF SubjectType.FINDSET THEN
+        REPEAT
+          Ret[i] := SubjectType.Code;
+          Ret[i] += ',' + SubjectType.Description;
+          i := i + 1;
+        UNTIL SubjectType.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 38.GUNA
+    END;
+
+    PROCEDURE GetExam@1102155034() Ret : ARRAY [50] OF Text[100];
+    VAR
+      ExamMethods@1102155000 : Record 71903;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 39.GUNA
+      i := 1;
+      IF ExamMethods.FINDSET THEN
+        REPEAT
+          Ret[i] := ExamMethods.Code;
+          Ret[i] += ',' + ExamMethods.Description;
+          i := i + 1;
+        UNTIL ExamMethods.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 39.GUNA
+    END;
+
+    PROCEDURE CheckPostcode@1102155035(Postcode@1102155001 : Code[10];City@1102155002 : Text[30]) Ret : Boolean;
+    VAR
+      PostCode1@1102155000 : Record 225;
+    BEGIN
+      // Start 40.GUNA
+      IF NOT PostCode1.GET(Postcode,City) THEN BEGIN
+        PostCode1.Code := Postcode;
+        PostCode1.City := City;
+        PostCode1.INSERT;
+        Ret := TRUE;
+      END;
+      // Stop 40.GUNA
+    END;
+
+    PROCEDURE UpdateTimeTable@1102155025(EntryNo@1102155000 : Integer;AttendanceNo@1102155001 : Code[20]) Ret : Boolean;
+    VAR
+      TimeTableLedger@1102155002 : Record 71517;
+      "TimeTable-School"@1102155003 : Record 71155;
+    BEGIN
+      // Start 41.GUNA
+      EduSetup.GET;
+      IF EduSetup.Company = EduSetup.Company::College THEN BEGIN
+        IF TimeTableLedger.GET(EntryNo) THEN BEGIN
+          TimeTableLedger.VALIDATE(TimeTableLedger."Attendance Code",AttendanceNo);
+          IF TimeTableLedger.MODIFY THEN
+            EXIT(TRUE);
+        END;
+      END ELSE
+        IF EduSetup.Company = EduSetup.Company::School THEN
+          IF "TimeTable-School".GET(EntryNo) THEN BEGIN
+            "TimeTable-School".VALIDATE("TimeTable-School"."Attendance Code",AttendanceNo);
+            IF "TimeTable-School".MODIFY THEN
+              EXIT(TRUE);
+          END;
+      // Stop 41.GUNA
+    END;
+
+    PROCEDURE UpdateTimeTableMark@1102155038(EntryNo@1102155001 : Integer;MarkNo@1102155000 : Code[20]) Ret : Boolean;
+    VAR
+      TimeTableLedger@1102155002 : Record 71517;
+    BEGIN
+      // Start 42.GUNA
+      IF TimeTableLedger.GET(EntryNo) THEN BEGIN
+        TimeTableLedger."Internal Exam Code" := MarkNo;
+        IF TimeTableLedger.MODIFY THEN
+          EXIT(TRUE);
+      END;
+      // Stop 42.GUNA
+    END;
+
+    PROCEDURE GetBookAvail@1102155039(UserID@1102155003 : Code[20];BookNo@1102155000 : Code[20]) Ret : ARRAY [3] OF Boolean;
+    VAR
+      Book@1102155001 : Record 71630;
+      Accession@1102155002 : Record 71631;
+      Accession1@1102155004 : Record 71631;
+    BEGIN
+      // Start 43.GUNA
+      IF Book.GET(BookNo) THEN BEGIN
+        Accession.RESET;
+        Accession.SETRANGE("Book No.",BookNo);
+        Accession.SETRANGE("Advance Booked",TRUE);
+        Accession.SETRANGE("Booked By",UserID);
+        IF NOT Accession.FINDFIRST THEN BEGIN
+          Ret[1] := TRUE;
+          Book.CALCFIELDS("Available Count");
+          IF Book."Available Count" > 0 THEN
+            Ret[2] := TRUE;
+          Accession1.RESET;
+          Accession1.SETRANGE("Book No.",BookNo);
+          Accession1.SETRANGE("Advance Booked",FALSE);
+          IF Accession1.FINDSET THEN
+            Ret[3] := TRUE;
+        END;
+      END;
+      // Stop 43.GUNA
+    END;
+
+    PROCEDURE GetInternalMax@1102155041(Course@1102155000 : Code[20];Semester@1102155001 : Code[10];Section@1102155002 : Code[10];AcademicYear@1102155003 : Code[10];Subject@1102155004 : Code[20];ExamCode@1102155005 : Code[20]) Ret : Decimal;
+    VAR
+      CourseSubjExamMethod@1102155006 : Record 71384;
+    BEGIN
+      // Start 44.GUNA
+      CourseSubjExamMethod.RESET;
+      CourseSubjExamMethod.SETCURRENTKEY(Course,Semester,Section,"Academic year","Subject Code","Exam Method");
+      CourseSubjExamMethod.SETRANGE(Course,Course);
+      CourseSubjExamMethod.SETRANGE(Semester,Semester);
+      CourseSubjExamMethod.SETRANGE(Section,Section);
+      CourseSubjExamMethod.SETRANGE("Academic year",AcademicYear);
+      CourseSubjExamMethod.SETRANGE("Subject Code",Subject);
+      CourseSubjExamMethod.SETRANGE("Exam Method",ExamCode);
+      IF CourseSubjExamMethod.FINDFIRST THEN
+        Ret := CourseSubjExamMethod.Maximum;
+      // Stop 44.GUNA
+    END;
+
+    PROCEDURE GetMyStudents@1102155042(FacultyCode@1102155000 : Code[20]) Ret : Text[100];
+    VAR
+      FacultySubjects@1102155011 : Record 71515;
+      Student@1102155010 : Record 71355;
+      StudentSubjects@1102155009 : Record 71359;
+      EduSetup1@1102155008 : Record 71884;
+      XMLFile@1102155004 : File;
+      FLName@1102155002 : Text[250];
+      StudentTemp@1102155001 : TEMPORARY Record 71355;
+      Addtext@1102155012 : Text[250];
+      TestStream@1102155005 : OutStream;
+      StudentXML@1102155006 : XMLport 51000;
+      CollStud@1102155007 : Record 71355;
+    BEGIN
+      // Start 01.VIGNESH
+      StudentTemp.RESET;
+      StudentTemp.DELETEALL;
+
+      EduSetup1.GET;
+      EduSetup1.TESTFIELD("XML File Path");
+      // Stop 01.VIGNESH
+      EduSetup1.GET;
+      FacultySubjects.RESET;
+      FacultySubjects.SETRANGE("Faculty Code",FacultyCode);
+      IF FacultySubjects.FINDSET(FALSE,FALSE) THEN
+        REPEAT
+          StudentSubjects.RESET;
+          StudentSubjects.SETRANGE(Course,FacultySubjects."Course Code");
+          StudentSubjects.SETRANGE(Semester,FacultySubjects."Semester Code");
+          StudentSubjects.SETRANGE(Section,FacultySubjects."Section Code");
+          StudentSubjects.SETRANGE("Subject Code",FacultySubjects."Subject Code");
+          IF StudentSubjects.FINDSET(FALSE,FALSE) THEN
+            REPEAT
+              IF Student.GET(StudentSubjects."Student No.") THEN
+                Student.MARK(TRUE);
+            UNTIL StudentSubjects.NEXT = 0;
+        UNTIL FacultySubjects.NEXT = 0;
+
+      Student.MARKEDONLY(TRUE);
+      FLName := EduSetup1."XML File Path" + FacultyCode + '-MyStudents.xml';
+
+      IF FILE.EXISTS(FLName) THEN
+        FILE.ERASE(FLName);
+
+      XMLFile.CREATE(FLName);
+      XMLFile.CREATEOUTSTREAM(TestStream);
+      IF Student.FINDSET THEN
+        XMLPORT.EXPORT(51000,TestStream,Student)
+      ELSE
+        XMLPORT.EXPORT(51000,TestStream,Student);
+      XMLFile.CLOSE;
+      Ret := FacultyCode + '-MyStudents.xml';
+    END;
+
+    PROCEDURE AddLinks@1102155044(TableID@1102155000 : Integer;Key@1102155004 : Text[100];FileLink@1102155001 : Text[250]) Ret : Boolean;
+    VAR
+      ReordLink@1102155002 : Record 2000000068;
+      RecRef@1102155003 : RecordRef;
+      RecId@1102155005 : RecordID;
+    BEGIN
+      RecRef.OPEN(TableID);
+      EVALUATE(RecId,FORMAT(TableID) + ': ' + FORMAT(Key));
+      RecRef.GET(RecId);
+      RecRef.ADDLINK(FileLink);
+      RecRef.MODIFY;
+    END;
+
+    PROCEDURE GetLinks@1102155047(TableID@1102155001 : Integer;Key@1102155000 : Text[100]) Ret : ARRAY [50] OF Text[1024];
+    VAR
+      ReordLink@1102155004 : Record 2000000068;
+      RecRef@1102155003 : RecordRef;
+      RecId@1102155002 : RecordID;
+      i@1102155005 : Integer;
+    BEGIN
+      i := 1;
+      EVALUATE(RecId,FORMAT(TableID) + ': ' + FORMAT(Key));
+      ReordLink.RESET;
+      ReordLink.SETRANGE("Record ID",RecId);
+      IF ReordLink.FINDSET THEN
+        REPEAT
+          Ret[i] := ReordLink.URL1;
+          i += 1;
+        UNTIL ReordLink.NEXT = 0
+      ELSE
+        Ret[i] := '#EOF';
+    END;
+
+    PROCEDURE DelLinks@1102155046(TableID@1102155002 : Integer;Key@1102155001 : Text[100];FileLink@1102155000 : Text[250]) Ret : Boolean;
+    VAR
+      ReordLink@1102155005 : Record 2000000068;
+      RecRef@1102155004 : RecordRef;
+      RecId@1102155003 : RecordID;
+    BEGIN
+      EVALUATE(RecId,FORMAT(TableID) + ': ' + FORMAT(Key));
+      ReordLink.RESET;
+      ReordLink.SETRANGE("Record ID",RecId);
+      ReordLink.SETRANGE(URL1,FileLink);
+      IF ReordLink.FINDFIRST THEN BEGIN
+        ReordLink.DELETE;
+        Ret := TRUE;
+      END;
+    END;
+
+    PROCEDURE GetFaculty@1102155048(Course@1102155000 : Code[20];Semester@1102155001 : Code[10];Section@1102155002 : Code[10];Subject@1102155003 : Code[20];VAR FacultyName@1102155004 : Text[100]) Ret : Code[20];
+    VAR
+      FacultySubject@1102155005 : Record 71515;
+    BEGIN
+      EduSetup.GET;
+      FacultySubject.RESET;
+      FacultySubject.SETCURRENTKEY("Course Code","Semester Code","Section Code","Subject Code","Academic Year");
+      FacultySubject.SETRANGE("Course Code",Course);
+      FacultySubject.SETRANGE("Semester Code",Semester);
+      FacultySubject.SETRANGE("Section Code",Section);
+      FacultySubject.SETRANGE("Subject Code",Subject);
+      FacultySubject.SETRANGE("Academic Year",EduSetup."Academic Year");
+      IF FacultySubject.FINDFIRST THEN BEGIN
+        Ret := FacultySubject."Faculty Code";
+        FacultyName := FacultySubject."Faculty Name";
+      END;
+    END;
+
+    PROCEDURE GetSeverity@1102155049() Ret : ARRAY [50] OF Text[100];
+    VAR
+      SeverityRec@1102155000 : Record 71915;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 01.GUNA
+      i := 1;
+      IF SeverityRec.FINDSET THEN
+        REPEAT
+          Ret[i] := SeverityRec.Code;
+          Ret[i] += ',' + SeverityRec.Description;
+          i := i + 1;
+        UNTIL SeverityRec.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 01.GUNA
+    END;
+
+    PROCEDURE GetAction@1102155050() Ret : ARRAY [50] OF Text[100];
+    VAR
+      ActionTaken@1102155000 : Record 71917;
+      i@1102155001 : Integer;
+    BEGIN
+      // Start 01.GUNA
+      i := 1;
+      IF ActionTaken.FINDSET THEN
+        REPEAT
+          Ret[i] := ActionTaken.Code;
+          Ret[i] += ',' + ActionTaken.Description;
+          i := i + 1;
+        UNTIL ActionTaken.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 01.GUNA
+    END;
+
+    PROCEDURE GetYearList@1102155051() Ret : ARRAY [6] OF Code[10];
+    VAR
+      AcademicYear@1102155000 : Record 71904;
+      i@1102155001 : Integer;
+    BEGIN
+      AcademicYear.ASCENDING(FALSE);
+      i := 1;
+      IF AcademicYear.FINDFIRST THEN
+        REPEAT
+          Ret[i] := AcademicYear.Code;
+          i := i + 1;
+        UNTIL AcademicYear.NEXT = 0;
+      Ret[i] := '#EOF';
+    END;
+
+    PROCEDURE GetMaxMark@1102155052(Class@1102155001 : Code[20];Curriculum@1102155002 : Code[20];AcademicYear@1102155003 : Code[10];Subject@1102155004 : Code[20]) Ret : Decimal;
+    VAR
+      ClassSubjects@1102155000 : Record 71048;
+    BEGIN
+      ClassSubjects.RESET;
+      ClassSubjects.SETCURRENTKEY(Class,Curriculum,"Academic Year",Subject);
+      ClassSubjects.SETRANGE(Class,Class);
+      ClassSubjects.SETRANGE(Curriculum,Curriculum);
+      ClassSubjects.SETRANGE("Academic Year",AcademicYear);
+      ClassSubjects.SETRANGE(Subject,Subject);
+      IF ClassSubjects.FINDFIRST THEN
+        EXIT(ClassSubjects."Maximum Mark");
+    END;
+
+    PROCEDURE GetStudDivision@1102155053() Ret : ARRAY [100] OF Code[70];
+    VAR
+      StudentDivision@1102155001 : Record 71076;
+      i@1102155000 : Integer;
+    BEGIN
+      // Start 01.GUNA
+      i := 1;
+      IF StudentDivision.FINDSET THEN
+        REPEAT
+          Ret[i] := StudentDivision.Code;
+          Ret[i] += ',' + StudentDivision.Description;
+          i := i + 1;
+        UNTIL StudentDivision.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 01.GUNA
+    END;
+
+    PROCEDURE CheckClassTeacher@1102155054(EmpCode@1102155000 : Code[20]) Emp : Code[20];
+    VAR
+      ClassSec@1102155001 : Record 71015;
+    BEGIN
+      CLEAR(Emp);
+      EduSetup.GET;
+      ClassSec.RESET;
+      ClassSec.SETRANGE(ClassSec."Academic Year",EduSetup."Academic Year");
+      ClassSec.SETRANGE(ClassSec."Class Teacher",EmpCode);
+      IF ClassSec.FINDFIRST THEN BEGIN
+        Emp := ClassSec."Class Code";
+        EXIT(Emp );
+      END ELSE BEGIN
+        Emp := '#EOF';
+        EXIT(Emp);
+      END
+    END;
+
+    PROCEDURE GetUnit@1102155059() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155000 : Integer;
+      "Unit Master"@1102155001 : Record 71900;
+    BEGIN
+      // Start 30.GUNA
+      i:=1;
+      IF "Unit Master".FINDSET THEN
+      REPEAT
+        Ret[i]:="Unit Master".Code;
+        Ret[i]+= ','+"Unit Master".Description;
+        i:=i+1;
+      UNTIL "Unit Master".NEXT=0;
+      Ret[i]:='#EOF';
+      // Stop 30.GUNA
+    END;
+
+    PROCEDURE ChangePassword@1102155055(UserSession@1102155000 : Code[20];OldPwd@1102155001 : Text[30];NewPwd@1102155002 : Text[30]) Flag : Boolean;
+    VAR
+      Portalrec@1102155003 : Record 71895;
+    BEGIN
+      Flag := FALSE;
+      Portalrec.RESET;
+      IF Portalrec.GET(UserSession) THEN BEGIN
+        IF Portalrec.Password = OldPwd THEN BEGIN
+          Portalrec.Password := NewPwd;
+          IF Portalrec.MODIFY THEN BEGIN
+            Flag := TRUE;
+            EXIT(Flag);
+          END ELSE
+            EXIT(Flag);
+        END ELSE
+        EXIT(Flag);
+      END ELSE
+        EXIT(Flag);
+    END;
+
+    PROCEDURE SuperMark@1102155056(SuperCode@1102155000 : Code[20]) Ret : Boolean;
+    VAR
+      AcaSetup@1102155001 : Record 71040;
+    BEGIN
+      AcaSetup.RESET;
+      IF AcaSetup.GET THEN BEGIN
+        IF AcaSetup."Mark Super User" = SuperCode THEN BEGIN
+          Ret := TRUE;
+          EXIT(Ret)
+        END ELSE
+          EXIT(Ret);
+      END ELSE
+        EXIT(Ret);
+    END;
+
+    PROCEDURE GetClassCode@1102155057() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      ClassSection@1102155000 : Record 71015;
+    BEGIN
+      // Start 27.GUNA
+      i := 1;
+      IF ClassSection.FINDSET THEN
+        REPEAT
+          Ret[i] := ClassSection."Class Code";
+          Ret[i] += ',' +ClassSection."Class Code";
+        //  Ret[i] += ',' + ClassSection.Section;
+          i := i + 1;
+        UNTIL ClassSection.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 27.GUNA
+    END;
+
+    PROCEDURE GetClassSectionAscTT@1102155060() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      ClassSection@1102155000 : Record 71015;
+    BEGIN
+      // Start 27.GUNA
+      i := 1;
+      EduSetup.GET;
+      ClassSection.RESET;
+      ClassSection.SETRANGE(ClassSection."Academic Year",EduSetup."Academic Year");
+      IF ClassSection.FINDSET THEN
+        REPEAT
+          Ret[i] := ClassSection."Class Code";
+          Ret[i] += ',' +ClassSection.Class;
+          Ret[i] += ',' + ClassSection.Section;
+          i := i + 1;
+        UNTIL ClassSection.NEXT = 0;
+      Ret[i] := '#EOF';
+
+      // Stop 27.GUNA
+    END;
+
+    PROCEDURE GetPassMark@1102159000(Class@1102155001 : Code[20];Curriculum@1102155002 : Code[20];AcademicYear@1102155003 : Code[10];Subject@1102155004 : Code[20]) Ret : Decimal;
+    VAR
+      ClassSubjects@1102155000 : Record 71048;
+    BEGIN
+      ClassSubjects.RESET;
+      ClassSubjects.SETCURRENTKEY(Class,Curriculum,"Academic Year",Subject);
+      ClassSubjects.SETRANGE(Class,Class);
+      ClassSubjects.SETRANGE(Curriculum,Curriculum);
+      ClassSubjects.SETRANGE("Academic Year",AcademicYear);
+      ClassSubjects.SETRANGE(Subject,Subject);
+      IF ClassSubjects.FINDFIRST THEN
+        EXIT(ClassSubjects."Pass Mark");
+    END;
+
+    PROCEDURE GetEmpAscTT@1102159001() Ret : ARRAY [500] OF Text[100];
+    VAR
+      i@1102155001 : Integer;
+      Emp@1102155000 : Record 71091;
+    BEGIN
+      // Start 27.GUNA
+      i := 1;
+      EduSetup.GET;
+      Emp.RESET;
+      //Emp.SETRANGE(Emp.Status,Emp.Status::Active);
+      Emp.SETFILTER(Emp."Employee Category",'%1|%2',
+                    Emp."Employee Category"::"Staff Permanent" ,Emp."Employee Category"::"Staff Temporary" );
+      IF Emp.FINDSET THEN
+        REPEAT
+          Ret[i] := Emp."Employee No." ;
+          Ret[i] += ',' + Emp.Name;
+         // Ret[i] += ',' +Emp."Last Name";
+          i := i + 1;
+        UNTIL Emp.NEXT = 0;
+      Ret[i] := '#EOF';
+      // Stop 27.GUNA
+    END;
+
+    PROCEDURE GetEvents@1102159002() Ret : ARRAY [100] OF Text[100];
+    VAR
+      i@1102159000 : Integer;
+      EventMaster@1102159001 : Record 71090;
+    BEGIN
+      i:=1;
+      IF EventMaster.FINDSET THEN
+      REPEAT
+        Ret[i] := EventMaster.Code;
+        Ret[i]+= ','+ EventMaster.Description;
+        Ret[i]+= ','+ FORMAT(EventMaster.IsSportsAndGames);
+        i:=i+1;
+      UNTIL EventMaster.NEXT=0;
+      Ret[i]:='#EOF';
+    END;
+
+    PROCEDURE CheckStateName@1000000000(StateName@1000000000 : Text[50]) StateCode : Text[10];
+    BEGIN
+    END;
+
+    PROCEDURE CreatePayment@1000000001(StudentNo@1000000000 : Code[20];Amt@1000000001 : Decimal;PayRef@1000000002 : Text[30];Postingdate@1000000007 : Date) DocNo : Code[20];
+    VAR
+      GenJnlLine@1000000003 : Record 81;
+      FeeSetup@1000000004 : Record 71072;
+      LineNo@1000000005 : Integer;
+      GenJnlBatch@1000000006 : Record 232;
+      NoSeriesMgt@1000000008 : Codeunit 396;
+    BEGIN
+      FeeSetup.GET;
+      GenJnlLine.RESET;
+      GenJnlLine.SETRANGE("Journal Template Name",FeeSetup."Fee Receipt Template");
+      GenJnlLine.SETRANGE("Journal Batch Name",FeeSetup."Fee Receipt Batch");
+      IF GenJnlLine.FINDLAST THEN
+        LineNo := GenJnlLine."Line No.";
+
+      GenJnlBatch.GET(FeeSetup."Fee Receipt Template",FeeSetup."Fee Receipt Batch");
+
+      GenJnlLine.INIT;
+      GenJnlLine."Journal Template Name" := FeeSetup."Fee Receipt Template";
+      GenJnlLine."Journal Batch Name" :=  FeeSetup."Fee Receipt Batch";
+      GenJnlLine."Line No." := LineNo + 10000;
+      GenJnlLine."Posting Date" := Postingdate;
+      GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
+      GenJnlLine."Document No." := NoSeriesMgt.GetNextNo(GenJnlBatch."No. Series",GenJnlLine."Posting Date",TRUE);
+      GenJnlLine."Cheque No." := PayRef;
+      GenJnlLine."Account Type" := GenJnlLine."Account Type"::Customer;
+      GenJnlLine.VALIDATE("Account No.",StudentNo);
+      GenJnlLine.VALIDATE(Amount,-Amt);
+      GenJnlLine."Bal. Account Type" := GenJnlBatch."Bal. Account Type";
+      GenJnlLine.VALIDATE("Bal. Account No.",GenJnlBatch."Bal. Account No.");
+      GenJnlLine.INSERT;
+      EXIT(GenJnlLine."Document No.");
+    END;
+
+    PROCEDURE GetCoCurricularActivities@1000000002() Ret : ARRAY [100] OF Text[150];
+    VAR
+      CoCurricularActivities@1000000000 : Record 71892;
+      i@1000000001 : Integer;
+    BEGIN
+      // Co-curricular activities list by Sameer
+      i:=1;
+      IF CoCurricularActivities.FINDSET THEN
+      REPEAT
+        Ret[i] := CoCurricularActivities.Code;
+        Ret[i]+= ','+ CoCurricularActivities.Description;
+        i:=i+1;
+      UNTIL CoCurricularActivities.NEXT=0;
+      Ret[i]:='#EOF';
+    END;
+
+    BEGIN
+    {
+         No     Date       Sign          Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+        01    02.11.09     GUNA       GetClass()            To return all class master values to .NET
+        02    02.11.09     GUNA       GetCurriculum()       To return all CURRICULUM master values to .NET
+        03    02.11.09     GUNA       GetCitizenship()      To return all CITIZENSHIP master values to .NET
+        04    02.11.09     GUNA       GetMedium()           To return all MEDIUM master values to .NET
+        05    02.11.09     GUNA       GetEnquirySource()    To return all ENQUIRY SOURCE master values to .NET
+        06    02.11.09     GUNA       GetPostcode()         To return all POSTCODE master values to .NET
+    }
+    END.
+  }
+}
+

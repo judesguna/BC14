@@ -1,0 +1,84 @@
+OBJECT Table 72114 IF Form B Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=IF Form B Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Form B Id           ;Code20        ;CaptionML=ENU=Page B Id }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Month               ;Integer       ;CaptionML=ENU=Month;
+                                                   MinValue=0;
+                                                   MaxValue=12 }
+    { 5   ;   ;Year                ;Integer       ;CaptionML=ENU=Year;
+                                                   MinValue=0;
+                                                   MaxValue=9999 }
+    { 6   ;   ;Total No of Employees;Integer      ;CaptionML=ENU=Total No of Employees }
+    { 7   ;   ;Basic Wages         ;Decimal       ;OnValidate=BEGIN
+                                                                VALIDATE("Total Amount");
+                                                              END;
+
+                                                   CaptionML=ENU=Basic Wages }
+    { 8   ;   ;D.A Amount          ;Decimal       ;OnValidate=BEGIN
+                                                                VALIDATE("Total Amount");
+                                                              END;
+
+                                                   CaptionML=ENU=D.A Amount }
+    { 9   ;   ;Over Time Amount    ;Decimal       ;OnValidate=BEGIN
+                                                                VALIDATE("Total Amount");
+                                                              END;
+
+                                                   CaptionML=ENU=Over Time Amount }
+    { 10  ;   ;Bonus Amount        ;Decimal       ;OnValidate=BEGIN
+                                                                VALIDATE("Total Amount");
+                                                              END;
+
+                                                   CaptionML=ENU=Bonus Amount }
+    { 11  ;   ;Total Amount        ;Decimal       ;OnValidate=BEGIN
+                                                                "Total Amount" := "Basic Wages" + "D.A Amount" + "Over Time Amount" + "Bonus Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Total Amount;
+                                                   Editable=No }
+    { 12  ;   ;Fine Amount         ;Decimal       ;CaptionML=ENU=Fine Amount }
+    { 13  ;   ;Other Deductions    ;Decimal       ;CaptionML=ENU=Other Deductions }
+    { 14  ;   ;Amount Actually Paid;Decimal       ;CaptionML=ENU=Amount Actually Paid }
+    { 15  ;   ;Balance Due to the Employee;Decimal;CaptionML=ENU=Balance Due to the Employee }
+    { 16  ;   ;Remarks             ;Text50        ;CaptionML=ENU=Remarks }
+  }
+  KEYS
+  {
+    {    ;Form B Id,Location Code,Salary Plan Code,Month,Year;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

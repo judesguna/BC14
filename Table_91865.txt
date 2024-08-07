@@ -1,0 +1,34 @@
+OBJECT Table 91865 Course and Stream
+{
+  OBJECT-PROPERTIES
+  {
+    Date=15-03-18;
+    Time=10:03:00;
+    Modified=Yes;
+    Version List=EDU;
+  }
+  PROPERTIES
+  {
+    LookupPageID=Page91915;
+    DrillDownPageID=Page91915;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Course              ;Text80         }
+    { 2   ;   ;Course Stream       ;Text30         }
+  }
+  KEYS
+  {
+    {    ;Course                                  ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

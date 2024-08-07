@@ -1,0 +1,72 @@
+OBJECT Codeunit 72008 General Functions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      ProgressWindow@1000000004 : Dialog;
+      Counter@1000000003 : Integer;
+      CounterOK@1000000002 : Integer;
+      NoofRecordsNew@1000000001 : Integer;
+      Indentation@1000000000 : Integer;
+
+    PROCEDURE OpenWindow@1000000017(TextMessage1@1000000001 : Text[50];TextMessage2@1000000002 : Text[50]);
+    BEGIN
+      Counter := 0;
+      CounterOK := 0;
+      Indentation := STRLEN(TextMessage2);
+
+      IF STRLEN('Employee No') > Indentation THEN
+        Indentation := STRLEN('Employee No');
+
+      IF STRLEN('Record No') > Indentation THEN
+        Indentation := STRLEN('Record No');
+
+      ProgressWindow.OPEN(
+        TextMessage1 +
+        PADSTR(TextMessage2,Indentation) + ' @1@@@@@@@@@@@@@@@@@@@@\' +
+        PADSTR('Employee No',Indentation) + ' #2######\' +
+        PADSTR('Record No',Indentation) + ' #3######');
+    END;
+
+    PROCEDURE UpdateWindow@1000000018(LEmployeeNo@1000000000 : Code[20];NoofRecordsNew@1000000001 : Integer);
+    BEGIN
+      Counter := Counter + 1;
+      IF NoofRecordsNew > 0 THEN BEGIN
+        ProgressWindow.UPDATE(1,ROUND(Counter / NoofRecordsNew * 10000,1));
+        ProgressWindow.UPDATE(2,LEmployeeNo);
+        ProgressWindow.UPDATE(3,Counter);
+      END;
+    END;
+
+    PROCEDURE CloseWindow@1000000019();
+    BEGIN
+      ProgressWindow.CLOSE;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

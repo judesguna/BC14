@@ -1,0 +1,560 @@
+OBJECT Codeunit 72001 Attendance Creation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            HRPayrollSetup.GET(USERID);
+
+            PayrollYear.RESET;
+            PayrollYear.SETRANGE("Location Code",HRPayrollSetup."Location Code");
+            PayrollYear.SETRANGE("Salary Plan Code",HRPayrollSetup."Salary Plan Code");
+            PayrollYear.SETRANGE("Year Code",HRPayrollSetup."Salary Year Code");
+            PayrollYear.SETRANGE("Year Type",PayrollYear."Year Type"::"Salary Year");
+            PayrollYear.SETRANGE(Closed,FALSE);
+            PayrollYear.SETRANGE(Created,TRUE);
+            IF PayrollYear.FINDFIRST THEN BEGIN
+              MESSAGE('Daily Attendance Creation \\Start Date => %1 \\End Date => %2',
+                PayrollYear."Year Start Date",PayrollYear."Year End Date");
+
+              IF NOT CONFIRM('Do you want Create Daily Attendance for the Leave Year',FALSE) THEN
+                EXIT;
+
+              StartDateTime := CURRENTDATETIME;
+              "Create Daily Attendance"(PayrollYear);
+              EndDateTime := CURRENTDATETIME;
+              ElaspedTime := EndDateTime - StartDateTime;
+
+              MESSAGE('Daily Attendance Creation Completed \\ Starting Date & Time => %1 \\ Ending Date & Time => %2 \\ Time Elasped => %3',
+                StartDateTime, EndDateTime, ElaspedTime);
+
+              PayrollYear.Created := TRUE;
+              PayrollYear.MODIFY;
+            END ELSE
+              ERROR('Daily Attendance Already Generated..!!');
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000008 : Record 72051;
+      LocationHRPayrollSetup@1000000009 : Record 72052;
+      PayrollYear@1000000000 : Record 72054;
+      Employee@1102155001 : Record 5200;
+      CUGeneralFunctions@1102155000 : Codeunit 72008;
+      DateCheck@1000000001 : Date;
+      EndDateTime@1000000006 : DateTime;
+      StartDateTime@1000000007 : DateTime;
+      ElaspedTime@1000000004 : Duration;
+
+    PROCEDURE "Create Daily Attendance"@1000000004(PayrollYear@1000000000 : Record 72054) Status : Boolean;
+    VAR
+      Employee@1000000005 : Record 5200;
+      PayrollYear1@1000000001 : Record 72054;
+      PayrollMonthYear@1000000011 : Record 72055;
+      Calendar@1000000006 : Record 72058;
+      Shift@1000000009 : Record 72059;
+      DailyAttendance@1000000008 : Record 72080;
+      RecordCount@1000000002 : Integer;
+    BEGIN
+      Employee.RESET;
+      Employee.SETRANGE("Salary Plan Code",PayrollYear."Salary Plan Code");
+      Employee.SETRANGE("Location Code",PayrollYear."Location Code");
+      Employee.SETRANGE(Status,Employee.Status::Active);
+      Employee.SETRANGE("Attendance Generated",FALSE);
+      IF Employee.FINDFIRST THEN BEGIN
+        CUGeneralFunctions.OpenWindow('Daily Attedance Creation\\','Progress');
+        RecordCount := Employee.COUNT;
+        REPEAT
+          "Mantory Field Checkup"(Employee."No.");
+          Calendar.RESET;
+          Calendar.SETRANGE("Location Code", PayrollYear."Location Code");
+          Calendar.SETRANGE("Salary Plan Code",PayrollYear."Salary Plan Code");
+          Calendar.SETRANGE(Date,PayrollYear."Year Start Date",PayrollYear."Year End Date");
+          IF Calendar.FINDFIRST THEN
+            REPEAT
+              DailyAttendance.INIT;
+              DailyAttendance."Location Code" := Employee."Location Code";
+              DailyAttendance."Salary Plan Code" := Employee."Salary Plan Code";
+              DailyAttendance."Employee No" := Employee."No.";
+              DailyAttendance.Name := Employee."First Name" + ' ' + Employee.Initials;
+              DailyAttendance."Attendance Date" := Calendar.Date;
+              DailyAttendance."Day No." := Calendar."Day No.";
+              DailyAttendance."Week No" := DATE2DWY(Calendar.Date,2);
+              DailyAttendance.Month := DATE2DMY(Calendar.Date,2);
+              DailyAttendance.Year := DATE2DMY(Calendar.Date,3);
+              DailyAttendance."Employee Category" := Employee."Employee Category";
+              DailyAttendance."Weekly Off Status" := Calendar.WeeklyOff;
+              DailyAttendance."Holiday Status" := Calendar.Holiday;
+              DailyAttendance."Non Working Day" := Calendar."Non-Working Days";
+
+                 PayrollYear1.RESET;
+                 PayrollYear1.SETRANGE("Location Code",    Employee."Location Code");
+                 PayrollYear1.SETRANGE("Salary Plan Code", Employee."Salary Plan Code");
+                 PayrollYear1.SETRANGE("Year Type",        PayrollYear1."Year Type"::"Leave Year");
+                 PayrollYear1.SETRANGE(Closed,             FALSE);
+                 IF PayrollYear1.FIND('-') THEN
+                    DailyAttendance."Leave Year Code" := PayrollYear1."Year Code";
+
+              PayrollYear.RESET;
+              PayrollYear.SETRANGE("Location Code",Employee."Location Code");
+              PayrollYear.SETRANGE("Salary Plan Code",Employee."Salary Plan Code");
+              PayrollYear.SETRANGE("Year Type",PayrollYear."Year Type"::"Leave Year");
+              PayrollYear.SETRANGE(Closed,FALSE);
+              IF PayrollYear.FINDFIRST THEN
+                DailyAttendance."Leave Year Code" := PayrollYear."Year Code";
+
+              PayrollMonthYear.RESET;
+              PayrollMonthYear.SETRANGE("Location Code",Employee."Location Code");
+              PayrollMonthYear.SETRANGE("Salary Plan Code",Employee."Salary Plan Code");
+              PayrollMonthYear.SETRANGE("Salary Start Date",DailyAttendance."Attendance Date");
+              IF PayrollMonthYear.FINDFIRST THEN
+                DailyAttendance."Salary Cyclic Code" := PayrollMonthYear."Salary Cyclic Code"
+              ELSE
+                DateCheck := PayrollMonthYear."Salary End Date";
+
+              IF DailyAttendance."Attendance Date" <= DateCheck THEN
+                DailyAttendance."Salary Cyclic Code" := PayrollMonthYear."Salary Cyclic Code";
+
+              HRPayrollSetup.GET(USERID);
+              LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+
+              IF NOT Calendar."Non-Working Days" THEN
+                DailyAttendance."OT Approved Hrs" := LocationHRPayrollSetup."Over Time Max Minutes";
+
+              IF NOT Calendar."Non-Working Days" THEN BEGIN
+                 Shift.GET(Employee."Working Shift Code",Employee."Location Code",Employee."Salary Plan Code");
+                  DailyAttendance."Shift Code" := Shift.Code;
+
+                  IF LocationHRPayrollSetup."Default Attendance Type" = LocationHRPayrollSetup."Default Attendance Type"::" "
+                  THEN BEGIN
+                    DailyAttendance."In Time" := 0T;
+                    DailyAttendance."Out Time" := 0T;
+                  END
+                  ELSE BEGIN
+                    DailyAttendance."In Time" := Shift."First Half Starting Time";
+                    DailyAttendance."Out Time" := Shift."Second Half Ending Time";
+                  END;
+                  DailyAttendance."Actual Time In" := Shift."First Half Starting Time";
+                  DailyAttendance."Actual Time Out" := Shift."Second Half Ending Time";
+                  DailyAttendance."Total Break Hours" := Shift."Break Total Hours";
+                  DailyAttendance."First Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+                  DailyAttendance."Second Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+                  DailyAttendance."Actual Hrs" := LocationHRPayrollSetup."No of Hours Per Day";
+                END;
+
+                 IF ( Calendar."Non-Working Days" ) AND ( Calendar."First Half (Weekly Off)" = FALSE ) THEN
+                    IF Shift.GET(Employee."Working Shift Code",Employee."Location Code",Employee."Salary Plan Code") THEN
+                       BEGIN
+                         DailyAttendance."Shift Code" := Shift.Code;
+                      IF LocationHRPayrollSetup."Default Attendance Type" = LocationHRPayrollSetup."Default Attendance Type"::" "
+                         THEN BEGIN
+                              DailyAttendance."In Time"  := 0T;
+                              DailyAttendance."Out Time" := 0T;
+                            END
+                         ELSE BEGIN
+                              DailyAttendance."In Time"  := Shift."First Half Starting Time";
+                              DailyAttendance."Out Time" := Shift."Second Half Ending Time";
+                            END;
+                         DailyAttendance."Actual Time In"  := Shift."First Half Starting Time";
+                         DailyAttendance."Actual Time Out" := Shift."First Half Ending Time";
+                         DailyAttendance."First Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+                         DailyAttendance."Actual Hrs"                 := LocationHRPayrollSetup."No of Hours in Half Day";
+                  END;
+
+              IF Calendar."First Half (Holiday)" THEN BEGIN
+                DailyAttendance."In Time" := 0T;
+                DailyAttendance."Out Time" := 0T;
+                DailyAttendance."First Half Attendance Type" := DailyAttendance."First Half Attendance Type"::Holiday;
+              END;
+
+              IF Calendar."Second Half (Holiday)" THEN BEGIN
+                DailyAttendance."In Time" := 0T;
+                DailyAttendance."Out Time" := 0T;
+                DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::Holiday;
+              END;
+
+              IF Calendar."First Half (Weekly Off)" THEN
+                DailyAttendance."First Half Attendance Type" := DailyAttendance."First Half Attendance Type"::"Weekly Off";
+
+              IF Calendar."Second Half (Weekly Off)" THEN
+                DailyAttendance."Second Half Attendance Type" := DailyAttendance."First Half Attendance Type"::"Weekly Off";
+
+      //----------- Not Joined Updating for Newly Joined Peoples.
+
+              IF DailyAttendance."Attendance Date" < Employee."Employment Date" THEN BEGIN
+                DailyAttendance."In Time" := 0T;
+                DailyAttendance."Out Time" := 0T;
+                DailyAttendance."First Half Attendance Type" := DailyAttendance."First Half Attendance Type"::"Not Joined";
+                DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Not Joined";
+                DailyAttendance."Non Working Day" := TRUE;
+              END;
+      //------------
+                 IF ( Calendar."First Half (Weekly Off)" ) OR ( Calendar."Second Half (Weekly Off)" ) THEN
+                      DailyAttendance."Weekly Off Status" := TRUE;
+
+                 IF ( Calendar."First Half (Holiday)" ) OR ( Calendar."Second Half (Holiday)" ) THEN
+                      DailyAttendance."Holiday Status" := TRUE;
+
+                 IF ( DailyAttendance."Weekly Off Status" ) OR (DailyAttendance."Holiday Status") THEN
+                      DailyAttendance."Non Working Day" := TRUE;
+
+              DailyAttendance.VALIDATE("In Time");
+              DailyAttendance.VALIDATE("Out Time");
+              DailyAttendance.VALIDATE("First Half Attendance Type");
+              DailyAttendance.VALIDATE("Second Half Attendance Type");
+
+              IF DailyAttendance.INSERT THEN;
+
+            UNTIL Calendar.NEXT = 0;
+
+          "Create Monthly Attendance"(Employee,PayrollYear);
+
+          Employee."Attendance Generated" := TRUE;
+
+          IF Employee.MODIFY THEN;
+
+          CUGeneralFunctions.UpdateWindow(Employee."No.",RecordCount);
+
+        UNTIL Employee.NEXT = 0;
+        CUGeneralFunctions.CloseWindow;
+      END ELSE
+        ERROR('No Records found..!!');
+    END;
+
+    LOCAL PROCEDURE "Create Monthly Attendance"@1000000003(Employee@1000000005 : Record 5200;PayrollYear@1000000001 : Record 72054);
+    VAR
+      PayrollMonthYear@1000000007 : Record 72055;
+      MonthlyAttendance@1000000003 : Record 72082;
+    BEGIN
+      PayrollMonthYear.RESET;
+      PayrollMonthYear.SETRANGE("Location Code",Employee."Location Code");
+      PayrollMonthYear.SETRANGE("Salary Plan Code",Employee."Salary Plan Code");
+      PayrollMonthYear.SETRANGE("Salary Year Code",PayrollYear."Year Code");
+      IF PayrollMonthYear.FINDFIRST THEN
+        REPEAT
+          MonthlyAttendance.INIT;
+          MonthlyAttendance."Location Code" := PayrollYear."Location Code";
+          MonthlyAttendance."Salary Plan Code" := PayrollYear."Salary Plan Code";
+          MonthlyAttendance."Salary Cycle Code" := PayrollMonthYear."Salary Cyclic Code";
+          MonthlyAttendance.Year := PayrollMonthYear."Salary Year";
+          MonthlyAttendance.Month := PayrollMonthYear."Salary Month";
+          MonthlyAttendance."Payroll Start Date" := PayrollMonthYear."Salary Start Date";
+          MonthlyAttendance."Payroll End Date" := PayrollMonthYear."Salary End Date";
+          MonthlyAttendance."Employee No" := Employee."No.";
+          MonthlyAttendance.Name := Employee."First Name" + ' ' + Employee.Initials;
+          MonthlyAttendance."Employee Category" := Employee."Employee Category";
+          IF MonthlyAttendance.INSERT THEN;
+        UNTIL PayrollMonthYear.NEXT = 0;
+    END;
+
+    LOCAL PROCEDURE "Mantory Field Checkup"@1000000000(EmployeeNo@1000000001 : Code[20]);
+    VAR
+      Employee@1000000000 : Record 5200;
+    BEGIN
+      IF Employee.GET(EmployeeNo) THEN BEGIN
+        Employee.TESTFIELD("Location Code");
+        Employee.TESTFIELD("Salary Plan Code");
+        Employee.TESTFIELD("No.");
+        Employee.TESTFIELD("First Name");
+      //  Employee.TESTFIELD(Initials);
+        Employee.TESTFIELD("Employment Date");
+        Employee.TESTFIELD("Working Shift Code");
+      //  Employee.TESTFIELD("Birth Date");
+        Employee.TESTFIELD("Employee Category");
+      //  Employee.TESTFIELD("Division Code");
+      //  Employee.TESTFIELD("Department Code");
+      //  Employee.TESTFIELD("Section Code");
+      //  Employee.TESTFIELD("Emp Posting Group");
+      //  Employee.TESTFIELD("Pay Bus. Posting Group");
+      END;
+    END;
+
+    PROCEDURE UpdateBlankTime@1102159000(LocationCode@1102159001 : Code[20];SalaryPlanCode@1102159002 : Code[20];SalaryCylicCode@1102159003 : Code[20];EmployeeNo@1102159004 : Code[20];StartDate@1102159005 : Date;EndDate@1102159006 : Date;EmployeeCategory@1102159007 : ' ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary');
+    VAR
+      DailyAttendance@1102159000 : Record 72080;
+      RecordCount@1102159008 : Integer;
+    BEGIN
+      IF EmployeeNo = 'ALL' THEN
+        CUGeneralFunctions.OpenWindow('Daily Attendance Update Blank Time\\','Progress');
+
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      DailyAttendance.SETRANGE("Salary Cyclic Code",SalaryCylicCode);
+      IF EmployeeNo <> 'ALL' THEN
+        DailyAttendance.SETRANGE("Employee No",EmployeeNo);
+      DailyAttendance.SETRANGE("Attendance Date",StartDate,EndDate);
+      //DailyAttendance.SETRANGE("Employee Category", EmployeeCategory);
+      DailyAttendance.SETRANGE("Attendance Verified",FALSE);
+      DailyAttendance.SETRANGE("Manual Entry",FALSE);
+      RecordCount := DailyAttendance.COUNT;
+      IF DailyAttendance.FINDFIRST THEN
+        REPEAT
+          DailyAttendance."In Time" := 0T;
+          DailyAttendance."Out Time" := 0T;
+          DailyAttendance."Total Permission In Mins" := 0;
+          DailyAttendance."Total OT In Mins" := 0;
+          DailyAttendance."Late Coming Hours" := 0;
+          DailyAttendance."Early Going Hours" := 0;
+          DailyAttendance."Early OT Hours" := 0;
+          DailyAttendance."Late OT Hours" := 0;
+          DailyAttendance."Manual Entry" := FALSE;
+           IF Employee.GET(DailyAttendance."Employee No") THEN
+           IF DailyAttendance."Attendance Date" < Employee."Employment Date" THEN BEGIN
+              DailyAttendance."In Time"  := 0T;
+              DailyAttendance."Out Time" := 0T;
+              DailyAttendance."Weekly Off Status" := FALSE;
+              DailyAttendance."Holiday Status" := FALSE;
+              DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Not Joined";
+              DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Not Joined";
+              DailyAttendance."Non Working Day" := TRUE;
+           END;
+
+           DailyAttendance.VALIDATE("First Half Attendance Type");
+           DailyAttendance.VALIDATE("Second Half Attendance Type");
+           DailyAttendance.VALIDATE("In Time");
+           DailyAttendance.VALIDATE("Out Time");
+           DailyAttendance.MODIFY;
+
+          IF EmployeeNo = 'ALL' THEN
+            CUGeneralFunctions.UpdateWindow(DailyAttendance."Employee No",RecordCount);
+
+        UNTIL DailyAttendance.NEXT = 0;
+
+      IF EmployeeNo = 'ALL' THEN
+        CUGeneralFunctions.CloseWindow;
+    END;
+
+    PROCEDURE UpdateDefaultTime@1102159001(LocationCode@1102159008 : Code[20];SalaryPlanCode@1102159007 : Code[20];SalaryCylicCode@1102159006 : Code[20];EmployeeNo@1102159005 : Code[20];StartDate@1102159004 : Date;EndDate@1102159003 : Date;EmployeeCategory@1102159002 : ' ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary');
+    VAR
+      Shift@1102159001 : Record 72059;
+      DailyAttendance@1102159000 : Record 72080;
+      RecordCount@1102159009 : Integer;
+    BEGIN
+      CUGeneralFunctions.OpenWindow('Daily Attedance Update Default Time\\','Progress');
+
+      HRPayrollSetup.GET(USERID);
+      LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      DailyAttendance.SETRANGE("Salary Cyclic Code",SalaryCylicCode);
+      IF EmployeeNo <> 'ALL' THEN
+        DailyAttendance.SETRANGE("Employee No",EmployeeNo);
+      DailyAttendance.SETRANGE("Attendance Date",StartDate,EndDate);
+      DailyAttendance.SETRANGE("Employee Category",EmployeeCategory);
+      DailyAttendance.SETRANGE("Attendance Verified",FALSE);
+      DailyAttendance.SETRANGE("Manual Entry",FALSE);
+      RecordCount := DailyAttendance.COUNT;
+      IF DailyAttendance.FINDFIRST THEN
+        REPEAT
+          IF DailyAttendance."Shift Code" <> '' THEN BEGIN
+            Shift.GET(DailyAttendance."Shift Code",LocationCode,SalaryPlanCode);
+            DailyAttendance."Shift Code" := Shift.Code;
+            DailyAttendance."In Time" := Shift."First Half Starting Time";
+            DailyAttendance."Out Time" := Shift."Second Half Ending Time";
+            DailyAttendance."Actual Time In" := Shift."First Half Starting Time";
+            DailyAttendance."Actual Time Out" := Shift."Second Half Ending Time";
+            DailyAttendance."Total Break Hours" := Shift."Break Total Hours";
+            DailyAttendance."First Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+            DailyAttendance."Second Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+            DailyAttendance."Actual Hrs" := LocationHRPayrollSetup."No of Hours Per Day";
+            IF DailyAttendance."Holiday Status" THEN BEGIN
+               DailyAttendance."In Time" := 0T;
+               DailyAttendance."Out Time" := 0T;
+              END;
+           END;
+
+           IF Employee.GET(DailyAttendance."Employee No") THEN
+           IF DailyAttendance."Attendance Date" < Employee."Employment Date" THEN BEGIN
+              DailyAttendance."In Time"  := 0T;
+              DailyAttendance."Out Time" := 0T;
+              DailyAttendance."Weekly Off Status" := FALSE;
+              DailyAttendance."Holiday Status" := FALSE;
+              DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Not Joined";
+              DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Not Joined";
+              DailyAttendance."Non Working Day" := TRUE;
+           END;
+
+           DailyAttendance.VALIDATE("First Half Attendance Type");
+           DailyAttendance.VALIDATE("Second Half Attendance Type");
+           DailyAttendance.VALIDATE("In Time");
+           DailyAttendance.VALIDATE("Out Time");
+           DailyAttendance.MODIFY;
+           CUGeneralFunctions.UpdateWindow(DailyAttendance."Employee No",RecordCount);
+         UNTIL DailyAttendance.NEXT = 0;
+      CUGeneralFunctions.CloseWindow();
+    END;
+
+    PROCEDURE UpdateShiftTime@1102159002(LocationCode@1102159007 : Code[20];SalaryPlanCode@1102159006 : Code[20];SalaryCylicCode@1102159005 : Code[20];EmployeeNo@1102159004 : Code[20];StartDate@1102159003 : Date;EndDate@1102159002 : Date;ShiftCode@1102159008 : Code[20];EmployeeCategory@1102159009 : ' ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary');
+    VAR
+      Shift@1102159000 : Record 72059;
+      DailyAttendance@1102159001 : Record 72080;
+      RecordCount@1102159010 : Integer;
+    BEGIN
+      CUGeneralFunctions.OpenWindow('Daily Attedance Update Shift Time\\','Progress');
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      DailyAttendance.SETRANGE("Salary Cyclic Code",SalaryCylicCode);
+      IF EmployeeNo <> 'ALL' THEN
+        DailyAttendance.SETRANGE("Employee No",EmployeeNo);
+      DailyAttendance.SETRANGE("Attendance Date",StartDate,EndDate);
+      DailyAttendance.SETRANGE("Employee Category",EmployeeCategory);
+      DailyAttendance.SETFILTER(Present, '=%1',1);
+      DailyAttendance.SETRANGE("Manual Entry",FALSE);
+      RecordCount := DailyAttendance.COUNT;
+      IF DailyAttendance.FINDFIRST THEN
+        Shift.GET(ShiftCode,LocationCode,SalaryPlanCode);
+      REPEAT
+        IF DailyAttendance."Shift Code" <> '' THEN BEGIN
+          DailyAttendance."Shift Code" := Shift.Code;
+          DailyAttendance."In Time" := Shift."First Half Starting Time";
+          DailyAttendance."Out Time" := Shift."Second Half Ending Time";
+          DailyAttendance."Actual Time In" := Shift."First Half Starting Time";
+          DailyAttendance."Actual Time Out" := Shift."Second Half Ending Time";
+          DailyAttendance."Total Break Hours" := Shift."Break Total Hours";
+          DailyAttendance."First Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+          DailyAttendance."Second Half Attendance Type" := LocationHRPayrollSetup."Default Attendance Type";
+          DailyAttendance."Actual Hrs" := LocationHRPayrollSetup."No of Hours Per Day";
+          IF DailyAttendance."Holiday Status" THEN BEGIN
+            DailyAttendance."In Time" := 0T;
+            DailyAttendance."Out Time" := 0T;
+          END;
+         IF Employee.GET(DailyAttendance."Employee No") THEN
+           IF DailyAttendance."Attendance Date" < Employee."Employment Date" THEN BEGIN
+              DailyAttendance."In Time"  := 0T;
+              DailyAttendance."Out Time" := 0T;
+              DailyAttendance."Weekly Off Status" := FALSE;
+              DailyAttendance."Holiday Status" := FALSE;
+              DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Not Joined";
+              DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Not Joined";
+              DailyAttendance."Non Working Day" := TRUE;
+           END;
+
+           DailyAttendance.VALIDATE("First Half Attendance Type");
+           DailyAttendance.VALIDATE("Second Half Attendance Type");
+           DailyAttendance.VALIDATE("In Time");
+           DailyAttendance.VALIDATE("Out Time");
+           DailyAttendance.MODIFY;
+           CUGeneralFunctions.UpdateWindow(DailyAttendance."Employee No",RecordCount);
+          END;
+      UNTIL DailyAttendance.NEXT = 0;
+      CUGeneralFunctions.CloseWindow;
+    END;
+
+    PROCEDURE "Validate Attendance Time"@1102159005(LocationCode@1102159007 : Code[20];SalaryPlanCode@1102159006 : Code[20];SalaryCylicCode@1102159005 : Code[20];EmployeeNo@1102159004 : Code[20];StartDate@1102159003 : Date;EndDate@1102159002 : Date;EmployeeCategory@1102159009 : ' ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary');
+    VAR
+      DailyAttendance@1102159001 : Record 72080;
+      RecordCount@1102159010 : Integer;
+    BEGIN
+      CUGeneralFunctions.OpenWindow('Update First Half Second Half Type\\','Progress');
+
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      DailyAttendance.SETRANGE("Salary Cyclic Code",SalaryCylicCode);
+      IF EmployeeNo <> 'ALL' THEN
+        DailyAttendance.SETRANGE("Employee No",EmployeeNo);
+      DailyAttendance.SETRANGE("Attendance Date",StartDate,EndDate);
+      DailyAttendance.SETRANGE("Employee Category",EmployeeCategory);
+      RecordCount := DailyAttendance.COUNT;
+      IF DailyAttendance.FINDFIRST THEN
+        REPEAT
+           IF Employee.GET(DailyAttendance."Employee No") THEN
+           IF DailyAttendance."Attendance Date" < Employee."Employment Date" THEN BEGIN
+              DailyAttendance."In Time"  := 0T;
+              DailyAttendance."Out Time" := 0T;
+              DailyAttendance."Weekly Off Status" := FALSE;
+              DailyAttendance."Holiday Status" := FALSE;
+              DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Not Joined";
+              DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Not Joined";
+              DailyAttendance."Non Working Day" := TRUE;
+           END;
+           DailyAttendance.VALIDATE("First Half Attendance Type");
+           DailyAttendance.VALIDATE("Second Half Attendance Type");
+           DailyAttendance.VALIDATE("In Time");
+           DailyAttendance.VALIDATE("Out Time");
+           DailyAttendance.MODIFY;
+           CUGeneralFunctions.UpdateWindow(DailyAttendance."Employee No",RecordCount);
+       UNTIL DailyAttendance.NEXT = 0;
+
+      CUGeneralFunctions.CloseWindow;
+    END;
+
+    PROCEDURE UpdateEmployeeShiftTime@1102159006(LocationCode@1102159007 : Code[20];SalaryPlanCode@1102159006 : Code[20];SalaryCylicCode@1102159005 : Code[20];EmployeeNo@1102159004 : Code[20];StartDate@1102159003 : Date;EndDate@1102159002 : Date;ShiftCode@1102159008 : Code[20];EmployeeCategory@1102159009 : ' ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary');
+    VAR
+      DailyAttendance@1102159001 : Record 72080;
+      Shift@1102159000 : Record 72059;
+      RecordCount@1102159010 : Integer;
+    BEGIN
+      CUGeneralFunctions.OpenWindow('Daily Attedance Update Shift Time\\','Progress');
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      DailyAttendance.SETRANGE("Salary Cyclic Code",SalaryCylicCode);
+      IF (EmployeeNo <> 'ALL') THEN
+         DailyAttendance.SETRANGE("Employee No",       EmployeeNo);
+      DailyAttendance.SETRANGE("Attendance Date",   StartDate,EndDate);
+      DailyAttendance.SETRANGE("Employee Category", EmployeeCategory);
+      RecordCount := DailyAttendance.COUNT;
+      IF DailyAttendance.FIND('-') THEN
+         REPEAT
+
+           DailyAttendance."Shift Code" := ShiftCode;
+           Shift.GET(DailyAttendance."Shift Code",LocationCode,SalaryPlanCode);
+           IF DailyAttendance."Non Working Day" = FALSE THEN BEGIN
+              DailyAttendance."Actual Time In"  := Shift."First Half Starting Time";
+              DailyAttendance."Actual Time Out" := Shift."Second Half Ending Time";
+              DailyAttendance."Total Break Hours"  := Shift."Break Total Hours";
+           END;
+
+           IF DailyAttendance."Non Working Day" THEN BEGIN
+              DailyAttendance."Shift Code" := '';
+           END;
+
+           IF Employee.GET(DailyAttendance."Employee No") THEN
+           IF DailyAttendance."Attendance Date" < Employee."Employment Date" THEN BEGIN
+              DailyAttendance."In Time"  := 0T;
+              DailyAttendance."Out Time" := 0T;
+              DailyAttendance."Weekly Off Status" := FALSE;
+              DailyAttendance."Holiday Status" := FALSE;
+              DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Not Joined";
+              DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Not Joined";
+              DailyAttendance."Non Working Day" := TRUE;
+           END;
+
+           DailyAttendance.VALIDATE("First Half Attendance Type");
+           DailyAttendance.VALIDATE("Second Half Attendance Type");
+           DailyAttendance.VALIDATE("In Time");
+           DailyAttendance.VALIDATE("Out Time");
+           DailyAttendance.MODIFY;
+
+           CUGeneralFunctions.UpdateWindow(DailyAttendance."Employee No",RecordCount);
+
+       UNTIL DailyAttendance.NEXT = 0;
+      CUGeneralFunctions.CloseWindow();
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

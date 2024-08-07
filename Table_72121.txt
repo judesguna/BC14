@@ -1,0 +1,119 @@
+OBJECT Table 72121 Salary Posting-1
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Salary Posting;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cycle Code   ;Code20        ;TableRelation="Payroll Month & Year" WHERE (Location Code=FIELD(Location Code),
+                                                                                               Salary Plan Code=FIELD(Salary Plan Code));
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Salary Cycle Code }
+    { 4   ;   ;Payroll Start Date  ;Date          ;CaptionML=ENU=Payroll Start Date }
+    { 5   ;   ;Payroll End Date    ;Date          ;CaptionML=ENU=Payroll End Date }
+    { 6   ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+    { 7   ;   ;Month               ;Integer       ;CaptionML=ENU=Month }
+    { 8   ;   ;Branch Code         ;Code20        ;TableRelation="Dimension Value" WHERE (Global Dimension No.=CONST(1));
+                                                   CaptionML=ENU=Branch Code }
+    { 9   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements" WHERE (Location Code=FIELD(Location Code),
+                                                                                       Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Pay Element Code;
+                                                   NotBlank=Yes }
+    { 10  ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement }
+    { 11  ;   ;Actual Amount       ;Decimal       ;CaptionML=ENU=Actual Amount }
+    { 12  ;   ;Payable Amount      ;Decimal       ;CaptionML=ENU=Payable Amount }
+    { 13  ;   ;Employee VPF Amount ;Decimal       ;CaptionML=ENU=Employee VPF Amount }
+    { 14  ;   ;Employee PF / ESI Amount;Decimal   ;CaptionML=ENU=Employee PF / ESI Amount }
+    { 15  ;   ;Employer PF / ESI Amount;Decimal   ;CaptionML=ENU=Employer PF / ESI Amount }
+    { 16  ;   ;Employer EPS Amount ;Decimal       ;CaptionML=ENU=Employer EPS Amount }
+    { 17  ;   ;PF Admin Charges Amount;Decimal    ;CaptionML=ENU=PF Admin Charges Amount }
+    { 18  ;   ;PF EDLI Amount      ;Decimal       ;CaptionML=ENU=PF EDLI Amount }
+    { 19  ;   ;PF RIFA Amount      ;Decimal       ;CaptionML=ENU=PF RIFA Amount }
+    { 20  ;   ;Journal Batch Name  ;Code20        ;CaptionML=ENU=Journal Batch Name }
+    { 21  ;   ;Journal Template Name;Code20       ;CaptionML=ENU=Journal Template Name }
+    { 22  ;   ;Salary Due Document No;Code20      ;CaptionML=ENU=Salary Due Document No }
+    { 23  ;   ;Salary Due Posted Date;Date        ;CaptionML=ENU=Salary Due Posted Date }
+    { 24  ;   ;Salary Payment Document No.;Code20 ;CaptionML=ENU=Salary Payment Document No. }
+    { 25  ;   ;Salary Payment Date ;Date          ;CaptionML=ENU=Salary Payment Date }
+    { 26  ;   ;Account Type        ;Option        ;CaptionML=ENU=Account Type;
+                                                   OptionCaptionML=ENU=G/L Account,Customer,Vendor,Bank Account,Fixed Asset,IC Partner;
+                                                   OptionString=G/L Account,Customer,Vendor,Bank Account,Fixed Asset,IC Partner }
+    { 27  ;   ;Account No.         ;Code20        ;TableRelation=IF (Account Type=CONST(G/L Account)) "G/L Account"
+                                                                 ELSE IF (Account Type=CONST(Customer)) Customer
+                                                                 ELSE IF (Account Type=CONST(Vendor)) Vendor
+                                                                 ELSE IF (Account Type=CONST(Bank Account)) "Bank Account"
+                                                                 ELSE IF (Account Type=CONST(Fixed Asset)) "Fixed Asset"
+                                                                 ELSE IF (Account Type=CONST(IC Partner)) "IC Partner";
+                                                   CaptionML=ENU=Account No. }
+    { 28  ;   ;Pay Method          ;Option        ;CaptionML=ENU=Pay Method;
+                                                   OptionCaptionML=ENU=Cash,Cheque,Bank Transfer;
+                                                   OptionString=Cash,Cheque,Bank Transfer }
+    { 29  ;   ;Cheque No.          ;Code20        ;CaptionML=ENU=Cheque No. }
+    { 30  ;   ;Cheque Date         ;Date          ;CaptionML=ENU=Cheque Date }
+    { 31  ;   ;Posted              ;Boolean       ;CaptionML=ENU=Posted }
+    { 32  ;   ;Emp Posting Group   ;Code20        ;TableRelation="Payroll Employee Posting Group" WHERE (Location Code=FIELD(Location Code),
+                                                                                                         Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Emp Posting Group }
+    { 33  ;   ;Pay Bus. Posting Group;Code20      ;TableRelation="Payroll Business Posting Group" WHERE (Location Code=FIELD(Location Code),
+                                                                                                         Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Pay Bus. Posting Group }
+    { 34  ;   ;Pay Element Description;Text50     ;CaptionML=ENU=Pay Element Description }
+    { 35  ;   ;Salary Due Entry    ;Boolean       ;CaptionML=ENU=Salary Due Entry;
+                                                   Editable=No }
+    { 36  ;   ;Salary Payment Entry;Boolean       ;CaptionML=ENU=Salary Payment Entry;
+                                                   Editable=No }
+    { 37  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order }
+    { 38  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary] }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Salary Cycle Code,Employee Category,Pay Type,Sorting Order;
+                                                   Clustered=Yes }
+    {    ;Sorting Order,Pay Element Code,Pay Type  }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      DimMgt@1102155000 : Codeunit 408;
+
+    PROCEDURE ValidateShortcutDimCode@29(FieldNumber@1000 : Integer;VAR ShortcutDimCode@1001 : Code[20]);
+    BEGIN
+      DimMgt.ValidateDimValueCode(FieldNumber,ShortcutDimCode);
+      DimMgt.SaveDefaultDim(DATABASE::"Processed Salary","Branch Code",FieldNumber,ShortcutDimCode);
+      MODIFY;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

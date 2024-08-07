@@ -1,0 +1,42 @@
+OBJECT Table 50035 Competition Values
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Line No.            ;Integer        }
+    { 3   ;   ;Student No.         ;Code20        ;CaptionML=ENU=Student No. }
+    { 4   ;   ;Student Name        ;Text50        ;CaptionML=ENU=Student Name }
+    { 10  ;   ;Student Division    ;Code20        ;TableRelation="Student Division";
+                                                   CaptionML=ENU=Student Division;
+                                                   Editable=Yes }
+    { 12  ;   ;Points              ;Decimal       ;CaptionML=ENU=Points;
+                                                   Editable=Yes }
+    { 13  ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 21  ;   ;Event Code          ;Code20        ;TableRelation="Event Master" }
+  }
+  KEYS
+  {
+    {    ;Line No.                                ;Clustered=Yes }
+    {    ;Student No.,Student Name,Points          }
+    {    ;Student Division,Points                  }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

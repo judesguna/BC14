@@ -1,0 +1,83 @@
+OBJECT Codeunit 71043 Withdrawal
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      TransferCertificate@1102155000 : Record 71062;
+      Withdrawl@1102155001 : Record 71061;
+      Student@1102155002 : Record 71046;
+      Text000@1102155003 : TextConst 'ENU=T.C issued';
+
+    PROCEDURE "Issue TC"@1102155000("TCNo."@1102155000 : Code[20];WithdrawlNo@1102155006 : Code[20];"StudentNo."@1102155003 : Code[20]);
+    VAR
+      Customer@1102155002 : Record 18;
+      TEXT001@1102155004 : TextConst 'ENU=Student balance amount is Pending..... Still Want to Continue?';
+    BEGIN
+      // Start 01.KATHIR
+      Withdrawl.GET(WithdrawlNo);
+      Customer.GET("StudentNo.");
+      Customer.CALCFIELDS("Balance (LCY)");
+      IF Customer."Balance (LCY)" > 0 THEN BEGIN
+        IF CONFIRM(TEXT001) THEN
+          "Issue TC Modify"("TCNo.",WithdrawlNo,"StudentNo.");
+      END ELSE
+        "Issue TC Modify"("TCNo.",WithdrawlNo,"StudentNo.");
+      // Stop 01.KATHIR
+    END;
+
+    PROCEDURE "Issue TC Modify"@1102155002("TCNo."@1102155001 : Code[20];WithdrawlNo@1102155000 : Code[20];"StudNo."@1102155002 : Code[20]);
+    BEGIN
+      // Start 02.KATHIR
+      Withdrawl.GET(WithdrawlNo);
+      TransferCertificate.GET("TCNo.");
+      Student.GET("StudNo.");
+
+      TransferCertificate."TC Issued" := TRUE;
+      // Start 03.VIGNESH
+      IF TransferCertificate."Date of Issue" = 0D THEN
+        TransferCertificate."Date of Issue" := TODAY;
+      // Stop 03.VIGNESH
+      TransferCertificate.MODIFY;
+
+      Withdrawl."TC Issued" := TRUE;
+      // Start 03.VIGNESH
+      IF Withdrawl."Withdrawal date" = 0D THEN
+        Withdrawl."Withdrawal date" := TODAY;
+      // Stop 03.VIGNESH
+      Withdrawl.MODIFY;
+
+      Student."Student Status" := Student."Student Status"::Alumni;
+      // Start 03.VIGNESH
+      IF Student."Date of Leaving" = 0D THEN
+        Student."Date of Leaving" := TODAY;
+      // Stop 03.VIGNESH
+      Student.MODIFY;
+      MESSAGE(Text000);
+      // Stop 02.KATHIR
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01   11/10/09  KATHIR   Issue TC()                 Function added to Issue TC
+        02   21/10/09  KATHIR   Issue TC Modify()          Function added to modify the student after TC been issued
+        03   17/11/09  VIGNESH  Issue TC Modify()          Code modified to validate the date fields
+    }
+    END.
+  }
+}
+

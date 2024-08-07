@@ -1,0 +1,630 @@
+OBJECT Codeunit 71045 Co-Curricular
+{
+  OBJECT-PROPERTIES
+  {
+    Date=02-03-18;
+    Time=15:44:19;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Text000@1102155000 : TextConst 'ENU=Already This Entry has updated';
+      Text001@1102155001 : TextConst 'ENU=Please select the Student(s)';
+      Text002@1102155002 : TextConst 'ENU=Total Student required in Participant Type Main is %1';
+      Text003@1102155003 : TextConst 'ENU=Total Student required in Participant Type Substitute is %1';
+      Text004@1102155004 : TextConst 'ENU=Update Completed';
+      Text005@1102155005 : TextConst 'ENU=Already Points has updated';
+      Text006@1102155006 : TextConst 'ENU=You cannot Update the Updated already generated';
+      Text007@1102155007 : TextConst 'ENU=Lines are not updated';
+      Text008@1102155008 : TextConst 'ENU=Update Points Completed';
+      Text009@1102155009 : TextConst 'ENU=Do you want to Update this Entry ?';
+      Text010@1102155010 : TextConst 'ENU=Do you want to get the Students ?';
+      Text011@1102155011 : TextConst 'ENU=Do you want to update the Students ?';
+      Text012@1102155012 : TextConst 'ENU="Do you want to update Points to the Students ? "';
+      Text013@1102155013 : TextConst 'ENU=Do you want to update Points to the Students ?';
+      Student@1102159000 : Record 71046;
+      "Class Section"@1102159001 : Record 71015;
+      Text014@1102155014 : TextConst 'ENU=Student %1 already Participate %2 Events';
+
+    PROCEDURE UpdateEntry@1102155000("GetDocNo."@1102155000 : Code[20]);
+    VAR
+      ParticipantEntryHeader@1102155001 : Record 71083;
+      ParticipantEntryLine@1102155002 : Record 71084;
+      Iscount@1102155003 : Integer;
+      iSCOUNT1@1102155004 : Integer;
+      ParticipantEntryMulti@1102155005 : Record 71084;
+      EducationSetup@1102155006 : Record 71884;
+      EventParticipantEntry@1102155007 : Record 71084;
+      Text0045@1102155008 : TextConst 'ENU=Student %1 already Participate in %2  event';
+    BEGIN
+      // Start 01.VIGNESH
+      ParticipantEntryHeader.GET("GetDocNo.");
+      IF ParticipantEntryHeader."Update Entry" THEN
+        ERROR(Text000);
+
+      EducationSetup.GET;
+
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.","GetDocNo.");
+      IF ParticipantEntryLine.ISEMPTY THEN
+        ERROR(Text001);
+
+
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.","GetDocNo.");
+      ParticipantEntryLine.SETRANGE("Participant Type",ParticipantEntryLine."Participant Type"::Main);
+      IF ParticipantEntryLine.FINDFIRST THEN
+      Iscount := ParticipantEntryLine.COUNT;
+      IF Iscount <> ParticipantEntryHeader."Team Size" THEN
+        ERROR(Text002,ParticipantEntryHeader."Team Size");
+
+      //Cetas, 09-th-August begin
+      EventParticipantEntry.RESET;
+      EventParticipantEntry.SETRANGE("Academic Year",EducationSetup."Academic Year");
+      EventParticipantEntry.SETRANGE("Update Entry",TRUE);
+      EventParticipantEntry.SETRANGE("Competition Name",ParticipantEntryLine."Competition Name");
+      EventParticipantEntry.SETRANGE("Student No.",ParticipantEntryLine."Student No.");
+      IF EventParticipantEntry.FINDSET THEN
+        IF EventParticipantEntry.COUNT >= 1 THEN
+          ERROR(Text0045,EventParticipantEntry."Student Name",ParticipantEntryHeader."Competition Name");
+      //Cetas, 09-th-August end
+
+      // >> SJ6.01
+      {
+      IF (ParticipantEntryHeader."Event Type" = ParticipantEntryHeader."Event Type"::Individual) THEN BEGIN
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.","GetDocNo.");
+      ParticipantEntryLine.SETRANGE("Participant Type",ParticipantEntryLine."Participant Type"::Substitute);
+      IF ParticipantEntryLine.FINDFIRST THEN
+      iSCOUNT1 := ParticipantEntryLine.COUNT;
+      IF iSCOUNT1 <> ParticipantEntryHeader."Team Size" THEN
+        ERROR(Text003,ParticipantEntryHeader."Team Size");
+      END;
+      }
+      // << SJ6.01
+      //Commented By S.S.Kumar on 25 March 2012
+      //IF NOT CONFIRM(Text009,FALSE) THEN
+        //EXIT;
+        //End
+
+      //Sub Junior Calculation Begin
+
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.","GetDocNo.");
+      IF ParticipantEntryLine.FINDFIRST THEN REPEAT
+        IF (ParticipantEntryLine."Event Type" = ParticipantEntryLine."Event Type"::Individual)THEN BEGIN
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student Division",'SUB JUNIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Individual);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          IF ParticipantEntryMulti.FINDFIRST THEN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (24+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+        END
+        ELSE IF (ParticipantEntryLine."Event Type" = ParticipantEntryLine."Event Type"::Team)THEN BEGIN
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student Division",'SUB JUNIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Team);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          IF ParticipantEntryMulti.FINDFIRST THEN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (21+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+        END;
+      UNTIL ParticipantEntryLine.NEXT = 0;
+      //Sub Junior Calculation end
+
+      //Junior Calculation Begin
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.","GetDocNo.");
+      IF ParticipantEntryLine.FINDFIRST THEN REPEAT
+        IF (ParticipantEntryLine."Event Type" = ParticipantEntryLine."Event Type"::Individual)THEN BEGIN
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student Division",'JUNIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Individual);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          IF ParticipantEntryMulti.FINDFIRST THEN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (24+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+        END
+        ELSE IF (ParticipantEntryLine."Event Type" = ParticipantEntryLine."Event Type"::Team)THEN BEGIN
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student Division",'JUNIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Team);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti.Gender,ParticipantEntryMulti.Gender::Male);
+          IF ParticipantEntryMulti.FINDFIRST THEN BEGIN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (22+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+          END;
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student Division",'JUNIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Team);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti.Gender,ParticipantEntryMulti.Gender::Female);
+          IF ParticipantEntryMulti.FINDFIRST THEN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (21+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+
+        END;
+      UNTIL ParticipantEntryLine.NEXT = 0;
+      //Junior Calculation Begin
+
+      //Inters, Seniors, Super Seniors Calculation Begin
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.","GetDocNo.");
+      IF ParticipantEntryLine.FINDFIRST THEN REPEAT
+        IF (ParticipantEntryLine."Event Type" = ParticipantEntryLine."Event Type"::Individual)THEN BEGIN
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETFILTER(ParticipantEntryMulti."Student Division",'%1 |%2 | %3','INTERS','SENIORS','SUPER SENIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Individual);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          IF ParticipantEntryMulti.FINDFIRST THEN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (25+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+        END
+        ELSE IF (ParticipantEntryLine."Event Type" = ParticipantEntryLine."Event Type"::Team)THEN BEGIN
+          CLEAR(iSCOUNT1);
+          ParticipantEntryMulti.RESET;
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Academic Year",EducationSetup."Academic Year");
+          ParticipantEntryMulti.SETFILTER(ParticipantEntryMulti."Student Division",'%1 |%2 | %3','INTERS','SENIORS','SUPER SENIORS');
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Update Entry",TRUE);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Event Type",ParticipantEntryMulti."Event Type"::Team);
+          ParticipantEntryMulti.SETRANGE(ParticipantEntryMulti."Student No.",ParticipantEntryLine."Student No.");
+          IF ParticipantEntryMulti.FINDFIRST THEN
+            iSCOUNT1 := ParticipantEntryMulti.COUNT;
+            IF iSCOUNT1 >= (22+3) THEN
+              ERROR(Text014,ParticipantEntryMulti."Student Name",iSCOUNT1);
+        END;
+      UNTIL ParticipantEntryLine.NEXT = 0;
+      //Inters, Seniors, Super Seniors Calculation Begin
+
+
+
+      ParticipantEntryHeader."Update Entry" := TRUE;
+      ParticipantEntryHeader.MODIFY;
+      MESSAGE(Text004);
+      // Stop 01.VIGNESH
+      ParticipantEntryLine.RESET;
+      ParticipantEntryLine.SETRANGE("Document No.",ParticipantEntryHeader."No.");
+      IF ParticipantEntryLine.FINDFIRST THEN REPEAT
+        ParticipantEntryLine."Update Entry" := TRUE;
+        ParticipantEntryLine.MODIFY;
+      UNTIL ParticipantEntryLine.NEXT = 0;
+    END;
+
+    PROCEDURE GetStudentsIndividual@1102155002("GetDocNo."@1102155000 : Code[20]);
+    VAR
+      CompetitionResultIndividual@1102155001 : Record 71085;
+      ParticipantEntryLine@1102155002 : Record 71084;
+      CompetitionResIndvuLine@1102155003 : Record 71086;
+      ParticipantEntryHeader@1102155004 : Record 71083;
+    BEGIN
+      // Start 02.VIGNESH
+      CompetitionResultIndividual.GET("GetDocNo.");
+
+      IF CompetitionResultIndividual."Update Results" THEN
+        ERROR(Text005);
+
+      CompetitionResultIndividual.TESTFIELD("Competition Entry No.");
+      CompetitionResultIndividual.TESTFIELD("Student Division");
+
+      CompetitionResIndvuLine.RESET;
+      CompetitionResIndvuLine.SETRANGE("Document No.","GetDocNo.");
+      IF CompetitionResIndvuLine.FINDFIRST THEN
+       // IF CONFIRM(Text010,FALSE) THEN
+          CompetitionResIndvuLine.DELETEALL;
+
+      ParticipantEntryHeader.RESET;
+      ParticipantEntryHeader.SETCURRENTKEY("Competition Entry No.","Student Division");
+      ParticipantEntryHeader.SETRANGE("Competition Entry No.",CompetitionResultIndividual."Competition Entry No.");
+      ParticipantEntryHeader.SETRANGE("Student Division",CompetitionResultIndividual."Student Division");
+      //ParticipantEntryHeader.SETRANGE("Update Entry",TRUE);
+      ParticipantEntryHeader.SETRANGE("Update Results",FALSE);
+      IF ParticipantEntryHeader.FINDSET THEN
+        REPEAT
+          ParticipantEntryLine.RESET;
+          ParticipantEntryLine.SETRANGE("Document No.",ParticipantEntryHeader."No.");
+      //ParticipantEntryLine.SETRANGE(ParticipantEntryLine."Participant Type",ParticipantEntryLine."Participant Type"::Main); //Commen
+          IF ParticipantEntryLine.FINDSET THEN
+            REPEAT
+              CompetitionResIndvuLine.INIT;
+              CompetitionResIndvuLine.TRANSFERFIELDS(ParticipantEntryLine);
+              CompetitionResIndvuLine."Document No." := CompetitionResultIndividual."No.";
+              CompetitionResIndvuLine."Competition Type" := CompetitionResultIndividual."Competition Type";
+              CompetitionResIndvuLine."Competition Name" := CompetitionResultIndividual."Competition Name";
+              CompetitionResIndvuLine.Class := ParticipantEntryLine.Class;
+              CompetitionResIndvuLine.Section := ParticipantEntryLine.Section;
+
+              CompetitionResIndvuLine.INSERT;
+            UNTIL ParticipantEntryLine.NEXT = 0;
+        UNTIL ParticipantEntryHeader.NEXT = 0;
+      // Stop 02.VIGNESH
+    END;
+
+    PROCEDURE GetStudentsTeam@1102155003("GetDocNo."@1102155000 : Code[20]);
+    VAR
+      CompetitionResultTeam@1102155001 : Record 71087;
+      ParticipantEntryLine@1102155002 : Record 71084;
+      CompetitionResTeamLine@1102155003 : Record 71088;
+      ParticipantEntryHeader@1102155004 : Record 71083;
+    BEGIN
+      // Start 03.VIGNESH
+      CompetitionResultTeam.GET("GetDocNo.");
+      IF CompetitionResultTeam."Update Results" THEN
+        ERROR(Text005);
+      CompetitionResultTeam.TESTFIELD("Competition Entry No.");
+      CompetitionResultTeam.TESTFIELD("Student Division");
+
+      CompetitionResTeamLine.RESET;
+      CompetitionResTeamLine.SETRANGE("Document No.","GetDocNo.");
+      IF CompetitionResTeamLine.FINDFIRST THEN
+       //IF CONFIRM(Text011,FALSE) THEN
+          CompetitionResTeamLine.DELETEALL;
+
+      ParticipantEntryHeader.RESET;
+      ParticipantEntryHeader.SETCURRENTKEY("Competition Entry No.","Student Division");
+      ParticipantEntryHeader.SETRANGE("Competition Entry No.",CompetitionResultTeam."Competition Entry No.");
+      ParticipantEntryHeader.SETRANGE("Student Division",CompetitionResultTeam."Student Division");
+      ParticipantEntryHeader.SETRANGE("Event Type",ParticipantEntryHeader."Event Type"::Team);
+      //ParticipantEntryHeader.SETRANGE("Update Entry",TRUE);
+      ParticipantEntryHeader.SETRANGE("Update Results",FALSE);
+      IF ParticipantEntryHeader.FINDFIRST THEN
+        REPEAT
+          CompetitionResTeamLine.INIT;
+          CompetitionResTeamLine."Document No." := CompetitionResultTeam."No.";
+          CompetitionResTeamLine."Team No." := ParticipantEntryHeader."Team No.";
+          CompetitionResTeamLine.House := ParticipantEntryHeader.House;
+          CompetitionResTeamLine."Competition Type" := ParticipantEntryHeader."Competition Type";
+          CompetitionResTeamLine."Competition Name" := ParticipantEntryHeader."Competition Name";
+          CompetitionResTeamLine."Student Division" := ParticipantEntryHeader."Student Division";
+          CompetitionResTeamLine."Academic Year" := CompetitionResultTeam."Academic Year";
+          CompetitionResTeamLine."Competition Entry No." := CompetitionResultTeam."Competition Entry No.";
+          CompetitionResTeamLine.INSERT;
+        UNTIL ParticipantEntryHeader.NEXT = 0;
+      // Stop 03.VIGNESH
+    END;
+
+    PROCEDURE UpdatePointsIndividual@1102155004("getDocNo."@1102155000 : Code[20];IsForceUpdate@1000000000 : Boolean);
+    VAR
+      ParticipantEntryLine@1102155001 : Record 71084;
+      CompetitionResIndvuLine@1102155002 : Record 71086;
+      CompetitionResultIndividual@1102155003 : Record 71085;
+      ParticipantEntryHeader@1102155004 : Record 71083;
+      CompetitionEntryHeader@1102155005 : Record 71081;
+      CompetitionResIndvuLine1@1102155006 : Record 71086;
+      CoCurricularPointsSetup@1102155007 : Record 71077;
+    BEGIN
+      // Start 04.VIGNESH
+      //IF NOT CONFIRM(Text012,FALSE) THEN
+        //EXIT;
+
+      //11.06.2013 begin
+      CompetitionResIndvuLine1.RESET;
+      CompetitionResIndvuLine1.SETRANGE("Document No.","getDocNo.");
+      CompetitionResIndvuLine1.SETRANGE(Position,CompetitionResIndvuLine1.Position::"1st Place");
+      IF CompetitionResIndvuLine1.FINDSET THEN REPEAT
+         IF CoCurricularPointsSetup.GET(CompetitionResIndvuLine1."Competition Type") THEN;
+          IF CompetitionResIndvuLine1.COUNT > 1 THEN
+            CompetitionResIndvuLine1.Points := (CoCurricularPointsSetup."1st Place" + CoCurricularPointsSetup."2nd Place")/2;
+            CompetitionResIndvuLine1.MODIFY;
+      UNTIL CompetitionResIndvuLine1.NEXT = 0;
+      //11.06.2013 end
+
+      CompetitionResultIndividual.GET("getDocNo.");
+      IF CompetitionResultIndividual."Update Results" AND NOT IsForceUpdate THEN
+        ERROR(Text006);
+
+      CompetitionResIndvuLine.RESET;
+      CompetitionResIndvuLine.SETRANGE("Document No.","getDocNo.");
+      IF CompetitionResIndvuLine.ISEMPTY THEN
+        ERROR(Text007)
+      ELSE
+        IF CompetitionResIndvuLine.FINDSET THEN
+          REPEAT
+            ParticipantEntryLine.RESET;
+            ParticipantEntryLine.SETCURRENTKEY("Competition Entry No.","Student Division","Student No.");
+            ParticipantEntryLine.SETRANGE("Competition Entry No.",CompetitionResIndvuLine."Competition Entry No.");
+            ParticipantEntryLine.SETRANGE("Student Division",CompetitionResIndvuLine."Student Division");
+            ParticipantEntryLine.SETRANGE("Student No.",CompetitionResIndvuLine."Student No.");
+            IF ParticipantEntryLine.FINDFIRST THEN BEGIN
+              ParticipantEntryLine.Position := CompetitionResIndvuLine.Position;
+              //11.06.13 begin
+              IF CompetitionResIndvuLine.Position = CompetitionResIndvuLine.Position::"1st Place" THEN
+                ParticipantEntryLine.Points := CompetitionResIndvuLine1.Points
+              ELSE
+                ParticipantEntryLine.Points := CompetitionResIndvuLine.Points ;
+              //11.06.13 end
+
+              //ParticipantEntryLine.Points := CompetitionResIndvuLine.Points ;
+              ParticipantEntryLine."Details NUM" := CompetitionResIndvuLine."Details NUM";
+              ParticipantEntryLine."Details TXT" := CompetitionResIndvuLine."Details TXT";
+              ParticipantEntryLine."Update Results" := TRUE;
+              ParticipantEntryLine.MODIFY;
+            END;
+          UNTIL CompetitionResIndvuLine.NEXT = 0;
+
+      ParticipantEntryHeader.RESET;
+      ParticipantEntryHeader.SETCURRENTKEY("Competition Entry No.","Student Division");
+      ParticipantEntryHeader.SETRANGE("Competition Entry No.",CompetitionResultIndividual."Competition Entry No.");
+      ParticipantEntryHeader.SETRANGE("Student Division",CompetitionResultIndividual."Student Division");
+      ParticipantEntryHeader.MODIFYALL("Update Results",TRUE);
+      ParticipantEntryHeader.MODIFYALL("Update Entry",TRUE);
+      ParticipantEntryHeader.MODIFYALL("Competition Status",ParticipantEntryHeader."Competition Status"::Completed);
+
+      CompetitionResultIndividual."Update Results" := TRUE;
+      CompetitionResultIndividual."Competition Status" := CompetitionResultIndividual."Competition Status"::Completed;
+
+      CompetitionEntryHeader.GET(CompetitionResultIndividual."Competition Entry No.");
+      //CompetitionEntryHeader."Competition Status" := CompetitionEntryHeader."Competition Status"::Completed;
+      CompetitionEntryHeader.MODIFY;
+      IF CompetitionResultIndividual.MODIFY THEN
+        MESSAGE(Text008);
+      // Stop 04.VIGNESH
+      COMMIT;
+    END;
+
+    PROCEDURE UpdatePointTeam@1102155005("getDocNo."@1102155000 : Code[20]);
+    VAR
+      ParticipantEntryLine@1102155001 : Record 71084;
+      CompetitionResultTeam@1102155002 : Record 71087;
+      CompetitionResTeamLine@1102155003 : Record 71088;
+      ParticipantEntryHeader@1102155004 : Record 71083;
+    BEGIN
+      // Start 05.VIGNESH
+      //IF NOT CONFIRM(Text012,FALSE) THEN
+       // EXIT;
+
+      CompetitionResultTeam.GET("getDocNo.");
+      IF CompetitionResultTeam."Update Results" THEN
+        ERROR(Text006);
+
+      CompetitionResTeamLine.RESET;
+      CompetitionResTeamLine.SETRANGE("Document No.","getDocNo.");
+      IF CompetitionResTeamLine.ISEMPTY THEN
+        ERROR(Text007)
+      ELSE
+        IF CompetitionResTeamLine.FINDFIRST THEN
+          REPEAT
+            ParticipantEntryLine.RESET;
+            ParticipantEntryLine.SETCURRENTKEY("Competition Entry No.","Student Division","Team No.");
+            ParticipantEntryLine.SETRANGE("Competition Entry No.",CompetitionResTeamLine."Competition Entry No.");
+            ParticipantEntryLine.SETRANGE("Student Division",CompetitionResTeamLine."Student Division");
+            ParticipantEntryLine.SETRANGE("Team No.",CompetitionResTeamLine."Team No.");
+            ParticipantEntryLine.SETRANGE(ParticipantEntryLine."Participant Type",
+            ParticipantEntryLine."Participant Type" :: Main); //DS01 Added on 260712
+            IF ParticipantEntryLine.FINDFIRST THEN
+            BEGIN
+              ParticipantEntryLine.MODIFYALL(Position,CompetitionResTeamLine.Position);
+              ParticipantEntryLine.MODIFYALL(Points,CompetitionResTeamLine.Points);
+              ParticipantEntryLine."Details NUM" := CompetitionResTeamLine."Details NUM";
+              ParticipantEntryLine."Details TXT" := CompetitionResTeamLine."Details TXT";
+
+              ParticipantEntryLine.MODIFYALL("Update Results",TRUE);
+            END;
+          UNTIL CompetitionResTeamLine.NEXT = 0;
+
+      ParticipantEntryHeader.RESET;
+      ParticipantEntryHeader.SETCURRENTKEY("Competition Entry No.","Student Division");
+      ParticipantEntryHeader.SETRANGE("Competition Entry No.",CompetitionResTeamLine."Competition Entry No.");
+      ParticipantEntryHeader.SETRANGE("Student Division",CompetitionResTeamLine."Student Division");
+      ParticipantEntryHeader.MODIFYALL("Update Results",TRUE);
+      ParticipantEntryHeader.MODIFYALL("Update Entry",TRUE);
+      CompetitionResultTeam."Update Results" := TRUE;
+      IF CompetitionResultTeam.MODIFY THEN
+        MESSAGE(Text008);
+      // Stop 05.VIGNESH
+    END;
+
+    PROCEDURE GetStudents@1102159000("GetDocNo."@1102159000 : Code[20]);
+    VAR
+      ParticipantEntryHeader@1102159001 : Record 71083;
+      ParticipantEntryLine@1102159002 : Record 71084;
+      CompetitionEntryLine@1102155000 : Record 71082;
+      LocalAge1@1102155001 : Integer;
+      TempAge1@1102155002 : Integer;
+      Age3@1102155003 : Integer;
+      Months2@1102155004 : Integer;
+      Age@1102155005 : Integer;
+      Months@1102155006 : Integer;
+    BEGIN
+      IF ParticipantEntryHeader.GET("GetDocNo.") THEN
+      BEGIN
+        Student.RESET;
+        Student.SETRANGE(Student.House,ParticipantEntryHeader.House);
+        Student.SETRANGE(Student.Gender,ParticipantEntryHeader.Gender);
+        Student.SETRANGE(Student."Academic Year",ParticipantEntryHeader."Academic Year");
+        Student.SETRANGE(Student."Student Status",Student."Student Status"::Student);
+
+
+        IF Student.FINDSET THEN
+        REPEAT
+          CompetitionEntryLine.SETRANGE(CompetitionEntryLine."Document No.",ParticipantEntryHeader."Competition Entry No.");
+          IF CompetitionEntryLine.FINDFIRST THEN BEGIN
+            //CompetitionEntryLine.TESTFIELD("Min Age");
+            //CompetitionEntryLine.TESTFIELD("Max Age");
+            //CompetitionEntryLine.TESTFIELD("Cut Off Date");
+            CompetitionEntryLine.TESTFIELD("Cut Off Date");
+            CompetitionEntryLine."Temp Cut off Date" := TODAY;
+            IF Student."Date Of Birth" <> 0D THEN BEGIN
+                LocalAge1 := CompetitionEntryLine."Temp Cut off Date" - Student."Date Of Birth";
+                TempAge1 := ROUND(LocalAge1 / 365,1,'<');
+                Age3 := LocalAge1 MOD 365;
+                Months2 := ROUND(Age3 / 30,1,'=');
+                Age := TempAge1;
+                Months := Months2;
+                Student.TESTFIELD(House);
+              //  House :=Student.House;
+            END;
+          END;
+
+         IF CompetitionEntryLine."Cut Off Date" <= Student."Date Of Birth" THEN BEGIN
+         //IF (Age >= CompetitionEntryLine."Min Age") OR (Age <= CompetitionEntryLine."Max Age") THEN BEGIN
+            ParticipantEntryLine.INIT;
+            ParticipantEntryLine."Document No."          := ParticipantEntryHeader."No.";
+            ParticipantEntryLine."Student No."           := Student."No.";
+            ParticipantEntryLine.Class                   := Student.Class;
+            ParticipantEntryLine."Student Name"          := Student.Name;
+            ParticipantEntryLine.House                   := Student.House;
+            ParticipantEntryLine.Gender                  := Student.Gender;
+            ParticipantEntryLine."Competition Entry No." := ParticipantEntryHeader."Competition Entry No.";
+            ParticipantEntryLine."Competition Type"      := ParticipantEntryHeader."Competition Type";
+            ParticipantEntryLine."Competition Name"      := ParticipantEntryHeader."Competition Name";
+            ParticipantEntryLine."Student Division"      := ParticipantEntryHeader."Student Division";
+            ParticipantEntryLine."Event Code"            := ParticipantEntryHeader."Event Code";
+            ParticipantEntryLine."Event Type"            := ParticipantEntryHeader."Event Type";
+            ParticipantEntryLine."Academic Year"         := ParticipantEntryHeader."Academic Year";
+        //    ParticipantEntryLine.Age                     := Student.Age;
+        //    ParticipantEntryLine.Months                  := Student.Months;
+            ParticipantEntryLine.Age                     := Age;
+            ParticipantEntryLine.Months                  := Months;
+
+
+            IF "Class Section".GET(Student."Class Code") THEN
+            BEGIN
+              IF "Class Section"."Academic Year" = ParticipantEntryHeader."Academic Year" THEN
+                ParticipantEntryLine.INSERT(TRUE);
+            END;
+         END;
+        UNTIL Student.NEXT = 0;
+      END;
+    END;
+
+    PROCEDURE CheckPositions@1102159001("getDocNo."@1102159000 : Code[20]) Ret : Text[30];
+    VAR
+      CompetitionResIndvuLine@1102159001 : Record 71086;
+      CompetitionResIndvuLineNew@1102159002 : Record 71086;
+      CompetitionRes@1102159003 : Record 71086;
+    BEGIN
+
+      CompetitionResIndvuLine.RESET;
+      CompetitionResIndvuLine.SETRANGE(CompetitionResIndvuLine."Document No.","getDocNo.");
+      CompetitionResIndvuLine.SETFILTER(CompetitionResIndvuLine.Position,'<>%1 & <>%2',0,CompetitionResIndvuLine.Position::Participation
+      );
+      IF CompetitionResIndvuLine.FINDSET THEN
+      REPEAT
+        CompetitionRes.RESET;
+        CompetitionRes.SETRANGE(CompetitionRes."Document No.","getDocNo.");
+        CompetitionRes.SETFILTER(CompetitionRes.Position,'<>%1 & <>%2',0,
+                                 CompetitionRes.Position::Participation);
+        CompetitionRes.SETRANGE(CompetitionRes.Position,CompetitionResIndvuLine.Position);
+        IF CompetitionRes.FINDFIRST THEN
+        BEGIN
+          IF CompetitionRes.COUNT > 1 THEN
+          BEGIN
+            CompetitionRes.SETFILTER(CompetitionRes.Position,'%1..%2',
+                                     CompetitionRes.Position+1,CompetitionRes.Position +  CompetitionRes.COUNT -1 );
+            IF CompetitionRes.FINDFIRST THEN
+            BEGIN
+              //ERROR('%1 Cannot be Entered as there are more earlier Places' ,CompetitionRes.Position,CompetitionRes.Position-1);
+              ERROR(FORMAT(CompetitionRes.Position));
+
+            END;
+          END;  ;
+        END;
+      UNTIL CompetitionResIndvuLine.NEXT = 0;
+    END;
+
+    PROCEDURE "----Cetas1-----"@1102155006();
+    BEGIN
+    END;
+
+    PROCEDURE UpdatePointTeam1@1102155001("getDocNo."@1102155000 : Code[20];IsForceUpdate@1000000000 : Boolean);
+    VAR
+      ParticipantEntryLine@1102155001 : Record 71084;
+      CompetitionResultTeam@1102155002 : Record 71087;
+      CompetitionResTeamLine@1102155003 : Record 71088;
+      ParticipantEntryHeader@1102155004 : Record 71083;
+    BEGIN
+      //DS01 added on 260712
+      CompetitionResultTeam.GET("getDocNo.");
+      IF CompetitionResultTeam."Update Results" AND NOT IsForceUpdate THEN
+        ERROR(Text006);
+
+      CompetitionResTeamLine.RESET;
+      CompetitionResTeamLine.SETRANGE("Document No.","getDocNo.");
+      IF CompetitionResTeamLine.ISEMPTY THEN
+        ERROR(Text007)
+      ELSE
+        IF CompetitionResTeamLine.FINDFIRST THEN
+          REPEAT
+            ParticipantEntryLine.RESET;
+            ParticipantEntryLine.SETCURRENTKEY("Competition Entry No.","Student Division","Team No.");
+            ParticipantEntryLine.SETRANGE("Competition Entry No.",CompetitionResTeamLine."Competition Entry No.");
+            ParticipantEntryLine.SETRANGE("Student Division",CompetitionResTeamLine."Student Division");
+            ParticipantEntryLine.SETRANGE("Team No.",CompetitionResTeamLine."Team No.");
+            ParticipantEntryLine.SETRANGE(ParticipantEntryLine."Participant Type",
+            ParticipantEntryLine."Participant Type" :: Main); //DS01 Added on 260712
+            IF ParticipantEntryLine.FINDFIRST THEN
+            BEGIN
+              ParticipantEntryLine.MODIFYALL(Position,CompetitionResTeamLine.Position);
+              ParticipantEntryLine.MODIFYALL(Points,CompetitionResTeamLine.Points);
+              ParticipantEntryLine."Details NUM" := CompetitionResTeamLine."Details NUM";
+              ParticipantEntryLine."Details TXT" := CompetitionResTeamLine."Details TXT";
+
+              ParticipantEntryLine.MODIFYALL("Update Results",TRUE);
+            END;
+          UNTIL CompetitionResTeamLine.NEXT = 0;
+
+      ParticipantEntryHeader.RESET;
+      ParticipantEntryHeader.SETCURRENTKEY("Competition Entry No.","Student Division");
+      ParticipantEntryHeader.SETRANGE("Competition Entry No.",CompetitionResTeamLine."Competition Entry No.");
+      ParticipantEntryHeader.SETRANGE("Student Division",CompetitionResTeamLine."Student Division");
+      ParticipantEntryHeader.MODIFYALL("Update Results",TRUE);
+      ParticipantEntryHeader.MODIFYALL("Update Entry",TRUE);
+      CompetitionResultTeam."Update Results" := TRUE;
+      IF CompetitionResultTeam.MODIFY THEN
+        MESSAGE(Text008);
+
+      COMMIT;
+      //DS01 added on 260712
+    END;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  UpdateEntry()                Code added to updateEntry
+      02   15.12.09  VIGNESH  GetStudentsIndividual()      Code added to get the Students for individual
+      03   15.12.09  VIGNESH  GetStudentsTeam()            Code added to get the Students for team
+      04   15.12.09  VIGNESH  UpdatePointsIndividual()     Code added to updated poing for event individual
+      05   15.12.09  VIGNESH  UpdatePointsteam()           Code added to updated poing for event team
+
+      SJ6.01 21/01/18 GB
+        - Remove Substitute validation
+    }
+    END.
+  }
+}
+

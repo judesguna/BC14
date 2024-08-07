@@ -1,0 +1,48 @@
+OBJECT Table 72085 Leave Credited
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Leave Credited;
+    LookupPageID=Page72117;
+    DrillDownPageID=Page72117;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Leave Start Date    ;Date          ;CaptionML=ENU=Leave Start Date }
+    { 4   ;   ;Leave End Date      ;Date          ;CaptionML=ENU=Leave End Date }
+    { 5   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No }
+    { 6   ;   ;Leave Code          ;Code20        ;CaptionML=ENU=Leave Code }
+    { 7   ;   ;No. of Leaves       ;Decimal       ;CaptionML=ENU=No. of Leaves }
+    { 8   ;   ;Active              ;Boolean       ;CaptionML=ENU=Active }
+    { 9   ;   ;Leave Year Code     ;Code20        ;CaptionML=ENU=Leave Year Code;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Employee No,Leave Code,Leave Start Date,Leave End Date,Leave Year Code;
+                                                   Clustered=Yes }
+    {    ;No. of Leaves                           ;SumIndexFields=No. of Leaves }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

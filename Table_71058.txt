@@ -1,0 +1,82 @@
+OBJECT Table 71058 Promotion Weightage
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Promotion Weightage;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class Code          ;Code10        ;TableRelation="Class Card".Class;
+                                                   CaptionML=ENU=Class Code }
+    { 2   ;   ;Curriculum Code     ;Code10        ;TableRelation="Class Card".Curriculum;
+                                                   CaptionML=ENU=Curriculum Code }
+    { 3   ;   ;Academic Year Code  ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year Code }
+    { 4   ;   ;Exam Type Code      ;Code10        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Type Code }
+    { 5   ;   ;Weightage           ;Decimal       ;OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                WeigAge := 0;
+                                                                PromotionWeight.RESET;
+                                                                PromotionWeight.SETCURRENTKEY("Class Code","Curriculum Code","Academic Year Code","Exam Type Code");
+                                                                PromotionWeight.SETRANGE("Class Code","Class Code");
+                                                                PromotionWeight.SETRANGE("Curriculum Code","Curriculum Code");
+                                                                PromotionWeight.SETRANGE("Academic Year Code","Academic Year Code");
+                                                                IF PromotionWeight.FINDSET THEN
+                                                                  REPEAT
+                                                                    WeigAge += PromotionWeight.Weightage ;
+                                                                  UNTIL PromotionWeight.NEXT = 0;
+
+                                                                IF (WeigAge + Weightage - xRec.Weightage) > 100 THEN
+                                                                  ERROR(Text000);
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Weightage }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class Code,Curriculum Code,Academic Year Code,Exam Type Code;
+                                                   SumIndexFields=Weightage;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PromotionWeight@1102155000 : Record 71058;
+      WeigAge@1102155001 : Decimal;
+      Text000@1102155003 : TextConst 'ENU=Weightage cannot be more than 100.';
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+        01  06/10/09  KATHIR   Weightage - OnValidate()      Code added to Check the Overall weightage not to exceed 100.
+        02  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        03  23/11/09 VIGNESH  Class Code - OnValidate()      Code added to get the Look up value for Class & Curriculum
+        04  23/11/09 VIGNESH  Class Code - OnLookup()        Code added to get the Look up value for Class & Curriculum
+        05  23/11/09 VIGNESH  Curriculum Code - OnValidate() Code added to get the Look up value for Class&Curriculum last attend
+        06  23/11/09 VIGNESH  Curriculum Code - OnLookup()   Code added to get the Look up value for Class&Curriculum last attend
+    }
+    END.
+  }
+}
+

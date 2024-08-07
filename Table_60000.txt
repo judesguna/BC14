@@ -1,0 +1,38 @@
+OBJECT Table 60000 Menu
+{
+  OBJECT-PROPERTIES
+  {
+    Date=15-06-11;
+    Time=13:01:07;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    LookupPageID=Page60001;
+    DrillDownPageID=Page60001;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Date                ;Date           }
+    { 2   ;   ;Campus              ;Option        ;OptionCaptionML=ENU=" ,MontFord,West Brook";
+                                                   OptionString=[ ,MontFord,West Brook] }
+    { 3   ;   ;Food Time           ;Option        ;OptionCaptionML=ENU=" ,BreakFast,Lunch,Evening Break,Dinner";
+                                                   OptionString=[ ,BreakFast,Lunch,Evening Break,Dinner] }
+    { 4   ;   ;Menu                ;Text250        }
+  }
+  KEYS
+  {
+    {    ;Date,Campus,Food Time                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

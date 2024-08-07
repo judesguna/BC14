@@ -1,0 +1,57 @@
+OBJECT Table 71043 Divsion
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.KATHIR
+               "Created Academic Year" := EduVert.GetAdmissionYear;
+               // Stop 01.KATHIR
+
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Divsion;
+    LookupPageID=Page71043;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Division Code       ;Code20        ;CaptionML=ENU=Division Code }
+    { 2   ;   ;Division Description;Text50        ;CaptionML=ENU=Division Description }
+    { 3   ;   ;Created Academic Year;Code20       ;CaptionML=ENU=Created Academic Year }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Division Code,Created Academic Year     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EduVert@1102155000 : Codeunit 71880;
+
+    BEGIN
+    {
+        No   Date        Sign       Trigger          Description
+      -----------------------------------------------------------------------------------------------
+        01   21/09/09   KATHIR    OnInsert()       Coding added to get current academic year
+        02   19/10/09   VANDHANA  OnInsert         Code to assign User ID.
+    }
+    END.
+  }
+}
+

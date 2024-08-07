@@ -1,0 +1,197 @@
+OBJECT Table 72087 Employee Loan
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF "Loan Id" = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Loan No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Loan No.",xRec."No. Series",0D,"Loan Id","No. Series");
+               END;
+             END;
+
+    CaptionML=ENU=Employee Loan;
+    LookupPageID=Page72119;
+    DrillDownPageID=Page72119;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Loan Id             ;Code20        ;OnValidate=BEGIN
+                                                                IF "Loan Id" <> xRec."Loan Id" THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Loan No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Loan Id }
+    { 4   ;   ;Loan Code           ;Code20        ;TableRelation="Pay Elements" WHERE (Location Code=FIELD(Location Code),
+                                                                                       Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                       Loan Element=CONST(Yes));
+                                                   OnValidate=BEGIN
+                                                                IF PayElements.GET("Loan Code","Location Code","Salary Plan Code") THEN BEGIN
+                                                                  "Purpose of loan" := PayElements.Description;
+                                                                  "Total Loan Amount" := PayElements.Amount;
+                                                                  "Loan Balance Amount" := "Total Loan Amount";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Loan Code }
+    { 5   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  Name := Employee."First Name";
+                                                                  "Location Code" := Employee."Location Code";
+                                                                  "Salary Plan Code" := Employee."Salary Plan Code";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 7   ;   ;Total Loan Amount   ;Decimal       ;CaptionML=ENU=Total Loan Amount }
+    { 8   ;   ;Loan Type           ;Option        ;CaptionML=ENU=Loan Type;
+                                                   OptionCaptionML=ENU=" ,Interest Free,Flat Rate,Dimnishing Rate";
+                                                   OptionString=[ ,Interest Free,Flat Rate,Dimnishing Rate] }
+    { 9   ;   ;Rate of Interest    ;Decimal       ;CaptionML=ENU=Rate of Interest }
+    { 10  ;   ;No of Installment   ;Integer       ;CaptionML=ENU=No of Installment }
+    { 11  ;   ;Purpose of loan     ;Text50        ;CaptionML=ENU=Purpose of loan }
+    { 12  ;   ;Loan Ref. No        ;Code50        ;CaptionML=ENU=Loan Ref. No }
+    { 13  ;   ;Loan Ref. Date      ;Date          ;CaptionML=ENU=Loan Ref. Date }
+    { 14  ;   ;Loan Sanction Date  ;Date          ;CaptionML=ENU=Loan Sanction Date }
+    { 15  ;   ;Loan Starting Date  ;Date          ;OnValidate=BEGIN
+                                                                "Loan End Date" := "Loan Starting Date";
+
+                                                                IF "Loan Starting Date" < "Loan Sanction Date" THEN
+                                                                  ERROR('Enter Valid Date of Loan Sanction Date,\ It Should not lessthan the Loan Starting Date');
+                                                              END;
+
+                                                   CaptionML=ENU=Loan Starting Date }
+    { 16  ;   ;Loan End Date       ;Date          ;CaptionML=ENU=Loan End Date }
+    { 17  ;   ;Installment Amount  ;Decimal       ;OnValidate=BEGIN
+                                                                TESTFIELD("Installment Amount");
+
+                                                                "No of Installment" := ROUND(("Total Loan Amount" / "Installment Amount"),1,'>');
+                                                              END;
+
+                                                   CaptionML=ENU=Installment Amount }
+    { 18  ;   ;Total Interest Amount;Decimal      ;CaptionML=ENU=Total Interest Amount;
+                                                   Editable=No }
+    { 19  ;   ;Loan Balance Amount ;Decimal       ;CaptionML=ENU=Loan Balance Amount;
+                                                   Editable=No }
+    { 20  ;   ;No Deduction Request;Boolean       ;CaptionML=ENU=No Deduction Request }
+    { 21  ;   ;Partial Deduction   ;Boolean       ;CaptionML=ENU=Partial Deduction }
+    { 22  ;   ;Completed           ;Boolean       ;CaptionML=ENU=Completed }
+    { 23  ;   ;No. Series          ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=No. Series }
+    { 24  ;   ;Loan Date Interval  ;DateFormula   ;CaptionML=ENU=Loan Date Interval;
+                                                   Editable=No }
+    { 25  ;   ;Opening Loan Amount ;Decimal       ;OnValidate=BEGIN
+                                                                "Total Loan Amount" := "Opening Loan Amount";
+
+                                                                IF "Installment Amount" > 0 THEN
+                                                                  "No of Installment" := ROUND(("Total Loan Amount" / "Installment Amount"),1,'>');
+
+                                                                CALCFIELDS("Total Loans Deducted");
+                                                                "Closing Balance Amount" := "Opening Loan Amount" - "Loans Deducted";
+                                                              END;
+
+                                                   CaptionML=ENU=Opening Loan Amount }
+    { 26  ;   ;Total Loans Deducted;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Employee Loan Details"."EMI Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                               Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                               Loan Code=FIELD(Loan Code),
+                                                                                                               Employee No=FIELD(Employee No),
+                                                                                                               Loan Closed=FILTER(Yes)));
+                                                   CaptionML=ENU=Total Loans Deducted;
+                                                   Editable=No }
+    { 27  ;   ;Closing Balance Amount;Decimal     ;OnValidate=BEGIN
+                                                                CALCFIELDS("Total Loans Deducted");
+                                                                "Closing Balance Amount" := "Opening Loan Amount" - "Loans Deducted";
+
+                                                                IF "Closing Balance Amount" <= 0 THEN
+                                                                  Completed := TRUE;
+                                                              END;
+
+                                                   CaptionML=ENU=Closing Balance Amount;
+                                                   Editable=No }
+    { 28  ;   ;Loan Plan           ;Option        ;OnValidate=BEGIN
+                                                                IF "Loan Plan" = "Loan Plan"::Weekly THEN
+                                                                  EVALUATE("Loan Date Interval",'1W');
+
+                                                                IF "Loan Plan" = "Loan Plan"::FortNight THEN
+                                                                  EVALUATE("Loan Date Interval",'15D');
+
+                                                                IF "Loan Plan" = "Loan Plan"::Monthly THEN
+                                                                  EVALUATE("Loan Date Interval",'1M');
+                                                              END;
+
+                                                   CaptionML=ENU=Loan Plan;
+                                                   OptionCaptionML=ENU=" ,Weekly,FortNight,Monthly";
+                                                   OptionString=[ ,Weekly,FortNight,Monthly] }
+    { 29  ;   ;Loans Deducted      ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                              Employee No=FIELD(Employee No),
+                                                                                                              Pay Element Code=FIELD(Loan Code)));
+                                                   CaptionML=ENU=Loans Deducted;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Loan Id                                 ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+      LocationHRPayrollSetup@1000000005 : Record 72052;
+      NoSeriesMgt@1000000004 : Codeunit 396;
+      Employee@1000000003 : Record 5200;
+      EmployeeLoan@1102159002 : Record 72087;
+      PayElements@1102159001 : Record 72060;
+      EndDate@1000000002 : Date;
+
+    PROCEDURE AssistEdit@2(OldEmployeeLoan@1000 : Record 72087) : Boolean;
+    BEGIN
+      WITH EmployeeLoan DO BEGIN
+        EmployeeLoan := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Loan No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Loan No.",OldEmployeeLoan."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Loan Id");
+          Rec := EmployeeLoan;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

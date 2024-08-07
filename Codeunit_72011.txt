@@ -1,0 +1,533 @@
+OBJECT Codeunit 72011 Bonus Creation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      CUGeneralFunctions@1000000000 : Codeunit 72008;
+      BonusId@1000000007 : Code[20];
+      LocationCode@1000000006 : Code[20];
+      SalaryPlanCode@1000000005 : Code[20];
+      BonusYear@1000000004 : Code[20];
+      BonusStartDate@1000000003 : Date;
+      BonusEndDate@1000000002 : Date;
+
+    PROCEDURE "Create Bonus Records"@1000000000(LBonusId@1000000007 : Code[20];LEmployeeNo@1000000010 : Code[20]);
+    VAR
+      BonusHeader@1000000003 : Record 72116;
+      Employee@1000000005 : Record 5200;
+      RecordCount@1000000004 : Integer;
+      CurrentRecord@1000000006 : Integer;
+    BEGIN
+      IF NOT CONFIRM('Do You Want Create Bonus',FALSE) THEN
+        EXIT;
+
+      BonusHeader.RESET;
+      BonusHeader.SETRANGE("Bonus Id.",LBonusId);
+      IF BonusHeader.FINDFIRST THEN BEGIN
+        BonusId := BonusHeader."Bonus Id.";
+        LocationCode := BonusHeader."Location Code";
+        SalaryPlanCode := BonusHeader."Salary Plan Code";
+        BonusYear := BonusHeader."Bonus Year";
+        BonusStartDate := BonusHeader."Bonus Start Date";
+        BonusEndDate := BonusHeader."Bonus End Date";
+      END;
+
+      CUGeneralFunctions.OpenWindow('Bonus Creation\\','Progress');
+
+      Employee.RESET;
+      IF LEmployeeNo <> 'ALL' THEN
+        Employee.SETRANGE("No.", LEmployeeNo);
+
+      Employee.SETRANGE("Location Code", LocationCode);
+      Employee.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      Employee.SETRANGE(Status, Employee.Status::Active);
+      Employee.SETRANGE("Bonus Applicable", TRUE);
+      IF Employee.FINDFIRST THEN BEGIN
+        RecordCount := Employee.COUNT;
+        REPEAT
+          CUGeneralFunctions.UpdateWindow (Employee."No.",RecordCount);
+          "Delete Bonus Lines"(Employee."No.");
+          "Insert Bonus Line Records"(Employee."No.");
+          "Transfer Bonus to PayElements" (Employee."No.");
+          "Transfer CL Amt to PayElements"(Employee."No.");
+          "Transfer EL Amt to PayElements"(Employee."No.");
+          "Bonus Calculation" (Employee."No.");
+        UNTIL Employee.NEXT = 0;
+      END;
+      CUGeneralFunctions.CloseWindow;
+      MESSAGE('Process Completed..');
+    END;
+
+    PROCEDURE "Insert Bonus Line Records"@1000000005(LEmployeeNo@1000000002 : Code[20]);
+    VAR
+      Employee@1000000000 : Record 5200;
+      BonusHeader@1102155000 : Record 72116;
+      BonusLine@1000000001 : Record 72117;
+      PayElements@1102155001 : Record 72060;
+    BEGIN
+      IF NOT PayElements.GET('BONUS',LocationCode,SalaryPlanCode) THEN
+        ERROR('%1','BONUS Pay Element not Defined in the Pay Element Card');
+
+      Employee.GET(LEmployeeNo);
+      BonusHeader.RESET;
+      BonusHeader.SETRANGE("Bonus Id.", BonusId);
+      IF BonusHeader.FINDFIRST THEN;
+
+      BonusLine.INIT;
+      BonusLine."Bonus Id." := BonusId;
+      BonusLine."Location Code" := LocationCode;
+      BonusLine."Salary Plan Code" := SalaryPlanCode;
+      BonusLine."Bonus Year" := BonusYear;
+      BonusLine."Employee No" := LEmployeeNo;
+      BonusLine.Name := Employee."First Name" + ' ' + Employee.Initials;
+      BonusLine."Pay Element Code" := 'BONUS';
+      BonusLine."Service Year" := "Service Year Calculation"(LEmployeeNo);
+      BonusLine."Bonus %" := BonusHeader."Bonus (%)";
+      BonusLine."Ex-Gratia %" := BonusHeader."Ex-Gratia (%)";
+      BonusLine."Select (Y/N)" := TRUE;
+      BonusLine."Employee Category" := Employee."Employee Category";
+
+      IF BonusLine.INSERT THEN;
+
+      "Insert Bonus Dtl. Line Records"(LEmployeeNo);
+    END;
+
+    PROCEDURE "Insert Bonus Dtl. Line Records"@1000000006(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      Employee@1102159000 : Record 5200;
+      MonthlyAttendance@1000000002 : Record 72082;
+      BonusDetailedLine@1000000001 : Record 72118;
+    BEGIN
+      CLEAR(MonthlyAttendance);
+      Employee.GET(LEmployeeNo);
+
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Employee No",LEmployeeNo);
+      MonthlyAttendance.SETRANGE("Payroll End Date",BonusStartDate,BonusEndDate);
+      IF MonthlyAttendance.FINDFIRST THEN
+        REPEAT
+          MonthlyAttendance.CALCFIELDS("Total Payable Days");
+
+          BonusDetailedLine.INIT;
+          BonusDetailedLine."Bonus Id." := BonusId;
+          BonusDetailedLine."Location Code" := LocationCode;
+          BonusDetailedLine."Salary Plan Code" := SalaryPlanCode;
+          BonusDetailedLine."Bonus Year" := BonusYear;
+          BonusDetailedLine."Salary Cycle Code" := MonthlyAttendance."Salary Cycle Code";
+          BonusDetailedLine."Employee No" := MonthlyAttendance."Employee No";
+          BonusDetailedLine.Name := Employee."First Name" + ' ' + Employee.Initials;
+          BonusDetailedLine."Days Worked" := MonthlyAttendance."Total Payable Days";
+          BonusDetailedLine."Bonusable Earnings" :=
+          "Bonuable Earning Calculation"(LEmployeeNo,
+             MonthlyAttendance."Salary Cycle Code");
+          BonusDetailedLine."Projection Not Required" := FALSE;
+      //  BonusDetailedLine."Employee Category" := MonthlyAttendance."Employee Category";
+
+          IF BonusDetailedLine.INSERT THEN ;
+
+        UNTIL MonthlyAttendance.NEXT = 0;
+    END;
+
+    PROCEDURE "Service Year Calculation"@1000000003(LEmployeeNo@1000000000 : Code[20]) : Integer;
+    VAR
+      Employee@1000000001 : Record 5200;
+      ServiceYear@1000000002 : Integer;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+        ServiceYear := ROUND(((TODAY - Employee."Employment Date") / 365.2364),1,'=');
+
+      EXIT(ServiceYear);
+    END;
+
+    PROCEDURE "Bonuable Earning Calculation"@1000000001(LEmployeeNo@1000000000 : Code[20];LSalaryCyclicCode@1000000004 : Code[20]) : Decimal;
+    VAR
+      ProcessedSalary@1000000001 : Record 72090;
+      PayElements@1000000002 : Record 72060;
+      BonusableEarnings@1000000003 : Decimal;
+    BEGIN
+      CLEAR(BonusableEarnings);
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",LSalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+          PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+          IF PayElements."Eligible for Bonus" THEN
+            BonusableEarnings += ProcessedSalary."Payable Amount";
+        UNTIL ProcessedSalary.NEXT = 0;
+      EXIT(BonusableEarnings);
+    END;
+
+    PROCEDURE "Transfer Bonus to PayElements"@1000000004(LEmployeeNo@1102155002 : Code[20]);
+    VAR
+      BonusLine@1102155001 : Record 72117;
+      BonusMiscAddDeductions@1102155000 : Record 72119;
+    BEGIN
+      BonusLine.RESET;
+      BonusLine.SETRANGE("Bonus Id.", BonusId);
+      BonusLine.SETRANGE("Employee No", LEmployeeNo);
+      IF BonusLine.FINDFIRST THEN
+        REPEAT
+          BonusLine.CALCFIELDS("Bonusable Earnings");
+          BonusLine."Bonus Amt" := ROUND(((BonusLine."Bonusable Earnings" * BonusLine."Bonus %") / 100),0.01,'=');
+          BonusLine."Ex-Gratia Amt" := ROUND(((BonusLine."Bonusable Earnings" * BonusLine."Ex-Gratia %") / 100),0.01,'=');
+          BonusLine.MODIFY;
+
+          BonusMiscAddDeductions.INIT;
+          BonusMiscAddDeductions."Location Code" := LocationCode;
+          BonusMiscAddDeductions."Salary Plan Code" := SalaryPlanCode;
+          BonusMiscAddDeductions."Bonus ID." := BonusId;
+          BonusMiscAddDeductions."Employee No." := BonusLine."Employee No";
+          BonusMiscAddDeductions."Pay Element Code" := BonusLine."Pay Element Code";
+          BonusMiscAddDeductions."Bonus Year Code" := BonusYear;
+          BonusMiscAddDeductions."Bonus Start Date" := BonusStartDate;
+          BonusMiscAddDeductions."Bonus End Date" := BonusEndDate;
+          BonusMiscAddDeductions.Name := BonusLine.Name;
+          BonusMiscAddDeductions."Paid Category" := BonusMiscAddDeductions."Paid Category"::Yearly;
+          BonusMiscAddDeductions."Pay Type" := BonusMiscAddDeductions."Pay Type";
+          BonusMiscAddDeductions.Amount := ROUND((BonusLine."Bonus Amt" + BonusLine."Ex-Gratia Amt"),1,'=');
+          BonusMiscAddDeductions."Created Date" := TODAY;
+          BonusMiscAddDeductions."User Id" := USERID;
+          BonusMiscAddDeductions.Month := DATE2DMY(BonusEndDate,2);
+          BonusMiscAddDeductions.Year := DATE2DMY(BonusEndDate,3);
+          BonusMiscAddDeductions."System Generated" := TRUE;
+
+          IF BonusLine."Service Year" < 1 THEN
+            IF BonusLine."Service Month" < 3 THEN BEGIN
+              BonusMiscAddDeductions.Amount := 0;
+              BonusLine."Select (Y/N)" := FALSE;
+            END;
+
+          BonusLine.CALCFIELDS("Gross Bonus Amt");
+          BonusLine.CALCFIELDS("Deduction Amt");
+
+          BonusLine."Total Net Bonus Amt" := ROUND((BonusLine."Gross Bonus Amt" - BonusLine."Deduction Amt"),0.01,'=');
+          BonusLine.MODIFY;
+
+          IF BonusMiscAddDeductions.Amount > 0 THEN BEGIN
+            BonusLine."Select (Y/N)" := TRUE;
+            BonusMiscAddDeductions.INSERT;
+          END;
+
+        UNTIL BonusLine.NEXT = 0;
+    END;
+
+    PROCEDURE "Transfer CL Amt to PayElements"@1102159000(LEmployeeNo@1102155002 : Code[20]);
+    VAR
+      BonusHeader@1102159000 : Record 72116;
+      BonusLine@1102155001 : Record 72117;
+      BonusMiscAddDeductions@1102155000 : Record 72119;
+      CLDays@1102159001 : Decimal;
+      CLAmount@1102159002 : Decimal;
+      PerDayWages@1102159003 : Decimal;
+    BEGIN
+      CLEAR(CLDays);
+      CLEAR(CLAmount);
+      BonusLine.RESET;
+      BonusLine.SETRANGE("Bonus Id.", BonusId);
+      BonusLine.SETRANGE("Employee No", LEmployeeNo);
+      IF BonusLine.FINDFIRST THEN
+        REPEAT
+          BonusLine.CALCFIELDS("No of Days Worked");
+
+          IF BonusLine."No of Days Worked" > 0 THEN
+            BonusLine."No of Days Worked" := BonusLine."No of Days Worked" + 9;
+
+          BonusHeader.RESET;
+          BonusHeader.SETRANGE("Bonus Id.", BonusLine."Bonus Id.");
+          IF BonusHeader.FINDFIRST THEN;
+
+          IF BonusLine."Employee Category" IN [BonusLine."Employee Category"::"Staff Permanent",
+             BonusLine."Employee Category"::"Staff Temporary"]
+          THEN BEGIN
+            IF BonusHeader."Staff Total CL Days" > 0 THEN
+              CLDays := ROUND((BonusLine."No of Days Worked" / BonusHeader."Staff Total CL Days"),1,'=');
+            IF CLDays >= 14 THEN
+              CLDays := 14;
+          END;
+
+          IF BonusLine."Employee Category" IN [BonusLine."Employee Category"::"Worker Permanent",
+             BonusLine."Employee Category"::"Worker Temporary"]
+          THEN BEGIN
+            IF BonusHeader."Worker Total CL Days" > 0 THEN
+              CLDays := ROUND((BonusLine."No of Days Worked" / BonusHeader."Worker Total CL Days"),1,'=');
+            IF CLDays >= 12 THEN
+              CLDays := 12;
+          END;
+
+          CLAmount := ROUND((CLDays * "Read Per Day Salary"(LEmployeeNo)),1,'=');
+
+          IF BonusLine."Service Year" <= 0 THEN
+            CLAmount := 0;
+
+          BonusMiscAddDeductions.INIT;
+          BonusMiscAddDeductions."Location Code" := LocationCode;
+          BonusMiscAddDeductions."Salary Plan Code" := SalaryPlanCode;
+          BonusMiscAddDeductions."Bonus ID." := BonusId;
+          BonusMiscAddDeductions."Employee No." := BonusLine."Employee No";
+          BonusMiscAddDeductions."Pay Element Code" := 'CL AMOUNT';
+          BonusMiscAddDeductions."Bonus Year Code" := BonusYear;
+          BonusMiscAddDeductions."Bonus Start Date" := BonusStartDate;
+          BonusMiscAddDeductions."Bonus End Date" := BonusEndDate;
+          BonusMiscAddDeductions.Name := BonusLine.Name;
+          BonusMiscAddDeductions."Paid Category" := BonusMiscAddDeductions."Paid Category"::Yearly;
+          BonusMiscAddDeductions."Pay Type" := BonusMiscAddDeductions."Pay Type";
+          BonusMiscAddDeductions.Amount := CLAmount;
+          BonusMiscAddDeductions."Created Date" := TODAY;
+          BonusMiscAddDeductions."User Id" := USERID;
+          BonusMiscAddDeductions.Month := DATE2DMY(BonusEndDate,2);
+          BonusMiscAddDeductions.Year := DATE2DMY(BonusEndDate,3);
+          BonusMiscAddDeductions."CL / EL Paid Days" := CLDays;
+          BonusMiscAddDeductions."System Generated" := TRUE;
+
+          BonusLine.CALCFIELDS("Gross Bonus Amt");
+          BonusLine.CALCFIELDS("Deduction Amt");
+          BonusLine."Total Net Bonus Amt" := ROUND((BonusLine."Gross Bonus Amt" - BonusLine."Deduction Amt"),0.01,'=');
+          BonusLine.MODIFY;
+
+          IF BonusMiscAddDeductions.Amount > 0 THEN
+            IF BonusMiscAddDeductions.INSERT THEN;
+
+        UNTIL BonusLine.NEXT = 0;
+    END;
+
+    PROCEDURE "Transfer EL Amt to PayElements"@1102159001(LEmployeeNo@1102155002 : Code[20]);
+    VAR
+      BonusHeader@1102159000 : Record 72116;
+      BonusLine@1102155001 : Record 72117;
+      BonusMiscAddDeductions@1102155000 : Record 72119;
+      ELDays@1102159001 : Decimal;
+      ELAmount@1102159002 : Decimal;
+      PerDayWages@1102159003 : Decimal;
+    BEGIN
+      CLEAR(ELDays);
+      CLEAR(ELAmount);
+      BonusLine.RESET;
+      BonusLine.SETRANGE("Bonus Id.", BonusId);
+      BonusLine.SETRANGE("Employee No", LEmployeeNo);
+      IF BonusLine.FINDFIRST THEN
+        REPEAT
+          BonusLine.CALCFIELDS("No of Days Worked");
+          IF BonusLine."No of Days Worked" > 0 THEN
+            BonusLine."No of Days Worked" := BonusLine."No of Days Worked" + 9;
+
+          BonusHeader.RESET;
+          BonusHeader.SETRANGE("Bonus Id.", BonusLine."Bonus Id.");
+          IF BonusHeader.FINDFIRST THEN;
+
+          IF BonusLine."Employee Category" IN [BonusLine."Employee Category"::"Staff Permanent",
+             BonusLine."Employee Category"::"Staff Temporary"]
+          THEN BEGIN
+
+            IF BonusHeader."Staff Total EL Days" > 0 THEN
+              ELDays := ROUND((BonusLine."No of Days Worked" / BonusHeader."Staff Total EL Days"),1,'=');
+
+            IF ELDays >= 15 THEN
+              ELDays := 15;
+          END;
+
+          IF BonusLine."Employee Category" IN [BonusLine."Employee Category"::"Worker Permanent",
+             BonusLine."Employee Category"::"Worker Temporary"]
+          THEN BEGIN
+            IF BonusHeader."Worker Total EL Days" > 0 THEN
+              ELDays := ROUND((BonusLine."No of Days Worked" / BonusHeader."Worker Total EL Days"),1,'=');
+
+            IF ELDays >= 15 THEN
+              ELDays := 15;
+          END;
+
+          ELAmount := ROUND((ELDays * "Read Per Day Salary"(LEmployeeNo)),1,'=');
+
+          IF BonusLine."Service Year" <= 0 THEN
+            ELAmount := 0;
+
+          BonusMiscAddDeductions."Location Code" := LocationCode;
+          BonusMiscAddDeductions."Salary Plan Code" := SalaryPlanCode;
+          BonusMiscAddDeductions."Bonus ID." := BonusId;
+          BonusMiscAddDeductions."Employee No." := BonusLine."Employee No";
+          BonusMiscAddDeductions."Pay Element Code" := 'EL AMOUNT';
+          BonusMiscAddDeductions."Bonus Year Code" := BonusYear;
+          BonusMiscAddDeductions."Bonus Start Date" := BonusStartDate;
+          BonusMiscAddDeductions."Bonus End Date" := BonusEndDate;
+          BonusMiscAddDeductions.Name := BonusLine.Name;
+          BonusMiscAddDeductions."Paid Category" := BonusMiscAddDeductions."Paid Category"::Yearly;
+          BonusMiscAddDeductions."Pay Type" := BonusMiscAddDeductions."Pay Type";
+          BonusMiscAddDeductions.Amount := ELAmount;
+          BonusMiscAddDeductions."Created Date" := TODAY;
+          BonusMiscAddDeductions."User Id" := USERID;
+          BonusMiscAddDeductions.Month := DATE2DMY(BonusEndDate,2);
+          BonusMiscAddDeductions.Year := DATE2DMY(BonusEndDate,3);
+          BonusMiscAddDeductions."CL / EL Paid Days" := ELDays;
+          BonusMiscAddDeductions."System Generated" := TRUE;
+
+          BonusLine.CALCFIELDS("Gross Bonus Amt");
+          BonusLine.CALCFIELDS("Deduction Amt");
+          BonusLine."Total Net Bonus Amt" := ROUND((BonusLine."Gross Bonus Amt" - BonusLine."Deduction Amt"),0.01,'=');
+          BonusLine.MODIFY;
+
+          IF BonusMiscAddDeductions.Amount > 0 THEN
+            IF BonusMiscAddDeductions.INSERT THEN;
+
+        UNTIL BonusLine.NEXT = 0;
+    END;
+
+    PROCEDURE "Bonus Calculation"@1102155000(LEmployeeNo@1102155000 : Code[20]);
+    VAR
+      BonusLine@1102155001 : Record 72117;
+      BonusMiscAddDeductions@1102159000 : Record 72119;
+    BEGIN
+      BonusLine.RESET;
+      BonusLine.SETRANGE("Bonus Id.", BonusId);
+      BonusLine.SETRANGE("Employee No", LEmployeeNo);
+      IF BonusLine.FINDFIRST THEN
+        REPEAT
+          BonusLine.CALCFIELDS("No of Days Worked");
+
+          IF BonusLine."No of Days Worked" <= 0 THEN BEGIN
+            BonusMiscAddDeductions.RESET;
+            BonusMiscAddDeductions.SETRANGE("Location Code",BonusLine."Location Code");
+            BonusMiscAddDeductions.SETRANGE("Salary Plan Code",BonusLine."Salary Plan Code");
+            BonusMiscAddDeductions.SETRANGE("Bonus ID.",BonusLine."Bonus Id.");
+            BonusMiscAddDeductions.SETRANGE("Employee No.", BonusLine."Employee No");
+            BonusMiscAddDeductions.SETRANGE("System Generated", FALSE);
+            IF BonusMiscAddDeductions.FINDFIRST THEN
+              BonusMiscAddDeductions.DELETEALL;
+          END;
+
+          IF BonusLine."Employee Category" = BonusLine."Employee Category"::"Worker Temporary" THEN
+            IF BonusLine."Service Year" <= 0 THEN BEGIN
+              BonusMiscAddDeductions.RESET;
+              BonusMiscAddDeductions.SETRANGE("Location Code",BonusLine."Location Code");
+              BonusMiscAddDeductions.SETRANGE("Salary Plan Code",BonusLine."Salary Plan Code");
+              BonusMiscAddDeductions.SETRANGE("Bonus ID.",BonusLine."Bonus Id.");
+              BonusMiscAddDeductions.SETRANGE("Employee No.", BonusLine."Employee No");
+              BonusMiscAddDeductions.SETRANGE("Pay Type", BonusMiscAddDeductions."Pay Type"::Addition);
+              BonusMiscAddDeductions.SETRANGE("System Generated", FALSE);
+              IF BonusMiscAddDeductions.FINDFIRST THEN
+                BonusMiscAddDeductions.DELETEALL;
+            END;
+          BonusLine.CALCFIELDS("Gross Bonus Amt");
+          BonusLine.CALCFIELDS("Deduction Amt");
+          BonusLine."Total Net Bonus Amt" := ROUND((BonusLine."Gross Bonus Amt" - BonusLine."Deduction Amt"),0.01,'=');
+
+          IF BonusLine."Total Net Bonus Amt" > 0 THEN
+            BonusLine."Select (Y/N)" := TRUE
+          ELSE
+            BonusLine."Select (Y/N)" := FALSE;
+
+          BonusLine.MODIFY;
+        UNTIL BonusLine.NEXT = 0;
+    END;
+
+    PROCEDURE "Delete Bonus Lines"@1000000002(LEmployeeNo@1000000001 : Code[20]);
+    VAR
+      BonusLine@1000000000 : Record 72117;
+      BonusDetailedLine@1102155000 : Record 72118;
+      BonusMiscAddDeductions@1102155001 : Record 72119;
+    BEGIN
+      {
+      BonusLine.RESET;
+      BonusLine.SETRANGE("Bonus Id.",BonusId);
+      BonusLine.SETRANGE("Employee No",LEmployeeNo);
+      IF BonusLine.FINDFIRST THEN
+        BonusLine.DELETEALL;
+
+      BonusDetailedLine.RESET;
+      BonusDetailedLine.SETRANGE("Bonus Id.",BonusId);
+      BonusDetailedLine.SETRANGE("Employee No",LEmployeeNo);
+      IF BonusDetailedLine.FINDFIRST THEN
+        BonusDetailedLine.DELETEALL;
+      }
+
+      BonusMiscAddDeductions.RESET;
+      BonusMiscAddDeductions.SETRANGE("Bonus ID.",BonusId);
+      BonusMiscAddDeductions.SETRANGE("Employee No.",LEmployeeNo);
+      BonusMiscAddDeductions.SETRANGE("System Generated",TRUE);
+      IF BonusMiscAddDeductions.FINDFIRST THEN
+        BonusMiscAddDeductions.DELETEALL;
+    END;
+
+    PROCEDURE "Read Per Day Salary"@1000000019(LEmployeeNo@1000000001 : Code[20]) : Decimal;
+    VAR
+      PayrollMonthYear@1000000009 : Record 72055;
+      PayElements@1000000003 : Record 72060;
+      EmployeePayElements@1000000000 : Record 72078;
+      Employee@1102159000 : Record 5200;
+      LastEffectiveDate@1000000002 : Date;
+      TotalMonthlySalary@1000000005 : Decimal;
+      PerDaySalary@1000000010 : Decimal;
+      TotalDaysMonth@1000000014 : Integer;
+    BEGIN
+      CLEAR(TotalMonthlySalary);
+      CLEAR(PerDaySalary);
+      CLEAR(TotalDaysMonth);
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code", LocationCode);
+      EmployeePayElements.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      EmployeePayElements.SETRANGE("Employee No", LEmployeeNo);
+      EmployeePayElements.SETFILTER("Effective Date", '<=%1', BonusEndDate);
+      EmployeePayElements.SETRANGE("Pay Type", EmployeePayElements."Pay Type"::Addition);
+      IF EmployeePayElements.FINDLAST THEN
+        LastEffectiveDate := EmployeePayElements."Effective Date";
+
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code",LocationCode);
+      EmployeePayElements.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      EmployeePayElements.SETRANGE("Employee No",LEmployeeNo);
+      EmployeePayElements.SETRANGE("Effective Date",LastEffectiveDate);
+      EmployeePayElements.SETRANGE("Pay Type",EmployeePayElements."Pay Type"::Addition);
+      IF EmployeePayElements.FINDFIRST THEN
+        REPEAT
+          PayElements.GET(EmployeePayElements."Pay Element Code",LocationCode,SalaryPlanCode);
+          TotalMonthlySalary += EmployeePayElements.Amount;
+        UNTIL EmployeePayElements.NEXT = 0;
+
+      Employee.GET(LEmployeeNo);
+
+      {
+      IF Employee."Calc. Based on Gross Amount" THEN BEGIN
+      //  TotalDaysMonth := ((BonusEndDate - CALCDATE('-CM',BonusEndDate)+1));
+        TotalDaysMonth := 30;
+        PerDaySalary := ROUND((TotalMonthlySalary / TotalDaysMonth),0.01,'=');
+      END;
+
+      IF Employee."Calc. Based on Daily Wages" THEN
+        PerDaySalary := TotalMonthlySalary;
+      }
+
+      EXIT(PerDaySalary);
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

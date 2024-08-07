@@ -1,0 +1,85 @@
+OBJECT Table 71065 Exam Schedule Head - SCH
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:40:20;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               AcademicsSetup.GET;
+               IF "No." = '' THEN BEGIN
+                 AcademicsSetup.TESTFIELD("Exam Schedule No.");
+                 NoSeriesManagement.InitSeries(AcademicsSetup."Exam Schedule No.",xRec."No. Series",0D,"No.","No. Series");
+               END;
+
+               "Academic Year" := EducationVertical.GetAcademicYear;
+               "User ID" := USERID;
+             END;
+
+    CaptionML=ENU=Exam Schedule Head - SCH;
+    LookupPageID=Page71108;
+    DrillDownPageID=Page71108;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  AcademicsSetup.GET;
+                                                                  NoSeriesManagement.TestManual(AcademicsSetup."Exam Schedule No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Date                ;Date          ;CaptionML=ENU=Date }
+    { 4   ;   ;Exam Code           ;Code20        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Code }
+    { 5   ;   ;Exam Slot           ;Code20        ;CaptionML=ENU=Exam Slot }
+    { 6   ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 7   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 8   ;   ;Start Time          ;Time          ;CaptionML=ENU=Start Time }
+    { 9   ;   ;End Time            ;Time          ;CaptionML=ENU=End Time }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      CompanyInPageation@1102155004 : Record 79;
+      NoSeriesManagement@1102155003 : Codeunit 396;
+      AcademicsSetup@1102155002 : Record 71040;
+      ExamScheduleHead@1102155001 : Record 71065;
+      EducationVertical@1102155000 : Codeunit 71880;
+
+    PROCEDURE AssistEdit@2(OldExamScheduleHead@1000 : Record 71065) : Boolean;
+    BEGIN
+      WITH ExamScheduleHead DO BEGIN
+        ExamScheduleHead := Rec;
+        AcademicsSetup.GET;
+        AcademicsSetup.TESTFIELD("Exam Schedule No.");
+        IF NoSeriesManagement.SelectSeries(AcademicsSetup."Exam Schedule No.",
+           OldExamScheduleHead."No. Series","No. Series")
+        THEN BEGIN
+          NoSeriesManagement.SetSeries("No.");
+          Rec := ExamScheduleHead;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

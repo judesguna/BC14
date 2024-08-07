@@ -1,0 +1,151 @@
+OBJECT Table 72021 Appraisal Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=17:04:31;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=App No.,Employee No,Employee Name;
+    OnInsert=BEGIN
+               IF "App No." = '' THEN BEGIN
+                 HRSetup.GET;
+                 HRSetup.TESTFIELD("Appraisal SNo");
+                 NoSeriesMgt.InitSeries(HRSetup."Appraisal SNo",xRec."No. Series",0D,"App No.","No. Series");
+               END;
+
+               PayrollYear.RESET;
+               PayrollYear.SETRANGE("Year Type", PayrollYear."Year Type"::"Leave Year");
+               PayrollYear.SETRANGE(Closed, FALSE);
+               IF PayrollYear.FINDFIRST THEN
+                 REPEAT
+                   Year := PayrollYear."Year Code";
+                 UNTIL PayrollYear.NEXT = 0;
+             END;
+
+    CaptionML=ENU=Appraisal Header;
+    LookupPageID=Page72033;
+    DrillDownPageID=Page72033;
+  }
+  FIELDS
+  {
+    { 1   ;   ;App No.             ;Code20        ;OnValidate=BEGIN
+                                                                IF "App No." <> xRec."App No." THEN BEGIN
+                                                                  HRSetup.GET;
+                                                                  NoSeriesMgt.TestManual(HRSetup."Appraisal SNo");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=App No. }
+    { 2   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  "Employee Name" := Employee."First Name" + ' ' + Employee."Middle Name" + ' ' + Employee."Last Name";
+                                                                  "Designation Code" := Employee."Designation Code";
+                                                                  "Designation Description" := Employee."Job Title";
+                                                                  "Department Code" := Employee."Global Dimension 1 Code";
+
+                                                                  IF Department.GET("Department Code") THEN
+                                                                    "Department Description" := Department.Name;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No;
+                                                   NotBlank=Yes }
+    { 3   ;   ;Employee Name       ;Text30        ;CaptionML=ENU=Employee Name;
+                                                   Editable=No }
+    { 4   ;   ;Designation Code    ;Code10        ;CaptionML=ENU=Designation Code;
+                                                   Editable=No }
+    { 5   ;   ;Designation Description;Text30     ;CaptionML=ENU=Designation Description;
+                                                   Editable=No }
+    { 6   ;   ;Department Code     ;Code10        ;CaptionML=ENU=Department Code;
+                                                   Editable=No }
+    { 7   ;   ;Department Description;Text30      ;CaptionML=ENU=Department Description;
+                                                   Editable=No }
+    { 8   ;   ;Expected CTC        ;Decimal       ;CaptionML=ENU=Expected CTC;
+                                                   DecimalPlaces=2:2 }
+    { 9   ;   ;Expected CTC %      ;Decimal       ;OnValidate=BEGIN
+                                                                IF ("Expected CTC %" > 100) OR ("Expected CTC %" < 0) THEN
+                                                                  ERROR('Expected CTC Percentage value range should be 0 to 100');
+                                                              END;
+
+                                                   CaptionML=ENU=Expected CTC %;
+                                                   DecimalPlaces=2:2 }
+    { 10  ;   ;Year                ;Text10        ;CaptionML=ENU=Year;
+                                                   Editable=No }
+    { 11  ;   ;Review Type         ;Option        ;CaptionML=ENU=Review Type;
+                                                   OptionCaptionML=ENU=" ,Weekly,Monthly,Bimonthly,Quarterly,Half Yearly,Annualy";
+                                                   OptionString=[ ,Weekly,Monthly,Bimonthly,Quarterly,Half Yearly,Annualy] }
+    { 12  ;   ;Review Status       ;Option        ;CaptionML=ENU=Review Status;
+                                                   OptionCaptionML=ENU=" ,Incomplete,Complete";
+                                                   OptionString=[ ,Incomplete,Complete] }
+    { 13  ;   ;Expected in         ;Option        ;OnValidate=BEGIN
+                                                                IF "Expected in" = "Expected in"::Amount THEN
+                                                                  "Expected CTC %" := 0
+                                                                ELSE
+                                                                  IF "Expected in" = "Expected in"::Percentage THEN
+                                                                    "Expected CTC" := 0;
+                                                              END;
+
+                                                   CaptionML=ENU=Expected in;
+                                                   OptionCaptionML=ENU=" ,Amount,Percentage";
+                                                   OptionString=[ ,Amount,Percentage] }
+    { 14  ;   ;Post                ;Boolean       ;CaptionML=ENU=Post }
+    { 15  ;   ;Remarks             ;Text30        ;CaptionML=ENU=Remarks }
+    { 16  ;   ;No. Series          ;Code10        ;CaptionML=ENU=No. Series }
+    { 17  ;   ;Appraisal Level upto;Integer       ;CaptionML=ENU=Appraisal Level upto }
+    { 18  ;   ;Comment             ;Boolean       ;FieldClass=FlowField;
+                                                   CalcFormula=Exist("Human Resource Comment Line" WHERE (Table Name=CONST(9),
+                                                                                                          No.=FIELD(App No.)));
+                                                   CaptionML=ENU=Comment;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;App No.                                 ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRSetup@1000000000 : Record 72000;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      Employee@1000000002 : Record 5200;
+      Department@1000000003 : Record 349;
+      PayrollYear@1000000004 : Record 72054;
+
+    PROCEDURE AssistEdit@1000000002(AppraisalHeader@1000000000 : Record 72021) : Boolean;
+    BEGIN
+      WITH AppraisalHeader DO BEGIN
+        AppraisalHeader := Rec;
+        HRSetup.GET;
+        HRSetup.TESTFIELD("Appraisal SNo");
+        IF NoSeriesMgt.SelectSeries(HRSetup."Appraisal SNo","No. Series","No. Series") THEN BEGIN
+          HRSetup.GET;
+          HRSetup.TESTFIELD("Appraisal SNo");
+          NoSeriesMgt.SetSeries("App No.");
+          Rec := AppraisalHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

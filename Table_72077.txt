@@ -1,0 +1,74 @@
+OBJECT Table 72077 Payroll Employee Posting Group
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Code,Description;
+    CaptionML=ENU=Payroll Employee Posting Group;
+    LookupPageID=Page72106;
+    DrillDownPageID=Page72106;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Code                ;Code20        ;TableRelation="Payroll Business Posting Group";
+                                                   OnValidate=BEGIN
+                                                                IF PayrollBusinessPostingGroup.GET(Code,"Location Code","Salary Plan Code") THEN
+                                                                  Description := PayrollBusinessPostingGroup.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Code }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 5   ;   ;Salary Payable1 A/c ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Salary Payable1 A/c }
+    { 6   ;   ;ESI Payable A/c     ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=ESI Payable A/c }
+    { 7   ;   ;PF Payable A/c      ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=PF Payable A/c }
+    { 8   ;   ;EPS Payable A/c     ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=EPS Payable A/c }
+    { 9   ;   ;PF Admin Charge Payable A/c;Code20 ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=PF Admin Charge Payable A/c }
+    { 10  ;   ;EDLI Payable A/c    ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=EDLI Payable A/c }
+    { 11  ;   ;RIFA Payable A/c    ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=RIFA Payable A/c }
+    { 12  ;   ;PT Payable A/c      ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=PT Payable A/c }
+    { 13  ;   ;TDS Payable A/c     ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=TDS Payable A/c }
+    { 14  ;   ;Bonus Payable A/c   ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Bonus Payable A/c }
+    { 15  ;   ;Arrear Salary Payable A/c;Code20   ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Arrear Salary Payable A/c }
+    { 16  ;   ;Loan Refundable A/c ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Loan Refundable A/c }
+    { 17  ;   ;Salary Payable2 A/c ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Salary Payable2 A/c }
+  }
+  KEYS
+  {
+    {    ;Code,Location Code,Salary Plan Code     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PayrollBusinessPostingGroup@1102155000 : Record 72074;
+
+    BEGIN
+    END.
+  }
+}
+

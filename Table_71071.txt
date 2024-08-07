@@ -1,0 +1,56 @@
+OBJECT Table 71071 Class Fee Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Class Fee Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 2   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 3   ;   ;Fee Code            ;Code20        ;TableRelation="Fee Components";
+                                                   OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                IF RecFeeComp.GET("Fee Code") THEN
+                                                                  Description := RecFeeComp.Description
+                                                                ELSE
+                                                                  CLEAR(Description);
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Fee Code }
+    { 4   ;   ;Group Code          ;Code20        ;CaptionML=ENU=Group Code }
+    { 5   ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount }
+    { 6   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 7   ;   ;Fee Type Code       ;Code20        ;TableRelation="Fee Type";
+                                                   CaptionML=ENU=Fee Type Code }
+  }
+  KEYS
+  {
+    {    ;Document No.,Line No.                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecFeeComp@1102155000 : Record 71905;
+
+    BEGIN
+    {
+         No  Date     Sign    Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+        01  22/09/09  KATHIR Fee Code - OnValidate()    Coding added to get description from fee component
+    }
+    END.
+  }
+}
+

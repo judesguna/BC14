@@ -1,0 +1,174 @@
+OBJECT Codeunit 72000 Calendar Creation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            HRPayrollSetup.GET(USERID);
+
+            PayrollYear.RESET;
+            PayrollYear.SETRANGE("Location Code",HRPayrollSetup."Location Code");
+            PayrollYear.SETRANGE("Salary Plan Code",HRPayrollSetup."Salary Plan Code");
+            PayrollYear.SETRANGE("Year Code",HRPayrollSetup."Salary Year Code");
+            PayrollYear.SETRANGE("Year Type", PayrollYear."Year Type"::"Salary Year");
+            PayrollYear.SETRANGE(Closed, FALSE);
+            PayrollYear.SETRANGE(Created, TRUE);
+            IF PayrollYear.FINDFIRST THEN BEGIN
+              MESSAGE('Calendar Year \\Start Date => %1 \\End Date => %2',PayrollYear."Year Start Date",PayrollYear."Year End Date");
+
+              IF NOT CONFIRM('Do you want Create Calendar for the Year',FALSE) THEN
+                EXIT;
+
+              StartDateTime := CURRENTDATETIME;
+              "Create Calendar Year"(PayrollYear);
+              "Weekly Off Updation"(PayrollYear);
+              "Hoilday Updation"(PayrollYear);
+
+              EndDateTime := CURRENTDATETIME;
+              ElaspedTime := EndDateTime - StartDateTime;
+              MESSAGE('Calendar Year Creation Completed \\ Starting Date & Time => %1 \\ Ending Date & Time => %2 \\ Time Elasped => %3',
+              StartDateTime, EndDateTime, ElaspedTime);
+              PayrollYear.Created := TRUE;
+              PayrollYear.MODIFY;
+            END ELSE
+              ERROR('Calendar Year Already Generated..!!');
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000001 : Record 72051;
+      PayrollYear@1000000000 : Record 72054;
+      CUGeneralFunctions@1000000008 : Codeunit 72008;
+      EndDateTime@1000000006 : DateTime;
+      StartDateTime@1000000007 : DateTime;
+      ElaspedTime@1000000004 : Duration;
+
+    LOCAL PROCEDURE "Create Calendar Year"@1000000000(PayrollYear@1000000008 : Record 72054) Status : Boolean;
+    VAR
+      Calendar@1000000006 : Record 72058;
+      Date@1000000005 : Record 2000000007;
+      RecordCnt@1000000000 : Integer;
+    BEGIN
+      CLEAR(RecordCnt);
+
+      Calendar.RESET;
+      Calendar.SETRANGE("Location Code",PayrollYear."Location Code");
+      Calendar.SETRANGE("Salary Plan Code",PayrollYear."Salary Plan Code");
+      Calendar.SETRANGE("Calendar Year",PayrollYear."Year Code");
+      RecordCnt := Calendar.COUNT;
+
+      IF RecordCnt > 0 THEN
+        Calendar.DELETEALL;
+
+      CUGeneralFunctions.OpenWindow('Calender Year Creation\\','Progress');
+
+      Date.RESET;
+      Date.SETRANGE("Period Type",Date."Period Type"::Date);
+      Date.SETRANGE("Period Start",PayrollYear."Year Start Date",PayrollYear."Year End Date");
+      RecordCnt := Date.COUNT;
+      IF Date.FINDFIRST THEN
+        REPEAT
+          Calendar.INIT;
+          Calendar."Location Code" := PayrollYear."Location Code";
+          Calendar."Salary Plan Code" := PayrollYear."Salary Plan Code";
+          Calendar."Calendar Year" := PayrollYear."Year Code";
+          Calendar.Date := Date."Period Start";
+          Calendar.Description := Date."Period Name";
+          Calendar."Day No." := Date."Period No.";
+          Calendar."Week No." := ROUND((DATE2DMY(Calendar.Date,1) / 7),1,'>');
+          IF Calendar.INSERT THEN;
+
+          CUGeneralFunctions.UpdateWindow(FORMAT(Calendar.Date),RecordCnt);
+
+        UNTIL Date.NEXT = 0;
+
+      CUGeneralFunctions.CloseWindow;
+      EXIT(TRUE);
+    END;
+
+    LOCAL PROCEDURE "Weekly Off Updation"@1000000001(PayrollYear@1000000002 : Record 72054) Status : Boolean;
+    VAR
+      WeeklyOff@1000000005 : Record 72056;
+      Calendar@1000000006 : Record 72058;
+    BEGIN
+      WeeklyOff.RESET;
+      WeeklyOff.SETRANGE("Location Code",PayrollYear."Location Code");
+      WeeklyOff.SETRANGE("Salary Plan Code", PayrollYear."Salary Plan Code");
+      WeeklyOff.SETRANGE("Calendar Year",PayrollYear."Year Code");
+      IF WeeklyOff.FINDFIRST THEN
+        REPEAT
+          IF WeeklyOff."Week Wise (Weekly Off)" = WeeklyOff."Week Wise (Weekly Off)"::"All Week" THEN BEGIN
+            Calendar.RESET;
+            Calendar.SETRANGE("Location Code",WeeklyOff."Location Code");
+            Calendar.SETRANGE("Salary Plan Code", WeeklyOff."Salary Plan Code");
+            Calendar.SETRANGE("Calendar Year",WeeklyOff."Calendar Year");
+            Calendar.SETRANGE("Day No.",WeeklyOff."Day No.");
+            IF Calendar.FINDFIRST THEN
+              REPEAT
+                Calendar.WeeklyOff := TRUE;
+                Calendar."First Half (Weekly Off)" := WeeklyOff."First Half (Weekly Off)";
+                Calendar."Second Half (Weekly Off)" := WeeklyOff."Second Half (Weekly Off)";
+                Calendar."Non-Working Days" := TRUE;
+                Calendar.MODIFY;
+              UNTIL Calendar.NEXT = 0;
+          END;
+
+          IF WeeklyOff."Week Wise (Weekly Off)" <> WeeklyOff."Week Wise (Weekly Off)"::"All Week" THEN BEGIN
+            Calendar.RESET;
+            Calendar.SETRANGE("Location Code",WeeklyOff."Location Code");
+            Calendar.SETRANGE("Salary Plan Code",WeeklyOff."Salary Plan Code");
+            Calendar.SETRANGE("Calendar Year",WeeklyOff."Calendar Year");
+            Calendar.SETRANGE("Day No.",WeeklyOff."Day No.");
+            Calendar.SETRANGE("Week No.",WeeklyOff."Week Wise (Weekly Off)");
+            IF Calendar.FINDFIRST THEN
+              REPEAT
+                Calendar.WeeklyOff := TRUE;
+                Calendar."First Half (Weekly Off)" := WeeklyOff."First Half (Weekly Off)";
+                Calendar."Second Half (Weekly Off)" := WeeklyOff."Second Half (Weekly Off)";
+                Calendar."Non-Working Days" := TRUE;
+                Calendar.MODIFY;
+              UNTIL Calendar.NEXT = 0;
+          END;
+        UNTIL WeeklyOff.NEXT = 0;
+      EXIT(TRUE);
+    END;
+
+    LOCAL PROCEDURE "Hoilday Updation"@1000000002(PayrollYear@1000000000 : Record 72054) Status : Boolean;
+    VAR
+      Hoildays@1000000002 : Record 72057;
+      Calendar@1000000003 : Record 72058;
+    BEGIN
+      Calendar.RESET;
+      Calendar.SETRANGE("Location Code",PayrollYear."Location Code");
+      Calendar.SETRANGE("Salary Plan Code",PayrollYear."Salary Plan Code");
+      Calendar.SETRANGE("Calendar Year",PayrollYear."Year Code");
+      IF Calendar.FINDFIRST THEN
+        REPEAT
+          IF Hoildays.GET(Calendar.Date,PayrollYear."Location Code",
+             PayrollYear."Salary Plan Code",PayrollYear."Year Code")
+          THEN BEGIN
+            Calendar.Description := Hoildays."Holiday Name" + ' - ' + Calendar.Description;
+            Calendar.Holiday := TRUE;
+            Calendar."First Half (Holiday)" := Hoildays."First Half (Holiday)";
+            Calendar."Second Half (Holiday)" := Hoildays."Second Half (Holiday)";
+            Calendar."Non-Working Days" := TRUE;
+            Calendar."OT Applicable for the Day" := Hoildays."OT Applicable for the Day";
+            Calendar.MODIFY;
+          END;
+        UNTIL Calendar.NEXT = 0;
+      EXIT(TRUE);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

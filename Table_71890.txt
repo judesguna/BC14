@@ -1,0 +1,58 @@
+OBJECT Table 71890 Community
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.KATHIR
+               "Academic Year" := EduVert.GetAcademicYear;
+               // Stop 01.KATHIR
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Community;
+    LookupPageID=Page71890;
+    DrillDownPageID=Page71890;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 3   ;   ;Academic Year       ;Code20        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecComp@1000000000 : Record 79;
+      EduVert@1102155000 : Codeunit 71880;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger       Description
+      -----------------------------------------------------------------------------------------------
+      01   19/09/09  KATHIR   OnInsert      Code added for Academic year from Setup
+      02   19/10/09  VANDHANA OnInsert      Code to assign User ID.
+    }
+    END.
+  }
+}
+

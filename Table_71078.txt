@@ -1,0 +1,49 @@
+OBJECT Table 71078 Co-Curricular Academic Points
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               "User ID" := USERID;
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=Co-Curricular Academic Points;
+    LookupPageID=Page71088;
+    DrillDownPageID=Page71088;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Grade               ;Code20        ;TableRelation=Grade;
+                                                   CaptionML=ENU=Grade }
+    { 2   ;   ;Points              ;Decimal       ;CaptionML=ENU=Points }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Grade                                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                 Code added to enter the User id
+    }
+    END.
+  }
+}
+

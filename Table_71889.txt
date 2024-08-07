@@ -1,0 +1,62 @@
+OBJECT Table 71889 Grade
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               "Academic Year" := EducationVertical.GetAcademicYear;
+               // Stop 01.VIGNESH
+
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Grade;
+    LookupPageID=Page71889;
+    DrillDownPageID=Page71889;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 3   ;   ;Max Percentage      ;Decimal       ;CaptionML=ENU=Max Percentage }
+    { 4   ;   ;Min Percentage      ;Decimal       ;CaptionML=ENU=Min Percentage }
+    { 5   ;   ;Academic Year       ;Code20        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 6   ;   ;Points              ;Decimal       ;CaptionML=ENU=Points }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationVertical@1102155000 : Codeunit 71880;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  29.09.09  VIGNESH   OnInsert()        Code added to insert the Academic year
+      02  19/10/09  VANDHANA  OnInsert          Code to assign User ID.
+      03  17/10/09  VIGNESH                     Added new filed points
+    }
+    END.
+  }
+}
+

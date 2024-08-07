@@ -1,0 +1,94 @@
+OBJECT Table 71170 Class Syllabus Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               AcademicsSetup.GET;
+               IF "No.Series" = '' THEN BEGIN
+                 AcademicsSetup.TESTFIELD("Class Syllabus No.");
+                 NoSeriesMgt.InitSeries(AcademicsSetup."Class Syllabus No.",xRec."No.Series",0D,"No.","No.Series");
+               END;
+
+               "Academic Year" := EduVertical.GetAcademicYear;
+               // Stop 01.VIGNESH
+
+               // Start 06. VANDHANA
+               "User ID" := USERID;
+               // Stop 06. VANDHANA
+             END;
+
+    CaptionML=ENU=Class Syllabus Header;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  AcademicsSetup.GET;
+                                                                  NoSeriesMgt.TestManual(AcademicsSetup."Class Syllabus No.");
+                                                                  "No.Series" := '';
+                                                                END;
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Class Code          ;Code20        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class Code }
+    { 3   ;   ;Curriculam          ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculam }
+    { 4   ;   ;Subject Code        ;Code20        ;TableRelation=Subject;
+                                                   CaptionML=ENU=Subject Code }
+    { 5   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 6   ;   ;No.Series           ;Code20        ;CaptionML=ENU=No.Series }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70784;  ;Department          ;Code20        ;TableRelation=Department;
+                                                   CaptionML=ENU=Department }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      AcademicsSetup@1102155002 : Record 71040;
+      NoSeriesMgt@1102155001 : Codeunit 396;
+      EduVertical@1102155000 : Codeunit 71880;
+      ClassSyllabusHeader@1102155003 : Record 71170;
+
+    PROCEDURE Assistedit@1102155006(OldClassSyllabusHeader@1102155000 : Record 71170) : Boolean;
+    BEGIN
+      // Start 03.VIGNESH
+      WITH ClassSyllabusHeader DO BEGIN
+        ClassSyllabusHeader := Rec;
+        AcademicsSetup.GET;
+        AcademicsSetup.TESTFIELD("Class Syllabus No.");
+        IF NoSeriesMgt.SelectSeries(AcademicsSetup."Class Syllabus No.",OldClassSyllabusHeader."No.Series",
+           "No.Series")
+        THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := ClassSyllabusHeader;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 03.VIGNESH
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

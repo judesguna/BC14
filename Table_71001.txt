@@ -1,0 +1,235 @@
+OBJECT Table 71001 Enquiry
+{
+  OBJECT-PROPERTIES
+  {
+    Date=01-08-24;
+    Time=17:53:09;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.KATHIR
+
+               AdmSetup.GET;
+               IF "No Series" = '' THEN BEGIN
+                 AdmSetup.TESTFIELD("Enquiry No.");
+                 NoSeriesMgt.InitSeries(AdmSetup."Enquiry No.",xRec."No Series",0D,"No.","No Series");
+               END;
+
+               // Stop 01.KATHIR
+
+               // Start 07.KATHIR
+               "Academic Year" := EduVert.GetAdmissionYear;
+               // Stop 07.KATHIR
+
+               // Start 09.KAHTHIR
+               "Enquiry Date" := WORKDATE;
+               // Stop 09.KATHIR
+
+               // Start 10.VANDHANA
+               "User ID" := USERID;
+               // Stop 10.VANDHANA
+             END;
+
+    CaptionML=ENU=Enquiry;
+    LookupPageID=Page71002;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code10        ;CaptionML=ENU=No. }
+    { 2   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 3   ;   ;Enquiry Gender      ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 4   ;   ;Type Of Enquiry     ;Code10        ;TableRelation="Enquiry Type";
+                                                   CaptionML=ENU=Type Of Enquiry }
+    { 5   ;   ;Enquiry Source      ;Code10        ;TableRelation="Enquiry Source";
+                                                   CaptionML=ENU=Enquiry Source }
+    { 6   ;   ;Enquirer Name       ;Text50        ;CaptionML=ENU=Enquirer Name }
+    { 7   ;   ;Relationship with Applicant;Text30 ;CaptionML=ENU=Relationship with Applicant }
+    { 8   ;   ;Media Vehicle       ;Code20        ;TableRelation="Media Vehicle";
+                                                   CaptionML=ENU=Media Vehicle }
+    { 9   ;   ;Date of Birth       ;Date          ;OnValidate=BEGIN
+                                                                // Stop 19.Ankesh
+                                                                IF "Date of Birth" <> 0D THEN BEGIN
+                                                                  Age := TODAY - "Date of Birth";
+                                                                  TempAge := ROUND(Age / 365,1,'<');
+                                                                  Age2 := Age MOD 365;
+                                                                  Months := ROUND(Age2 / 30,1,'<');
+                                                                  Age := TempAge;
+                                                                END
+                                                                ELSE BEGIN
+                                                                  CLEAR(Age);
+                                                                  CLEAR(Months);
+                                                                END;
+                                                                // Stop 19.Ankesh
+                                                              END;
+
+                                                   CaptionML=ENU=Date of Birth }
+    { 10  ;   ;Father's Name       ;Text50        ;CaptionML=ENU=Father's Name }
+    { 11  ;   ;Mother's Name       ;Text50        ;CaptionML=ENU=Mother's Name }
+    { 12  ;   ;Citizenship         ;Code10        ;TableRelation=Citizenship;
+                                                   CaptionML=ENU=Citizenship }
+    { 13  ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 14  ;   ;Enquiry Date        ;Date          ;CaptionML=ENU=Enquiry Date }
+    { 15  ;   ;Class Applied       ;Code10        ;TableRelation="Class Card";
+                                                   OnValidate=BEGIN
+                                                                // Start 16.VIGNESH
+                                                                ClassCardLook.ValidateClass("Class Applied","Curriculum Intrested","Academic Year");
+                                                                // Stop 16.VIGNESH
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 12.VIGNESH
+                                                              ClassCardLook.LookUpClass("Class Applied","Curriculum Intrested","Academic Year");
+                                                              // Stop 12.VIGNESH
+                                                            END;
+
+                                                   CaptionML=ENU=Class Applied }
+    { 16  ;   ;Hostel Accomodation ;Boolean       ;CaptionML=ENU=Hostel Accomodation }
+    { 17  ;   ;Name Of The Previous Institute;Text80;
+                                                   CaptionML=ENU=Name Of The Previous Institute }
+    { 18  ;   ;Medium Of Instruction;Code10       ;TableRelation="Medium of Instruction";
+                                                   CaptionML=ENU=Medium Of Instruction }
+    { 20  ;   ;Curriculum Intrested;Code10        ;TableRelation="Class Card".Curriculum;
+                                                   OnValidate=BEGIN
+                                                                // Start 18.VIGNESH
+                                                                ClassCardLook.ValidateCurriculum("Class Applied","Curriculum Intrested","Academic Year");
+                                                                // Stop 18.VIGNESH
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 13.VIGNESH
+                                                              ClassCardLook.LookUpCurriculum("Class Applied","Curriculum Intrested","Academic Year");
+                                                              // Stop 13.VIGNESH
+                                                            END;
+
+                                                   CaptionML=ENU=Curriculum Intrested }
+    { 21  ;   ;Class Last Attended ;Code10        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class Last Attended }
+    { 22  ;   ;Curriculum Followed ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum Followed }
+    { 23  ;   ;Address To          ;Code10        ;TableRelation=Relative;
+                                                   CaptionML=ENU=Address To }
+    { 24  ;   ;Addressee           ;Text50        ;CaptionML=ENU=Addressee }
+    { 25  ;   ;Address 1           ;Text50        ;CaptionML=ENU=Address 1 }
+    { 26  ;   ;Address 2           ;Text50        ;CaptionML=ENU=Address 2 }
+    { 27  ;   ;City                ;Text30        ;OnValidate=BEGIN
+                                                                // Start 02.KATHIR
+                                                                //Postcode.ValidateCity(City,"Post Code");
+                                                                Postcode.ValidateCity(City,"Post Code",State,"Country Code",(CurrFieldNo <> 0) AND GUIALLOWED);
+                                                                // Stop 02.KATHIR
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 03.KATHIR
+                                                              //Postcode.LookUpCity(City,"Post Code",TRUE);
+                                                              Postcode.LookupPostCode(City,"Post Code",State,"Country Code");
+                                                              // Stop 03.KATHIR
+                                                            END;
+
+                                                   CaptionML=ENU=City }
+    { 28  ;   ;Post Code           ;Code20        ;TableRelation="Post Code";
+                                                   OnValidate=BEGIN
+                                                                // Start 04.KATHIR
+                                                                //Postcode.ValidatePostCode(City,"Post Code");
+                                                                Postcode.ValidatePostCode(City,"Post Code",State,"Country Code",(CurrFieldNo <> 0) AND GUIALLOWED);
+                                                                // Stop 04.KATHIR
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 05.KATHIR
+                                                              //Postcode.LookUpPostCode(City,"Post Code",TRUE);
+                                                              Postcode.LookupPostCode(City,"Post Code",State,"Country Code");
+                                                              // Stop 05.KATHIR
+                                                            END;
+
+                                                   CaptionML=ENU=Post Code }
+    { 29  ;   ;Country Code        ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country Code }
+    { 30  ;   ;E-Mail Address      ;Text50        ;ExtendedDatatype=E-Mail;
+                                                   CaptionML=ENU=E-Mail Address }
+    { 31  ;   ;Mobile Number       ;Text30        ;CaptionML=ENU=Mobile Number }
+    { 32  ;   ;Phone Number        ;Text30        ;ExtendedDatatype=Phone No.;
+                                                   CaptionML=ENU=Phone Number }
+    { 33  ;   ;State               ;Text30        ;CaptionML=ENU=State }
+    { 34  ;   ;No Series           ;Code20        ;CaptionML=ENU=No Series }
+    { 35  ;   ;Age                 ;Integer       ;CaptionML=ENU=Age;
+                                                   BlankZero=Yes;
+                                                   Editable=No }
+    { 36  ;   ;Months              ;Integer       ;CaptionML=ENU=Months;
+                                                   BlankZero=Yes;
+                                                   Editable=No }
+    { 38  ;   ;Campaign            ;Code20        ;TableRelation=Campaign;
+                                                   CaptionML=ENU=Campaign }
+    { 2000;   ;Address 3           ;Text100       ;CaptionML=ENU=Address 3 }
+    { 2001;   ;Enquiry Closed      ;Boolean       ;CaptionML=ENU=Enquiry Closed }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Class Applied,Curriculum Intrested,Academic Year }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      AdmSetup@1102155000 : Record 71000;
+      NoSeriesMgt@1102155001 : Codeunit 396;
+      Enquiry@1102155002 : Record 71001;
+      Postcode@1102155003 : Record 225;
+      EduVert@1000000000 : Codeunit 71880;
+      Age2@1102155005 : Decimal;
+      TempAge@1102155004 : Decimal;
+      ClassCard@1102155006 : Record 71006;
+      ClassCardLook@1102155007 : Record 71006;
+      Text000@1102155008 : TextConst 'ENU=Age limit exceeded';
+
+    PROCEDURE Assistedit@1102155002(OldEnquiry@1102155000 : Record 71001) : Boolean;
+    BEGIN
+      // Start 06.KATHIR
+      WITH Enquiry DO BEGIN
+        Enquiry := Rec;
+        AdmSetup.GET;
+        AdmSetup.TESTFIELD("Enquiry No.");
+        IF NoSeriesMgt.SelectSeries(AdmSetup."Enquiry No.",OldEnquiry."No Series","No Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := Enquiry;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 06.KATHIR
+    END;
+
+    BEGIN
+    {
+         No     Date    Sign     Trigger                          Description
+      -----------------------------------------------------------------------------------------------
+        01     17/09/09 KATHIR   OnInsert                             Code added for No.Series
+        02     17/09/09 KATHIR   City-OnValidate                      Code added for Validate PostCode
+        03     17/09/09 KATHIR   City-Onlookup                        Code added for Validate PostCode
+        04     17/09/09 KATHIR   PostCode-OnValidate                  Code added for Validate PostCode
+        05     17/09/09 KATHIR   PostCode-Onlookup                    Code added for Validate PostCode
+        06     17/09/09 KATHIR   AssistEdit                           Code added for No.Series
+        07     18/09/09 KATHIR   OnInsert                             Code added for Academic year from Setup
+        08     21/09/09 KATHIR   DateOfBirth-OnValidate               Code added to Caluate Age
+        09     22/09/09 KATHIR   OnInsert                             Code added to display Workdate in Enquiry date
+        10     19/10/09 VANDHANA OnInsert()                           Code to assign the User ID.
+        11     16/10/09 VIGNESH  Date of Birth - OnValidate()         Code modified to validate the age based on the setup
+        12     23/11/09 VIGNESH  Class Applied - OnLookup()           Code added to get the Look up value for Class & Curriculum
+        13     23/11/09 VIGNESH  Curriculum Intrested - OnLookup()    Code added to get the Look up value for Class & Curriculum
+        16     23/11/09 VIGNESH  Class Applied - OnValidate()         Code added to get the validate value for Class & Curriculum
+        18     23/11/09 VIGNESH  Curriculum Intrested - OnValidate()  Code added to get the Validat value for Class&Curriculum last attend
+        19     09/06/10 Ankesh   Date of Birth - OnValidate()         Code modified because of Web Service 'Class Applied' Error.
+    }
+    END.
+  }
+}
+

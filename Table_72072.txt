@@ -1,0 +1,122 @@
+OBJECT Table 72072 Medical Reimbu. Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Pay Element Code,Employee No.,Name;
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 MedicalReimbuLine.RESET;
+                 MedicalReimbuLine.SETRANGE("Employee No.","Employee No.");
+                 MedicalReimbuLine.SETRANGE("Pay Element Code","Pay Element Code");
+                 MedicalReimbuLine.SETRANGE("Location Code","Location Code");
+                 MedicalReimbuLine.SETRANGE("Salary Plan Code","Salary Plan Code");
+                 IF MedicalReimbuLine.FINDFIRST THEN BEGIN
+                   MedicalReimbuLine.LOCKTABLE;
+                   MedicalReimbuLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Medical Reimbu. Header;
+    LookupPageID=Page72094;
+    DrillDownPageID=Page72094;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements";
+                                                   CaptionML=ENU=Pay Element Code }
+    { 4   ;   ;Employee No.        ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No.") THEN
+                                                                  Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No. }
+    { 5   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 6   ;   ;Description         ;Text50        ;CaptionML=ENU=Description;
+                                                   Editable=No }
+    { 7   ;   ;No of Bills         ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count("Medical Reimbu. Line" WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Employee No.=FIELD(Employee No.),
+                                                                                                   Pay Element Code=FIELD(Pay Element Code),
+                                                                                                   Blocked=CONST(No)));
+                                                   CaptionML=ENU=No of Bills;
+                                                   Editable=No }
+    { 8   ;   ;Last Year Amount    ;Decimal       ;OnValidate=BEGIN
+                                                                "Total Amount" := "Last Year Amount" + "Current Year Eligible Amount";
+                                                                "Balance Amount" := "Total Amount" - "Claimed Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Last Year Amount;
+                                                   MinValue=0;
+                                                   AutoFormatType=1 }
+    { 9   ;   ;Current Year Eligible Amount;Decimal;
+                                                   OnValidate=BEGIN
+                                                                "Total Amount" := "Last Year Amount" + "Current Year Eligible Amount";
+                                                                "Balance Amount" := "Total Amount" - "Claimed Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Current Year Eligible Amount;
+                                                   MinValue=0;
+                                                   AutoFormatType=1 }
+    { 10  ;   ;Total Amount        ;Decimal       ;CaptionML=ENU=Total Amount;
+                                                   Editable=No }
+    { 11  ;   ;Claimed Amount      ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Medical Reimbu. Line"."Bill Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                               Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                               Employee No.=FIELD(Employee No.),
+                                                                                                               Pay Element Code=FIELD(Pay Element Code),
+                                                                                                               Blocked=CONST(No)));
+                                                   OnValidate=BEGIN
+                                                                "Total Amount" := "Last Year Amount" + "Current Year Eligible Amount";
+                                                                "Balance Amount" := "Total Amount" - "Claimed Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Claimed Amount;
+                                                   Editable=No;
+                                                   AutoFormatType=1 }
+    { 12  ;   ;Balance Amount      ;Decimal       ;CaptionML=ENU=Balance Amount;
+                                                   Editable=No }
+    { 13  ;   ;Blocked             ;Boolean       ;CaptionML=ENU=Blocked }
+  }
+  KEYS
+  {
+    {    ;Employee No.,Pay Element Code,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000000 : Record 5200;
+      MedicalReimbuLine@1000000001 : Record 72073;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

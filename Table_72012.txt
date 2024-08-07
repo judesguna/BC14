@@ -1,0 +1,75 @@
+OBJECT Table 72012 Advertisement
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=No.;
+    CaptionML=ENU=Advertisement;
+    LookupPageID=Page72017;
+    DrillDownPageID=Page72017;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;CaptionML=ENU=No. }
+    { 2   ;   ;Company Name        ;Text30        ;CaptionML=ENU=Company Name }
+    { 3   ;   ;Address 1           ;Text30        ;CaptionML=ENU=Address 1 }
+    { 4   ;   ;Address 2           ;Text30        ;CaptionML=ENU=Address 2 }
+    { 5   ;   ;Address 3           ;Text30        ;CaptionML=ENU=Address 3 }
+    { 6   ;   ;City                ;Text30        ;CaptionML=ENU=City }
+    { 7   ;   ;Postal Code         ;Code10        ;TableRelation="Post Code";
+                                                   CaptionML=ENU=Postal Code }
+    { 8   ;   ;Country             ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country }
+    { 9   ;   ;Contact Person      ;Text30        ;CaptionML=ENU=Contact Person }
+    { 10  ;   ;Phone               ;Text30        ;CaptionML=ENU=Phone }
+    { 11  ;   ;Mobile              ;Text30        ;CaptionML=ENU=Mobile }
+    { 12  ;   ;E-Mail              ;Text30        ;CaptionML=ENU=E-Mail }
+    { 13  ;   ;No. Of Vacancy      ;Integer       ;CaptionML=ENU=No. Of Vacancy }
+    { 14  ;   ;Required Vacancy    ;Code10        ;CaptionML=ENU=Required Vacancy }
+    { 15  ;   ;Vacancy Description ;Text100       ;CaptionML=ENU=Vacancy Description }
+    { 16  ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 17  ;   ;Qualification Code  ;Code10        ;CaptionML=ENU=Qualification Code }
+    { 18  ;   ;Qualification Description;Text100  ;CaptionML=ENU=Qualification Description }
+    { 19  ;   ;Prefrence           ;Text250       ;CaptionML=ENU=Prefrence }
+    { 20  ;   ;Skill               ;Text250       ;CaptionML=ENU=Skill }
+    { 21  ;   ;Certification       ;Text250       ;CaptionML=ENU=Certification }
+    { 22  ;   ;Experience(In Yrs)  ;Decimal       ;CaptionML=ENU=Experience(In Yrs) }
+    { 23  ;   ;Age From            ;Integer       ;CaptionML=ENU=Age From }
+    { 24  ;   ;Age To              ;Integer       ;CaptionML=ENU=Age To }
+    { 25  ;   ;Required Date       ;Date          ;CaptionML=ENU=Required Date }
+    { 26  ;   ;Advertisement Type  ;Option        ;CaptionML=ENU=Advertisement Type;
+                                                   OptionCaptionML=ENU=" ,News Papper,Agency";
+                                                   OptionString=[ ,News Papper,Agency] }
+    { 27  ;   ;Age Ability         ;Text30        ;CaptionML=ENU=Age Ability }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

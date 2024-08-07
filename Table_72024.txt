@@ -1,0 +1,126 @@
+OBJECT Table 72024 Training Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Training No.,Department Code,Department Description;
+    OnInsert=BEGIN
+               IF "Training No." = '' THEN BEGIN
+                 HRSetup.GET;
+                 HRSetup.TESTFIELD("Training SNo");
+                 NoSeriesMgt.InitSeries(HRSetup."Training SNo",xRec."No. Series",0D,"Training No.","No. Series");
+               END;
+
+               Date := TODAY;
+             END;
+
+    CaptionML=ENU=Training Header;
+    LookupPageID=Page72037;
+    DrillDownPageID=Page72037;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Training No.        ;Code20        ;OnValidate=BEGIN
+                                                                IF "Training No." <> xRec."Training No." THEN BEGIN
+                                                                  HRSetup.GET;
+                                                                  NoSeriesMgt.TestManual(HRSetup."Training SNo");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Training No. }
+    { 2   ;   ;Department Code     ;Code10        ;TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(1));
+                                                   CaptionML=ENU=Department Code }
+    { 3   ;   ;Department Description;Text30      ;CaptionML=ENU=Department Description }
+    { 4   ;   ;Course Code         ;Code20        ;TableRelation=Training;
+                                                   OnValidate=BEGIN
+                                                                IF Training.GET("Course Code") THEN
+                                                                  "Course Description" := Training.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Course Code }
+    { 5   ;   ;Course Description  ;Text50        ;CaptionML=ENU=Course Description;
+                                                   Editable=No }
+    { 6   ;   ;Training Facility   ;Option        ;CaptionML=ENU=Training Facility;
+                                                   OptionCaptionML=ENU=" ,Internal,External";
+                                                   OptionString=[ ,Internal,External] }
+    { 7   ;   ;Starting Date       ;Date          ;CaptionML=ENU=Starting Date }
+    { 8   ;   ;Ending Date         ;Date          ;OnValidate=BEGIN
+                                                                "No. of Days" := ABS(("Ending Date" - "Starting Date") + 1);
+                                                              END;
+
+                                                   CaptionML=ENU=Ending Date }
+    { 9   ;   ;Date                ;Date          ;CaptionML=ENU=Date;
+                                                   Editable=No }
+    { 10  ;   ;Training Hour / Day ;Duration      ;CaptionML=ENU=Training Hour / Day;
+                                                   Editable=No }
+    { 11  ;   ;Total Training Hour ;Duration      ;CaptionML=ENU=Total Training Hour;
+                                                   Editable=No }
+    { 12  ;   ;No. of Days         ;Integer       ;CaptionML=ENU=No. of Days;
+                                                   Editable=No }
+    { 13  ;   ;Starting Time       ;Time          ;CaptionML=ENU=Starting Time }
+    { 14  ;   ;Ending Time         ;Time          ;OnValidate=BEGIN
+                                                                IF ("Starting Time" <> 0T) AND ("Ending Time" <> 0T) THEN
+                                                                  "Training Hour / Day" := ABS("Ending Time" - "Starting Time");
+
+                                                                "Total Training Hour" := "Training Hour / Day" * "No. of Days";
+                                                              END;
+
+                                                   CaptionML=ENU=Ending Time }
+    { 15  ;   ;Notes               ;Text100       ;CaptionML=ENU=Notes }
+    { 16  ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 17  ;   ;Comment             ;Boolean       ;FieldClass=FlowField;
+                                                   CalcFormula=Exist("Human Resource Comment Line" WHERE (Table Name=CONST(8),
+                                                                                                          No.=FIELD(Training No.)));
+                                                   CaptionML=ENU=Comment;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Training No.                            ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRSetup@1000000000 : Record 72000;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      Training@1000000002 : Record 72008;
+
+    PROCEDURE AssistEdit@1000000004(TrainingHeader@1000000000 : Record 72024) : Boolean;
+    BEGIN
+      WITH TrainingHeader DO BEGIN
+        TrainingHeader := Rec;
+        HRSetup.GET;
+        HRSetup.TESTFIELD("Training SNo");
+        IF NoSeriesMgt.SelectSeries(HRSetup."Training SNo","No. Series","No. Series") THEN BEGIN
+          HRSetup.GET;
+          HRSetup.TESTFIELD("Training SNo");
+          NoSeriesMgt.SetSeries("Training No.");
+          Rec := TrainingHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,95 @@
+OBJECT Codeunit 71170 Scheme Of Work
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      FacultyClassPlanHeader@1102155000 : Record 71172;
+      Text001@1102155001 : TextConst 'ENU=Already the Plan Has been Applied';
+      Text002@1102155002 : TextConst 'ENU=Already the Plan Has been Appoved';
+      Text003@1102155003 : TextConst 'ENU=Already the Plan Has been Rejected';
+      Text004@1102155004 : TextConst 'ENU=Do you want to send this for approval ?';
+      Text005@1102155005 : TextConst 'ENU=The Plan Has not been Applied';
+      Text006@1102155006 : TextConst 'ENU=Already the Plan Has been Appoved';
+      Text007@1102155007 : TextConst 'ENU=Do you want approve this plan ?';
+      Text008@1102155008 : TextConst 'ENU=The Plan Has not been Applied';
+      Text009@1102155009 : TextConst 'ENU=Already the Plan Has been Appoved';
+      Text010@1102155010 : TextConst 'ENU=Already the Plan Has been Rejected';
+      Text011@1102155011 : TextConst 'ENU=Do you want reject this plan ?';
+      Text012@1102155012 : TextConst 'ENU=Please give the comments for the rejection';
+
+    PROCEDURE ApplyFacultyPlan@1102155007(cdeDocument@1102155000 : Code[20]);
+    BEGIN
+      IF FacultyClassPlanHeader.GET(cdeDocument) THEN BEGIN
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Applied THEN
+          ERROR(Text001);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Approved THEN
+          ERROR(Text002);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Rejected THEN
+          ERROR(Text003);
+
+        IF CONFIRM(Text004,TRUE) THEN BEGIN
+          FacultyClassPlanHeader."Plan Status" := FacultyClassPlanHeader."Plan Status"::Applied;
+          FacultyClassPlanHeader.MODIFY;
+        END;
+      END;
+    END;
+
+    PROCEDURE ApproveFacultyPlan@1102155006(cdeDocument@1102155000 : Code[20]);
+    BEGIN
+      IF FacultyClassPlanHeader.GET(cdeDocument) THEN BEGIN
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::" " THEN
+          ERROR(Text005);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Approved THEN
+          ERROR(Text006);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Applied THEN
+          IF CONFIRM(Text007,TRUE) THEN BEGIN
+            FacultyClassPlanHeader."Plan Status" := FacultyClassPlanHeader."Plan Status"::Approved;
+            FacultyClassPlanHeader.MODIFY;
+          END;
+      END;
+    END;
+
+    PROCEDURE RejectFacultyPlan@1102155005(cdeDocument@1102155000 : Code[20]);
+    BEGIN
+      IF FacultyClassPlanHeader.GET(cdeDocument) THEN BEGIN
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::" " THEN
+          ERROR(Text008);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Approved THEN
+          ERROR(Text009);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Rejected THEN
+          ERROR(Text010);
+
+        IF FacultyClassPlanHeader."Plan Status" = FacultyClassPlanHeader."Plan Status"::Applied THEN
+          IF CONFIRM(Text011,TRUE) THEN BEGIN
+            IF FacultyClassPlanHeader.Comments = '' THEN
+              ERROR(Text011);
+            FacultyClassPlanHeader."Plan Status" := FacultyClassPlanHeader."Plan Status"::Rejected;
+            FacultyClassPlanHeader.MODIFY;
+          END;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

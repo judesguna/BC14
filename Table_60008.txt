@@ -1,0 +1,34 @@
+OBJECT Table 60008 ParentInvoiceSetup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=10-01-14;
+    Time=15:29:11;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;StartDate           ;Date           }
+    { 2   ;   ;EndDate             ;Date           }
+    { 3   ;   ;Amount              ;Decimal        }
+    { 4   ;   ;IsGreaterThan       ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;StartDate                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

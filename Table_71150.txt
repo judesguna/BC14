@@ -1,0 +1,96 @@
+OBJECT Table 71150 Faculty Subject
+{
+  OBJECT-PROPERTIES
+  {
+    Date=07-05-18;
+    Time=11:32:23;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Faculty Subject;
+    LookupPageID=Page71150;
+    DrillDownPageID=Page71150;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Faculty Code        ;Code20        ;TableRelation="Employee Alll";
+                                                   OnValidate=BEGIN
+                                                                IF "Faculty Code" <> '' THEN
+                                                                  IF RecEmployee.GET("Faculty Code") THEN
+                                                                    "Faculty Name" := RecEmployee."First Name" + ' ' + RecEmployee."Last Name" + ' ' + RecEmployee."Middle Name";
+                                                              END;
+
+                                                   CaptionML=ENU=Faculty Code }
+    { 2   ;   ;Class               ;Code20        ;TableRelation=Class;
+                                                   CaptionML=ENU="Class " }
+    { 3   ;   ;Curriculum          ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 4   ;   ;Subject Code        ;Code20        ;TableRelation=Subject;
+                                                   OnValidate=BEGIN
+                                                                IF RecSubject.GET("Subject Code") THEN BEGIN
+                                                                 "Subject Description" := RecSubject.Description;
+                                                                END ELSE BEGIN
+                                                                 // Description := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Subject Code }
+    { 5   ;   ;Class Master        ;Boolean       ;CaptionML=ENU=Class Master }
+    { 6   ;   ;Alloted Hours       ;Integer       ;CaptionML=ENU=Alloted Hours }
+    { 7   ;   ;Weekly Hours        ;Integer       ;CaptionML=ENU=Weekly Hours }
+    { 8   ;   ;Section Code        ;Code10        ;CaptionML=ENU=Section Code }
+    { 9   ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year }
+    { 10  ;   ;Available           ;Boolean       ;CaptionML=ENU=Available }
+    { 11  ;   ;Subject Type        ;Code20        ;TableRelation="Subject Type";
+                                                   CaptionML=ENU=Subject Type }
+    { 12  ;   ;Faculty Name        ;Text50        ;CaptionML=ENU=Faculty Name }
+    { 13  ;   ;Subject Description ;Text30        ;CaptionML=ENU=Subject Description }
+    { 14  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                "Section Code":= ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+                                                               }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Faculty Code,Class,Curriculum,Section Code,Subject Code,Academic Year;
+                                                   Clustered=Yes }
+    {    ;Class,Curriculum,Subject Code,Available  }
+    {    ;Class,Curriculum,Section Code,Subject Code,Academic Year }
+    {    ;Faculty Code,Class,Academic Year         }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecEmployee@1000000000 : Record 5200;
+      ClassSection@1102155000 : Record 71015;
+      RecSubject@1102159000 : Record 71004;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

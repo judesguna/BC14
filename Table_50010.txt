@@ -1,0 +1,58 @@
+OBJECT Table 50010 Fee Structure
+{
+  OBJECT-PROPERTIES
+  {
+    Date=21-03-14;
+    Time=19:22:00;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Academic Year       ;Code10         }
+    { 2   ;   ;From Class          ;Integer        }
+    { 3   ;   ;To Class            ;Integer        }
+    { 4   ;   ;Fee Code            ;Code20        ;TableRelation="Fee Components";
+                                                   OnValidate=BEGIN
+                                                                IF FeeComponent.GET("Fee Code") THEN BEGIN
+                                                                  "Fee Description" := FeeComponent.Description;
+                                                                  "G/L Account":= FeeComponent."G/L Account";
+                                                                END;
+                                                              END;
+                                                               }
+    { 5   ;   ;Fee Description     ;Text30         }
+    { 6   ;   ;Amount              ;Decimal       ;Editable=Yes }
+    { 7   ;   ;Type Of Fees        ;Option        ;OptionCaptionML=ENU=" ,Initial,Term1,Term2";
+                                                   OptionString=[ ,Initial,Term1,Term2] }
+    { 8   ;   ;Company             ;Code30         }
+    { 9   ;   ;G/L Account         ;Code20         }
+    { 10  ;   ;Thai                ;Boolean        }
+    { 11  ;   ;Group               ;Option        ;OptionCaptionML=ENU=" ,Group A,Group B,Group C,Group D,Group E,Group F";
+                                                   OptionString=[ ,Group A,Group B,Group C,Group D,Group E,Group F] }
+    { 12  ;   ;Staff Child         ;Boolean        }
+    { 13  ;   ;Group Subject       ;Code20        ;TableRelation=Subject }
+    { 14  ;   ;Caution Depoit Select;Boolean       }
+  }
+  KEYS
+  {
+    {    ;Academic Year,From Class,To Class,Fee Code,Company,Type Of Fees;
+                                                   Clustered=Yes }
+    {    ;Fee Code                                 }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      FeeComponent@1000000000 : Record 71905;
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,762 @@
+OBJECT Codeunit 71680 Hostel
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      RoomAllocation@1102155000 : Record 71682;
+      HostelRooms@1102155001 : Record 71681;
+      Student@1102155002 : Record 71046;
+      StudentCOLLEGE@1102155003 : Record 71355;
+      HostelRoomsLine@1102155004 : Record 71689;
+      FeeManagement@1102155005 : Codeunit 71044;
+      FeeManagementCOLLEGE@1102155006 : Codeunit 71357;
+      HostelSetup@1102155007 : Record 71683;
+      RoomType@1102155008 : Record 71688;
+      FeeSetup@1102155009 : Record 71072;
+      FeeSetupCOLLEGE@1102155010 : Record 71387;
+      GenJournalLine@1102155011 : Record 81;
+      RoomChange@1102155012 : Record 71690;
+      MessChange@1102155013 : Record 71694;
+      Text000@1102155014 : TextConst 'ENU=Student not Found';
+      Text001@1102155015 : TextConst 'ENU=Room allocate for %1';
+      Text002@1102155016 : TextConst 'ENU=%1 Vacated the Room Succesfully';
+      Text003@1102155017 : TextConst 'ENU=You cannot regenrate already posted';
+      Text004@1102155018 : TextConst 'ENU=" Fess is generated already"';
+      Text005@1102155019 : TextConst 'ENU=Mess Fee is Not generated for Hostel %1';
+      Text006@1102155020 : TextConst 'ENU=Fees Generated';
+      Text007@1102155021 : TextConst 'ENU=Please enter the Total Expence for the Mess Location %1';
+      Text008@1102155022 : TextConst 'ENU=Please Specify Total Expence';
+      Text009@1102155023 : TextConst 'ENU=Please generate Hostel Fee for Hostel Code %1';
+      Text010@1102155024 : TextConst 'ENU=Only for consumption total Amount can be calculated';
+      Text011@1102155025 : TextConst 'ENU=Date Range Should be Filled';
+      Text012@1102155026 : TextConst 'ENU=Consumption is not Entered yet';
+      Text013@1102155027 : TextConst 'ENU=Consumption Amount updated';
+      Text014@1102155028 : TextConst 'ENU=Electricity Consumption is not Entered yet';
+      Text015@1102155029 : TextConst 'ENU=Electricity Consumption Amount updated';
+      Text016@1102155030 : TextConst 'ENU=Already Room had been alloted for this Student %1';
+      Text017@1102155033 : TextConst 'ENU=Already Room had been Vacated for this Student %1';
+      Text018@1102155034 : TextConst 'ENU=You can not modified the same';
+      Text019@1102155035 : TextConst 'ENU=%1 Room cahnged Succesfully';
+      Text020@1102155036 : TextConst 'ENU=" Mess Change Update Completed"';
+      Text021@1102155031 : TextConst 'ENU=Do you want to Delete & Update the Students';
+      Text022@1102155032 : TextConst 'ENU=Do you want to Allot Room';
+      Text023@1102155037 : TextConst 'ENU=Do you want to Change Mess';
+      Text024@1102155038 : TextConst 'ENU=Do you want to Change Room';
+
+    PROCEDURE "Room Allocation"@1102155000("HostelNo."@1102155000 : Code[20]);
+    BEGIN
+       // Start 01.KATHIR
+      RoomAllocation.GET("HostelNo.");
+      RoomAllocation.TESTFIELD("Student No.");
+      RoomAllocation.TESTFIELD("Hostel No.");
+      RoomAllocation.TESTFIELD("Room No");
+      RoomAllocation.TESTFIELD(BedNo);
+      RoomAllocation.RoomAlloted := TRUE;
+      RoomAllocation.MODIFY;
+      IF HostelRooms.GET(RoomAllocation."Hostel No.",RoomAllocation."Room No",RoomAllocation.BedNo) THEN BEGIN
+        HostelRooms.Alloted := TRUE;
+        HostelRooms.MODIFY;
+      END;
+
+      IF RoomAllocation.Company = RoomAllocation.Company::School THEN
+        IF Student.GET(RoomAllocation."Student No.") THEN BEGIN
+          Student."Room No." := RoomAllocation."Room No";
+          Student."Hostel Code" := RoomAllocation."Hostel No.";
+          Student."Hostel Alloted" := TRUE;
+          Student.MODIFY;
+        END ELSE
+          ERROR(Text000);
+
+      IF RoomAllocation.Company = RoomAllocation.Company::College THEN
+        IF StudentCOLLEGE.GET(RoomAllocation."Student No.") THEN BEGIN
+          StudentCOLLEGE."Room No." := RoomAllocation."Room No";
+          StudentCOLLEGE."Hostel Code" := RoomAllocation."Hostel No.";
+          StudentCOLLEGE."Hostel Alloted" := TRUE;
+          StudentCOLLEGE.MODIFY;
+        END ELSE
+          ERROR(Text000);
+      MESSAGE(Text001,RoomAllocation."Student Name");
+       // Stop 01.KATHIR
+    END;
+
+    PROCEDURE "Vacate Room"@1102155002("HostelNo."@1102155000 : Code[20]);
+    BEGIN
+        // Start 02.KATHIR
+      RoomAllocation.GET("HostelNo.");
+      RoomAllocation.TESTFIELD("Student No.");
+      RoomAllocation.TESTFIELD("Hostel No.");
+      RoomAllocation.TESTFIELD("Room No");
+      RoomAllocation.TESTFIELD(BedNo);
+      IF RoomAllocation."Vacate Date" = 0D THEN
+        RoomAllocation."Vacate Date" := TODAY;
+      RoomAllocation.Vacated := TRUE;
+      RoomAllocation.MODIFY;
+
+      IF HostelRooms.GET(RoomAllocation."Hostel No.",RoomAllocation."Room No",RoomAllocation.BedNo) THEN BEGIN
+        HostelRooms.Alloted := FALSE;
+        HostelRooms.MODIFY;
+      END;
+
+      IF RoomAllocation.Company = RoomAllocation.Company::School THEN
+        IF Student.GET(RoomAllocation."Student No.") THEN BEGIN
+          Student."Room No." := '';
+          Student."Hostel Code" := '';
+          Student."Hostel Alloted" := FALSE;
+          Student."Hostel Vacated" := TRUE;
+          Student.MODIFY;
+        END ELSE
+          ERROR(Text000);
+
+      IF RoomAllocation.Company = RoomAllocation.Company::College THEN
+        IF StudentCOLLEGE.GET(RoomAllocation."Student No.") THEN BEGIN
+          StudentCOLLEGE."Room No." := '';
+          StudentCOLLEGE."Hostel Code" := '';
+          StudentCOLLEGE."Hostel Alloted" := FALSE;
+          StudentCOLLEGE."Hostel Vacated" := TRUE;
+          StudentCOLLEGE.MODIFY;
+        END ELSE
+          ERROR(Text000);
+
+      MESSAGE(Text002,RoomAllocation."Student Name");
+      // Stop 02.KATHIR
+    END;
+
+    PROCEDURE GetStudents@1102155001("getBillNo."@1102155000 : Code[20]);
+    VAR
+      EducationSetup@1102155001 : Record 71884;
+      HostelFee@1102155002 : Record 71684;
+      HostelFeeLine@1102155005 : Record 71685;
+      LocalLineNo@1102155006 : Integer;
+    BEGIN
+      // Start 03.VIGNESH
+
+      EducationSetup.GET;
+      HostelFee.GET("getBillNo.");
+
+      IF HostelFee.Closed THEN
+        ERROR(Text003);
+
+      HostelFeeLine.RESET;
+      HostelFeeLine.SETRANGE("Bill No.","getBillNo.");
+      IF HostelFeeLine.FINDFIRST THEN
+        IF CONFIRM(Text021,FALSE) THEN
+          HostelFeeLine.DELETEALL
+        ELSE
+          EXIT;
+
+      IF EducationSetup.Company = EducationSetup.Company::School THEN BEGIN
+        LocalLineNo := 0;
+        Student.RESET;
+        Student.SETRANGE("Hostel Code",HostelFee."Hostel Code");
+        Student.SETRANGE("Hostel Alloted",TRUE);
+        IF Student.FINDSET THEN
+          REPEAT
+            LocalLineNo += 10000;
+            HostelFeeLine.INIT;
+            HostelFeeLine."Bill No." := HostelFee."Bill No.";
+            HostelFeeLine."Line No." := LocalLineNo;
+            HostelFeeLine."Hostel Code" := HostelFee."Hostel Code";
+            HostelFeeLine."Student No." := Student."No.";
+            HostelFeeLine."Total Days" := HostelFee."Billable Days";
+            HostelFeeLine.INSERT;
+          UNTIL Student.NEXT = 0;
+      END;
+
+      IF EducationSetup.Company = EducationSetup.Company::College THEN BEGIN
+        StudentCOLLEGE.RESET;
+        StudentCOLLEGE.SETRANGE("Hostel Code",HostelFee."Hostel Code");
+        StudentCOLLEGE.SETRANGE("Hostel Alloted",TRUE);
+        IF StudentCOLLEGE.FINDSET THEN
+          REPEAT
+            LocalLineNo += 10000;
+            HostelFeeLine.INIT;
+            HostelFeeLine."Bill No." := HostelFee."Bill No.";
+            HostelFeeLine."Line No." := LocalLineNo;
+            HostelFeeLine."Hostel Code" := HostelFee."Hostel Code";
+            HostelFeeLine."Student No." := StudentCOLLEGE."No.";
+            HostelFeeLine."Total Days" := HostelFee."Billable Days";
+            HostelFeeLine."Days Present" := HostelFee."Billable Days";
+            HostelFeeLine.INSERT;
+          UNTIL StudentCOLLEGE.NEXT = 0;
+      END;
+      HostelFee.Update := TRUE;
+      HostelFee.MODIFY;
+      // Stop 03.VIGNESH
+    END;
+
+    PROCEDURE "Post Journal"@1102155003("getBillNo."@1102155000 : Code[20]);
+    VAR
+      HostelFeeLine@1102155001 : Record 71685;
+      Hostel@1102155002 : Record 71680;
+      EducationSetup@1102155006 : Record 71884;
+      FeeManagenmentCOLLEGE@1102155010 : Codeunit 71357;
+      HostelFee@1102155004 : Record 71684;
+      MessTotalExpense@1102155005 : Record 71686;
+    BEGIN
+      // Start 04.VIGNESH
+      HostelFee.GET("getBillNo.");
+      Hostel.GET(HostelFee."Hostel Code");
+
+      IF HostelFee.Closed THEN
+        ERROR(Text004);
+
+      HostelFeeLine.RESET;
+      HostelFeeLine.SETRANGE("Bill No.","getBillNo.");
+      HostelFeeLine.SETFILTER("Days Present",'<>%1',0);
+      HostelFeeLine.SETRANGE("Fee Amount",0);
+      IF HostelFeeLine.FINDFIRST THEN
+        ERROR(Text005,Hostel.Code);
+
+      HostelSetup.GET;
+      HostelSetup.TESTFIELD("Hostel Fee Code");
+      EducationSetup.GET;
+
+      IF EducationSetup.Company = EducationSetup.Company::School THEN BEGIN
+        FeeSetup.GET;
+        FeeSetup.TESTFIELD("Journal Template Name");
+        FeeSetup.TESTFIELD("Journal Batch Name");
+      END;
+
+      IF EducationSetup.Company = EducationSetup.Company::College THEN BEGIN
+        FeeSetupCOLLEGE.GET;
+        FeeSetupCOLLEGE.TESTFIELD("Journal Template Name");
+        FeeSetupCOLLEGE.TESTFIELD("Journal Batch Name");
+      END;
+
+      HostelFeeLine.RESET;
+      HostelFeeLine.SETRANGE("Bill No.","getBillNo.");
+      IF HostelFeeLine.FINDSET THEN
+        REPEAT
+          IF (EducationSetup.Company = EducationSetup.Company::School) AND
+             (HostelFeeLine."Fee Amount" <> 0)
+          THEN
+            FeeManagement.FeeProcess(HostelFeeLine."Student No.",HostelSetup."Hostel Fee Code",HostelFeeLine."Fee Amount");
+          IF (EducationSetup.Company = EducationSetup.Company::College) AND
+             (HostelFeeLine."Fee Amount" <> 0)
+          THEN
+            FeeManagenmentCOLLEGE.FeeProcess(HostelFeeLine."Student No.",HostelSetup."Hostel Fee Code",
+              HostelFeeLine."Fee Amount");
+        UNTIL HostelFeeLine.NEXT = 0;
+
+      IF EducationSetup.Company = EducationSetup.Company::School THEN BEGIN
+        GenJournalLine.RESET;
+        GenJournalLine.SETRANGE("Journal Template Name",FeeSetup."Journal Template Name");
+        GenJournalLine.SETRANGE("Journal Batch Name",FeeSetup."Journal Batch Name");
+      END;
+
+      IF EducationSetup.Company = EducationSetup.Company::College THEN BEGIN
+        GenJournalLine.RESET;
+        GenJournalLine.SETRANGE("Journal Template Name",FeeSetupCOLLEGE."Journal Template Name");
+        GenJournalLine.SETRANGE("Journal Batch Name",FeeSetupCOLLEGE."Journal Batch Name");
+      END;
+
+      IF GenJournalLine.FINDSET THEN BEGIN
+        CODEUNIT.RUN(CODEUNIT::"Gen. Jnl.-Post Batch",GenJournalLine);
+        MessTotalExpense.RESET;
+        MessTotalExpense.SETRANGE("Mess Location",Hostel.Mess);
+        MessTotalExpense.SETRANGE("From Date",HostelFee."Start Date");
+        MessTotalExpense.SETRANGE("To Date",HostelFee."End Date");
+        MessTotalExpense.SETRANGE(Closed,FALSE);
+        MessTotalExpense.MODIFYALL(Closed,TRUE);
+        HostelFee.Closed := TRUE;
+        HostelFee.MODIFY;
+        MESSAGE(Text006);
+      END;
+      // Stop 04.VIGNESH
+    END;
+
+    PROCEDURE "Calculate Mess Amount"@1102155004(getLocation@1102155000 : Code[20]);
+    VAR
+      Hostel@1102155001 : Record 71680;
+      HostelFee@1102155002 : Record 71684;
+      HostelFeeLine@1102155004 : Record 71685;
+      MessTotalExpense@1102155005 : Record 71686;
+      TotalExpense@1102155006 : Decimal;
+      PerStudentAmount@1102155007 : Decimal;
+      StartDate@1102155010 : Date;
+      EndDate@1102155011 : Date;
+      TotalPresent@1102155012 : Integer;
+    BEGIN
+      // Start 05.VIGNESH
+      TotalExpense := 0;
+      MessTotalExpense.RESET;
+      MessTotalExpense.SETRANGE("Mess Location",getLocation);
+      MessTotalExpense.SETRANGE(Closed,FALSE);
+      IF MessTotalExpense.ISEMPTY THEN
+        ERROR(Text007,getLocation)
+      ELSE
+        IF MessTotalExpense.FINDSET THEN
+          REPEAT
+            TotalExpense += MessTotalExpense."Total Amount";
+            StartDate := MessTotalExpense."From Date";
+            EndDate := MessTotalExpense."To Date";
+          UNTIL MessTotalExpense.NEXT = 0;
+
+      IF TotalExpense = 0 THEN
+        ERROR(Text008);
+
+      PerStudentAmount := 0;
+      TotalPresent := 0;
+      Hostel.RESET;
+      Hostel.SETRANGE(Mess,getLocation);
+      IF Hostel.FINDSET THEN
+        REPEAT
+          HostelFee.RESET;
+          HostelFee.SETRANGE("Hostel Code",Hostel.Code);
+          HostelFee.SETRANGE("Start Date",StartDate);
+          HostelFee.SETRANGE("End Date",EndDate);
+          HostelFee.SETRANGE(Update,TRUE);
+          HostelFee.SETRANGE(Closed,FALSE);
+          IF HostelFee.ISEMPTY THEN
+            ERROR(Text009,Hostel.Code)
+          ELSE
+            IF HostelFee.FINDFIRST THEN BEGIN
+              HostelFeeLine.RESET;
+              HostelFeeLine.SETRANGE("Bill No.",HostelFee."Bill No.");
+              IF HostelFeeLine.FINDSET THEN
+                REPEAT
+                  TotalPresent += HostelFeeLine."Days Present";
+                UNTIL HostelFeeLine.NEXT = 0;
+            END;
+        UNTIL Hostel.NEXT = 0;
+
+      IF TotalPresent <> 0 THEN
+        PerStudentAmount := TotalExpense / TotalPresent ;
+
+      Hostel.RESET;
+      Hostel.SETRANGE(Mess,getLocation);
+      IF Hostel.FINDSET THEN
+        REPEAT
+          HostelFee.RESET;
+          HostelFee.SETRANGE("Hostel Code",Hostel.Code);
+          HostelFee.SETRANGE("Start Date",StartDate);
+          HostelFee.SETRANGE("End Date",EndDate);
+          HostelFee.SETRANGE(Update,TRUE);
+          HostelFee.SETRANGE(Closed,FALSE);
+          IF HostelFee.FINDFIRST THEN BEGIN
+            HostelFeeLine.RESET;
+            HostelFeeLine.SETRANGE("Bill No.",HostelFee."Bill No.");
+            IF HostelFeeLine.FINDSET THEN
+              REPEAT
+                IF HostelFeeLine."Days Present" <> 0 THEN
+                  HostelFeeLine."Fee Amount" := PerStudentAmount * HostelFeeLine."Days Present";
+                HostelFeeLine.MODIFY;
+              UNTIL HostelFeeLine.NEXT = 0;
+          END;
+        UNTIL Hostel.NEXT = 0;
+      // Stop 05.VIGNESH
+    END;
+
+    PROCEDURE "Calculate Consumption"@1102155005(getLocation@1102155000 : Code[20];getFromDate@1102155001 : Date;getToDate@1102155002 : Date;getCostCode@1102155007 : Code[20]);
+    VAR
+      ItemLedgerEntry@1102155003 : Record 32;
+      ConsumptionAmount@1102155004 : Decimal;
+      MessExpenseAmount@1102155006 : Record 71686;
+      "G/LEntry"@1102155009 : Record 17;
+      CostCode@1102155008 : Record 71687;
+    BEGIN
+      // Start 06.VIGNESH
+      // Start 12.Ankesh
+      CLEAR(ConsumptionAmount);
+      HostelSetup.GET;
+      HostelSetup.TESTFIELD("Consumption Code");
+      HostelSetup.TESTFIELD("Electricity Expense Code");
+
+      IF (getFromDate = 0D) OR (getToDate = 0D) THEN
+        ERROR(Text011);
+
+      IF getCostCode = HostelSetup."Consumption Code" THEN BEGIN
+        ItemLedgerEntry.RESET;
+        ItemLedgerEntry.SETCURRENTKEY("Entry Type","Location Code","Posting Date");
+        ItemLedgerEntry.SETRANGE("Entry Type",ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
+        ItemLedgerEntry.SETRANGE("Location Code",getLocation);
+        ItemLedgerEntry.SETFILTER("Posting Date",'%1..%2',getFromDate,getToDate);
+        IF ItemLedgerEntry.FINDSET THEN
+          REPEAT
+            ItemLedgerEntry.CALCFIELDS("Cost Amount (Actual)");
+            ConsumptionAmount += ABS(ItemLedgerEntry."Cost Amount (Actual)");
+          UNTIL ItemLedgerEntry.NEXT = 0;
+        IF ConsumptionAmount = 0 THEN
+          MESSAGE(Text012)
+        ELSE BEGIN
+          MessExpenseAmount.RESET;
+          MessExpenseAmount.GET(getLocation,getFromDate,getToDate,getCostCode);
+          MessExpenseAmount."Total Amount" := ConsumptionAmount;
+          MessExpenseAmount.MODIFY;
+          MESSAGE(Text013);
+        END;
+      END ELSE
+        IF getCostCode = HostelSetup."Electricity Expense Code" THEN BEGIN
+          "G/LEntry".RESET;
+          IF CostCode.GET(getCostCode) THEN;
+          "G/LEntry".SETRANGE("G/L Account No.",CostCode."G/L Account No.");
+          "G/LEntry".SETRANGE("Location Code",getLocation);
+          "G/LEntry".SETFILTER("Posting Date",'%1..%2',getFromDate,getToDate);
+          IF "G/LEntry".FINDSET THEN
+            REPEAT
+              ConsumptionAmount += "G/LEntry".Amount;
+            UNTIL "G/LEntry".NEXT = 0;
+
+          IF ConsumptionAmount = 0 THEN
+            MESSAGE(Text014)
+          ELSE BEGIN
+            MessExpenseAmount.RESET;
+            MessExpenseAmount.GET(getLocation,getFromDate,getToDate,getCostCode);
+            MessExpenseAmount."Total Amount" := ConsumptionAmount;
+            MessExpenseAmount.MODIFY;
+            MESSAGE(Text015);
+          END;
+        END;
+       // Stop 12.Ankesh
+      // Stop 06.VIGNESH
+    END;
+
+    PROCEDURE "AllotRoom No."@1102155007("GetNo."@1102155000 : Code[20]);
+    BEGIN
+      // Start 07.VIGNESH
+      RoomAllocation.GET("GetNo.");
+      RoomAllocation.TESTFIELD("Student No.");
+      RoomAllocation.TESTFIELD("Hostel No.");
+      RoomAllocation.TESTFIELD("Room No");
+      RoomAllocation.TESTFIELD(BedNo);
+      IF RoomAllocation.RoomAlloted OR
+         (RoomAllocation."Room Status" = RoomAllocation."Room Status"::Occupied)
+      THEN
+        ERROR(Text016,RoomAllocation."Student No.");
+
+      IF NOT CONFIRM(Text022,FALSE) THEN
+        EXIT;
+
+      HostelSetup.GET;
+      HostelSetup.TESTFIELD("Hostel Fee Code");
+      HostelSetup.TESTFIELD("Room Rent Charging");
+
+      HostelRoomsLine.RESET;
+      HostelRoomsLine.SETRANGE("Hostel Code",RoomAllocation."Hostel No.");
+      HostelRoomsLine.SETRANGE("Room No.",RoomAllocation."Room No");
+      HostelRoomsLine.SETFILTER("Total Vacant",'<>%1',0);
+      IF HostelRoomsLine.FINDFIRST THEN BEGIN
+        HostelRoomsLine.TESTFIELD("Per Student Rent");
+        IF RoomAllocation.Company = RoomAllocation.Company::School THEN BEGIN
+          IF Student.GET(RoomAllocation."Student No.") THEN BEGIN
+            IF NOT Student."Hostel Alloted" THEN BEGIN
+              Student."Room No." := RoomAllocation."Room No";
+              Student."Hostel Code" := RoomAllocation."Hostel No.";
+              Student."Room Type" := HostelRoomsLine."Room Type";
+              Student.Mess := RoomAllocation."Mess Location";
+              Student."Hostel Alloted" := TRUE;
+              Student."Hostel Vacated" := FALSE;
+              Student.MODIFY;
+            END ELSE
+              ERROR(Text016,RoomAllocation."Student No.");
+          END ELSE
+            ERROR(Text000);
+        END ELSE
+          IF RoomAllocation.Company = RoomAllocation.Company::College THEN BEGIN
+            IF StudentCOLLEGE.GET(RoomAllocation."Student No.") THEN BEGIN
+              IF StudentCOLLEGE."Hostel Alloted" THEN BEGIN
+                StudentCOLLEGE."Room No." := RoomAllocation."Room No";
+                StudentCOLLEGE."Hostel Code" := RoomAllocation."Hostel No.";
+                StudentCOLLEGE."Room Type" := HostelRoomsLine."Room Type";
+                StudentCOLLEGE.Mess := RoomAllocation."Mess Location";
+                StudentCOLLEGE."Hostel Alloted" := TRUE;
+                StudentCOLLEGE."Hostel Vacated" := FALSE;
+                StudentCOLLEGE.MODIFY;
+              END ELSE
+                ERROR(Text016,RoomAllocation."Student No.");
+            END ELSE
+              ERROR(Text000);
+          END;
+        IF HostelRooms.GET(RoomAllocation."Hostel No.",RoomAllocation."Room No",RoomAllocation.BedNo) THEN BEGIN
+          HostelRooms.Alloted := TRUE;
+          HostelRooms.MODIFY;
+        END;
+        {
+       // Start 11.Ankesh
+        IF HostelSetup."Room Rent Charging" <> HostelSetup."Room Rent Charging"::" " THEN BEGIN
+          GenJournalLine.RESET;
+          IF RoomAllocation.Company = RoomAllocation.Company::School THEN BEGIN
+            IF HostelSetup."Room Rent Charging" = HostelSetup."Room Rent Charging"::"Based on Roon Type" THEN BEGIN
+              FeeManagement.FeeProcess(RoomAllocation."Student No.",HostelSetup."Hostel Fee Code",HostelRoomsLine."Per Student Rent");
+            END ELSE
+              IF HostelSetup."Room Rent Charging" = HostelSetup."Room Rent Charging"::"Flat Rate" THEN BEGIN
+                HostelSetup.TESTFIELD("Room Rent");
+                FeeManagement.FeeProcess(RoomAllocation."Student No.",HostelSetup."Hostel Fee Code",HostelSetup."Room Rent");
+              END;
+
+            FeeSetup.GET;
+            FeeSetup.TESTFIELD("Journal Template Name");
+            FeeSetup.TESTFIELD("Journal Batch Name");
+
+            GenJournalLine.SETRANGE("Journal Template Name",FeeSetup."Journal Template Name");
+            GenJournalLine.SETRANGE("Journal Batch Name",FeeSetup."Journal Batch Name");
+          END ELSE
+            IF RoomAllocation.Company = RoomAllocation.Company::College THEN BEGIN
+              IF HostelSetup."Room Rent Charging" = HostelSetup."Room Rent Charging"::"Based on Roon Type" THEN BEGIN
+                FeeManagementCOLLEGE.FeeProcess(RoomAllocation."Student No.",HostelSetup."Hostel Fee Code",
+                  HostelRoomsLine."Per Student Rent");
+              END ELSE
+                IF HostelSetup."Room Rent Charging" = HostelSetup."Room Rent Charging"::"Flat Rate" THEN BEGIN
+                  HostelSetup.TESTFIELD("Room Rent");
+                  FeeManagementCOLLEGE.FeeProcess(RoomAllocation."Student No.",HostelSetup."Hostel Fee Code",
+                    HostelSetup."Room Rent");
+                END;
+              FeeSetupCOLLEGE.GET;
+              FeeSetupCOLLEGE.TESTFIELD("Journal Template Name");
+              FeeSetupCOLLEGE.TESTFIELD("Journal Batch Name");
+              GenJournalLine.SETRANGE("Journal Template Name",FeeSetupCOLLEGE."Journal Template Name");
+              GenJournalLine.SETRANGE("Journal Batch Name",FeeSetupCOLLEGE."Journal Batch Name");
+            END;
+          IF GenJournalLine.FINDSET THEN
+            CODEUNIT.RUN(CODEUNIT::"Gen. Jnl.-Post Batch",GenJournalLine);
+        END;
+        // Stop 11.Ankesh
+         }
+        HostelRoomsLine."Total Vacant" := HostelRoomsLine."Total Vacant" -1;
+        RoomAllocation.RoomAlloted := TRUE;
+        RoomAllocation."Room Status" := RoomAllocation."Room Status"::Occupied;
+        RoomAllocation."Allocation Date" := TODAY;
+        RoomAllocation."Vacate Date" := 0D;
+        RoomAllocation.Vacated := FALSE;
+        RoomAllocation.MODIFY;
+        HostelRoomsLine.MODIFY;
+        MESSAGE(Text001,RoomAllocation."Student Name");
+       // Stop 01.KATHIR
+      END;
+      // Stop 07.VIGNESH
+    END;
+
+    PROCEDURE VacateRoom@1102155006("GetNo."@1102155000 : Code[20]) : Boolean;
+    BEGIN
+      // Start 08.VIGNESH
+      RoomAllocation.GET("GetNo.");
+      RoomAllocation.TESTFIELD("Student No.");
+      RoomAllocation.TESTFIELD("Hostel No.");
+      RoomAllocation.TESTFIELD("Room No");
+      IF (NOT RoomAllocation.RoomAlloted) OR RoomAllocation.Vacated OR
+         (RoomAllocation."Room Status" = RoomAllocation."Room Status"::Vacated)
+      THEN
+        ERROR(Text017,RoomAllocation."Student No.");
+
+      HostelRoomsLine.RESET;
+      HostelRoomsLine.SETRANGE("Hostel Code",RoomAllocation."Hostel No.");
+      HostelRoomsLine.SETRANGE("Room No.",RoomAllocation."Room No");
+      IF HostelRoomsLine.FINDFIRST THEN BEGIN
+        IF RoomAllocation.Company = RoomAllocation.Company::School THEN BEGIN
+          IF Student.GET(RoomAllocation."Student No.") THEN BEGIN
+            IF Student."Hostel Alloted" THEN BEGIN
+              Student."Room No." := '';
+              Student."Hostel Code" := '';
+              Student."Room Type" := '';
+              Student.Mess := '';
+              Student."Hostel Alloted" := FALSE;
+              Student."Hostel Vacated" := TRUE;
+              Student.MODIFY;
+            END ELSE
+              ERROR(Text017,RoomAllocation."Student No.");
+          END ELSE
+            ERROR(Text000);
+        END ELSE
+          IF RoomAllocation.Company = RoomAllocation.Company::College THEN BEGIN
+            IF StudentCOLLEGE.GET(RoomAllocation."Student No.") THEN BEGIN
+              IF StudentCOLLEGE."Hostel Alloted" THEN BEGIN
+                StudentCOLLEGE."Room No." := '';
+                StudentCOLLEGE."Hostel Code" := '';
+                StudentCOLLEGE."Room Type" := '';
+                StudentCOLLEGE.Mess := '';
+                StudentCOLLEGE."Hostel Alloted" := FALSE;
+                StudentCOLLEGE."Hostel Vacated" := TRUE;
+                StudentCOLLEGE.MODIFY;
+              END ELSE
+                ERROR(Text017,RoomAllocation."Student No.");
+            END ELSE
+              ERROR(Text000);
+          END;
+
+        IF HostelRooms.GET(RoomAllocation."Hostel No.",RoomAllocation."Room No",RoomAllocation.BedNo) THEN BEGIN
+          HostelRooms.Alloted := FALSE;
+          HostelRooms.MODIFY;
+        END;
+
+        HostelRoomsLine."Total Vacant" := HostelRoomsLine."Total Vacant" + 1;
+        RoomAllocation."Room No" := '';
+        RoomAllocation."Hostel No." := '';
+        RoomAllocation."Hostel Name" := '';
+        RoomAllocation."Mess Location" := '';
+        RoomAllocation.BedNo := '';
+        RoomAllocation.RoomAlloted := FALSE;
+        RoomAllocation."Room Status" := RoomAllocation."Room Status"::Vacated;
+        RoomAllocation."Allocation Date" := 0D;
+        RoomAllocation."Vacate Date" := TODAY;
+        RoomAllocation.Vacated := TRUE;
+        RoomAllocation.MODIFY;
+        HostelRoomsLine.MODIFY;
+        EXIT(TRUE);
+      END;
+      // Stop 08.VIGNESH
+    END;
+
+    PROCEDURE ChangeRoom@1102155008("GetNo."@1102155000 : Code[20]);
+    BEGIN
+      // Start 09.VIGNESH
+      RoomChange.GET("GetNo.");
+      RoomChange.TESTFIELD("Room Allocation No.");
+      RoomChange.TESTFIELD("New Hostel Code");
+      RoomChange.TESTFIELD("New Room No.");
+      RoomChange.TESTFIELD("Academic Year");
+      RoomChange.TESTFIELD("New Bed No.");
+      IF RoomChange."Room Changed" THEN
+        ERROR(Text018);
+      IF NOT CONFIRM(Text024,FALSE) THEN
+        EXIT;
+
+      HostelSetup.GET;
+      HostelSetup.TESTFIELD("Hostel Fee Code");
+
+      IF VacateRoom(RoomChange."Room Allocation No.") THEN BEGIN
+        IF RoomChange.Company = RoomChange.Company::School THEN BEGIN
+          FeeManagement.FeeProcess(RoomChange."Student No.",HostelSetup."Hostel Fee Code",-HostelRoomsLine."Per Student Rent");
+        END ELSE
+          IF RoomChange.Company = RoomChange.Company::College THEN
+            FeeManagementCOLLEGE.FeeProcess(RoomChange."Student No.",HostelSetup."Hostel Fee Code",- HostelRoomsLine."Per Student Rent")
+            ;
+
+        HostelRoomsLine.RESET;
+        HostelRoomsLine.SETRANGE("Hostel Code",RoomChange."New Hostel Code");
+        HostelRoomsLine.SETRANGE("Room No.",RoomChange."New Room No.");
+        HostelRoomsLine.SETFILTER("Total Vacant",'<>%1',0);
+        IF HostelRoomsLine.FINDFIRST THEN BEGIN
+          HostelRoomsLine.TESTFIELD("Per Student Rent");
+          IF RoomChange.Company = RoomChange.Company::School THEN BEGIN
+            IF Student.GET(RoomChange."Student No.") THEN BEGIN
+              IF Student."Hostel Alloted" THEN BEGIN
+                Student."Room No." := RoomChange."New Room No.";
+                Student."Hostel Code" := RoomChange."New Hostel Code";
+                Student."Room Type" := HostelRoomsLine."Room Type";
+                Student.Mess := RoomChange."New Mess Location";
+                Student."Hostel Alloted" := TRUE;
+                Student."Hostel Vacated" := FALSE;
+                Student.MODIFY;
+              END ELSE
+                ERROR(Text016,RoomChange."Student No.");
+            END ELSE
+              ERROR(Text000);
+          END ELSE
+            IF RoomChange.Company = RoomChange.Company::College THEN BEGIN
+              IF StudentCOLLEGE.GET(RoomChange."Student No.") THEN BEGIN
+                IF NOT StudentCOLLEGE."Hostel Alloted" THEN BEGIN
+                  StudentCOLLEGE."Room No." := RoomChange."New Room No.";
+                  StudentCOLLEGE."Hostel Code" := RoomChange."New Hostel Code";
+                  StudentCOLLEGE."Room Type" := HostelRoomsLine."Room Type";
+                  StudentCOLLEGE.Mess := RoomChange."New Mess Location";
+                  StudentCOLLEGE."Hostel Alloted" := TRUE;
+                  StudentCOLLEGE."Hostel Vacated" := FALSE;
+                  StudentCOLLEGE.MODIFY;
+                END ELSE
+                  ERROR(Text016,RoomChange."Student No.");
+              END ELSE
+                ERROR(Text000);
+            END;
+
+          IF RoomChange.Company = RoomChange.Company::School THEN
+            FeeManagement.FeeProcess(RoomChange."Student No.",HostelSetup."Hostel Fee Code",HostelRoomsLine."Per Student Rent")
+          ELSE
+            IF RoomChange.Company = RoomChange.Company::College THEN
+              FeeManagementCOLLEGE.FeeProcess(RoomChange."Student No.",HostelSetup."Hostel Fee Code",HostelRoomsLine."Per Student Rent")
+              ;
+
+          GenJournalLine.RESET;
+          IF RoomChange.Company = RoomChange.Company::School THEN BEGIN
+            FeeSetup.GET;
+            FeeSetup.TESTFIELD("Journal Template Name");
+            FeeSetup.TESTFIELD("Journal Batch Name");
+            GenJournalLine.SETRANGE("Journal Template Name",FeeSetup."Journal Template Name");
+            GenJournalLine.SETRANGE("Journal Batch Name",FeeSetup."Journal Batch Name");
+          END ELSE
+            IF RoomChange.Company = RoomChange.Company::College THEN BEGIN
+              FeeSetupCOLLEGE.GET;
+              FeeSetupCOLLEGE.TESTFIELD("Journal Template Name");
+              FeeSetupCOLLEGE.TESTFIELD("Journal Batch Name");
+              GenJournalLine.SETRANGE("Journal Template Name",FeeSetupCOLLEGE."Journal Template Name");
+              GenJournalLine.SETRANGE("Journal Batch Name",FeeSetupCOLLEGE."Journal Batch Name");
+            END;
+
+          IF GenJournalLine.FINDSET THEN
+            CODEUNIT.RUN(CODEUNIT::"Gen. Jnl.-Post Batch",GenJournalLine);
+
+          HostelRoomsLine."Total Vacant" := HostelRoomsLine."Total Vacant" - 1;
+          RoomAllocation.GET(RoomChange."Room Allocation No.");
+          RoomAllocation."Room No" := RoomChange."New Room No.";
+          RoomAllocation."Hostel No." := RoomChange."New Hostel Code";
+          RoomAllocation."Hostel Name" := RoomChange."New Hostel Name";
+          RoomAllocation.BedNo := RoomChange."New Bed No.";
+          RoomAllocation."Mess Location" := RoomChange."New Mess Location";
+          RoomAllocation.RoomAlloted := TRUE;
+          RoomAllocation."Room Status" := RoomAllocation."Room Status"::Occupied;
+          RoomAllocation."Allocation Date" := TODAY;
+          RoomAllocation."Vacate Date" := 0D;
+          RoomAllocation.Vacated := FALSE;
+          RoomChange."Room Change Date" := TODAY;
+          RoomChange."Room Changed" := TRUE;
+          RoomChange.MODIFY;
+          RoomAllocation.MODIFY;
+          HostelRoomsLine.MODIFY;
+          MESSAGE(Text019,RoomChange."Student Name");
+        END;
+      END;
+      // Start 09.VIGNESH
+    END;
+
+    PROCEDURE ChangeMess@1102155009();
+    BEGIN
+      // Start 10.VIGNESH
+      IF NOT CONFIRM(Text023,FALSE) THEN
+        EXIT;
+      MessChange.RESET;
+      MessChange.SETRANGE(Approval,TRUE);
+      IF MessChange.FINDFIRST THEN
+        REPEAT
+          IF MessChange."Required Mess" <> '' THEN BEGIN
+            StudentCOLLEGE.GET(MessChange."Student No.");
+            StudentCOLLEGE.Mess := MessChange."Required Mess";
+            StudentCOLLEGE.MODIFY;
+          END;
+        UNTIL MessChange.NEXT = 0;
+      MESSAGE(Text020);
+      // Stop 10.VIGNESH
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger            Description
+      -----------------------------------------------------------------------------------------------
+        01   08/10/09  KATHIR  Room Allocation()        Function added to Allot Room for a student
+        02   08/10/09  KATHIR  Vacate Room()            Function added for a student for Vacate Room
+        03   13/10/09 VIGNESH  GetStudents()            Function addted to get the hostel students
+        04   13/10/09 VIGNESH  Post Journal()           Function Added to Post the Hostel Fees
+        05   14/10/09 VIGNESH  Calculate Mess Amount()  Function Added for Mess Fees
+        06   14/10/19 VIGNESH Calculate Consumption()   Function added to calulate the consumption
+        07   14/12/09 VIGNESH AllotRoom No. -VIT()      Function added to allot Hoste Room No. for a Student
+        08   14/12/09 VIGNESH VacateRoom - VIT()        Function added to vacate the student from hostel
+        09   14/12/09 VIGNESH ChangeRoom -VIT()         Function Added to change the Hostel Rooms
+        10   14/12/09 VIGNESH ChangeMess - VIT()        Function added to change the mess
+        11   24/03/10 Ankesh  AllotRoom No. -VIT()      Code commented to unavoid invoicing while alloting room
+        12   24/03/10 Ankesh  Calculate Consumption()   Code Modified to calculate for mess and electricity consumption.
+    }
+    END.
+  }
+}
+

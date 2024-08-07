@@ -1,0 +1,89 @@
+OBJECT Table 72078 Employee Pay Elements
+{
+  OBJECT-PROPERTIES
+  {
+    Date=13-06-19;
+    Time=15:37:37;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Employee Pay Elements;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Effective Date      ;Date          ;CaptionML=ENU=Effective Date }
+    { 4   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements" WHERE (Location Code=FIELD(Location Code),
+                                                                                       Salary Plan Code=FIELD(Salary Plan Code));
+                                                   OnValidate=BEGIN
+                                                                PayElements.GET("Pay Element Code","Location Code","Salary Plan Code");
+                                                                Description := PayElements.Description;
+                                                                "Pay Type" := PayElements."Pay Type";
+                                                                "Fixed/Percent" := PayElements."Fixed/Percent";
+                                                                "Amount Calculation Type" := PayElements."Amount Calculation Type";
+                                                                "Base Pay Elements" := PayElements."Base Pay Elements";
+                                                                "Percent (%)" := PayElements."Percent (%)";
+                                                                "Sorting Order" := PayElements."Sorting Order";
+                                                                "Excluded In Pay Slip" := PayElements."Excluded In Pay Slip";
+                                                              END;
+
+                                                   CaptionML=ENU=Pay Element Code }
+    { 5   ;   ;Description         ;Text50        ;CaptionML=ENU=Description;
+                                                   Editable=Yes }
+    { 6   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No }
+    { 7   ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement;
+                                                   Editable=No }
+    { 8   ;   ;Fixed/Percent       ;Option        ;CaptionML=ENU=Fixed/Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent;
+                                                   Editable=No }
+    { 9   ;   ;Amount Calculation Type;Option     ;CaptionML=ENU=Amount Calculation Type;
+                                                   OptionCaptionML=ENU=Pay Day,Full Amount;
+                                                   OptionString=Pay Day,Full Amount }
+    { 10  ;   ;Base Pay Elements   ;Text250       ;CaptionML=ENU=Base Pay Elements;
+                                                   Editable=No }
+    { 11  ;   ;Percent (%)         ;Decimal       ;CaptionML=ENU=Percent (%);
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 12  ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount }
+    { 13  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order;
+                                                   Editable=No }
+    { 14  ;   ;Excluded In Pay Slip;Boolean       ;CaptionML=ENU=Excluded In Pay Slip }
+    { 50000;  ;Designation Code    ;Code20         }
+  }
+  KEYS
+  {
+    {    ;Effective Date,Pay Element Code,Location Code,Salary Plan Code,Employee No;
+                                                   Clustered=Yes }
+    {    ;Effective Date,Sorting Order,Pay Type    }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PayElements@1000000000 : Record 72060;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

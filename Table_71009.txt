@@ -1,0 +1,77 @@
+OBJECT Table 71009 Applicant Evaluation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Applicant Evaluation;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Application No.     ;Code20        ;CaptionML=ENU=Application No. }
+    { 2   ;   ;Evaluation Method Code;Code20      ;TableRelation="Evaluation Method";
+                                                   CaptionML=ENU=Evaluation Method Code }
+    { 3   ;   ;Desription          ;Text30        ;CaptionML=ENU=Desription }
+    { 4   ;   ;Mark Obtained       ;Decimal       ;OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                IF "Maximum Mark" <> 0 THEN BEGIN
+                                                                  IF "Mark Obtained" > "Maximum Mark" THEN
+                                                                    ERROR(Text000,"Maximum Mark")
+                                                                  ELSE
+                                                                    "Attendance Status" := "Attendance Status"::Present;
+                                                                END ELSE
+                                                                  ERROR(Text001);
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Mark Obtained }
+    { 5   ;   ;Attendance Status   ;Option        ;CaptionML=ENU=Attendance Status;
+                                                   OptionCaptionML=ENU=" ,Present,Absent";
+                                                   OptionString=[ ,Present,Absent] }
+    { 6   ;   ;Maximum Mark        ;Decimal       ;CaptionML=ENU=Maximum Mark }
+    { 7   ;   ;Pass Mark           ;Decimal       ;CaptionML=ENU=Pass Mark }
+    { 8   ;   ;Evaluation No.      ;Code10        ;CaptionML=ENU=Evaluation No. }
+    { 9   ;   ;Weightage           ;Decimal       ;CaptionML=ENU=Weightage }
+    { 10  ;   ;Applicant Name      ;Text80        ;CaptionML=ENU=Applicant Name }
+    { 11  ;   ;Class               ;Code10         }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Application No.,Evaluation Method Code  ;Clustered=Yes }
+    {    ;Evaluation No.                           }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Text000@1102155000 : TextConst 'ENU=Maximum mark that you can enter is %1.';
+      Text001@1102155001 : TextConst 'ENU=Maximum mark is zero.';
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        02  24/11/09  VIGNESH   Mark Obtained - OnValidate()  Code added to validate mark Obtained
+    }
+    END.
+  }
+}
+

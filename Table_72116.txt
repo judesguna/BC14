@@ -1,0 +1,145 @@
+OBJECT Table 72116 Bonus Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF "Bonus Id." = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Bonus No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Bonus No.",xRec."No. Series",0D,"Bonus Id.","No. Series");
+               END;
+
+               "Bonus Declare Date" := TODAY;
+
+               IF HRPayrollSetup.GET(USERID) THEN BEGIN
+                 "Location Code" := HRPayrollSetup."Location Code";
+                 "Salary Plan Code" := HRPayrollSetup."Salary Plan Code";
+                 "Bonus Min No of Years" := LocationHRPayrollSetup."Bonus Min. No of Years";
+                 "Bonus Max No of Years" := LocationHRPayrollSetup."Bonus Max No of Years";
+                 "Bonusable Earnings Min Limit" := LocationHRPayrollSetup."Bonusable Earning Min Limit";
+                 "Bonusable Earnings Max Limit" := LocationHRPayrollSetup."Bonusable Earning Max Limit";
+                 "Bonus (%)" := LocationHRPayrollSetup."Bonus (%)";
+                 "Ex-Gratia (%)" := LocationHRPayrollSetup."Ex-Gratia (%)";
+               END;
+
+               PayrollYear.RESET;
+               PayrollYear.SETRANGE("Location Code", "Location Code");
+               PayrollYear.SETRANGE("Salary Plan Code", "Salary Plan Code");
+               PayrollYear.SETRANGE("Year Type", PayrollYear."Year Type"::"Bonus Year");
+               PayrollYear.SETRANGE(Closed, FALSE);
+               IF PayrollYear.FINDFIRST THEN BEGIN
+                 "Bonus Year" := PayrollYear."Year Code";
+                 "Bonus Start Date" := PayrollYear."Year Start Date";
+                 "Bonus End Date" := PayrollYear."Year End Date";
+               END;
+             END;
+
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 BonusLine.RESET;
+                 BonusLine.SETRANGE("Bonus Id.", "Bonus Id.");
+                 IF BonusLine.FINDFIRST THEN BEGIN
+                   BonusLine.LOCKTABLE;
+                   BonusLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Bonus Header;
+    LookupPageID=Page72160;
+    DrillDownPageID=Page72160;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Bonus Id.           ;Code20        ;OnValidate=BEGIN
+                                                                IF "Bonus Id." <> xRec."Bonus Id." THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Bonus No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Bonus Id. }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Bonus Year          ;Code20        ;CaptionML=ENU=Bonus Year }
+    { 5   ;   ;Bonus Start Date    ;Date          ;CaptionML=ENU=Bonus Start Date }
+    { 6   ;   ;Bonus End Date      ;Date          ;CaptionML=ENU=Bonus End Date }
+    { 7   ;   ;Bonus Declare Date  ;Date          ;CaptionML=ENU=Bonus Declare Date }
+    { 8   ;   ;Bonus Min No of Years;Integer      ;CaptionML=ENU=Bonus Min No of Years }
+    { 9   ;   ;Bonus Max No of Years;Integer      ;CaptionML=ENU=Bonus Max No of Years }
+    { 10  ;   ;Bonusable Earnings Min Limit;Decimal;
+                                                   CaptionML=ENU=Bonusable Earnings Min Limit }
+    { 11  ;   ;Bonusable Earnings Max Limit;Decimal;
+                                                   CaptionML=ENU=Bonusable Earnings Max Limit }
+    { 12  ;   ;Bonus (%)           ;Decimal       ;CaptionML=ENU=Bonus (%) }
+    { 13  ;   ;Ex-Gratia (%)       ;Decimal       ;CaptionML=ENU=Ex-Gratia (%) }
+    { 14  ;   ;No. Series          ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=No. Series }
+    { 15  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary] }
+    { 16  ;   ;Staff Total EL Days ;Decimal       ;CaptionML=ENU=Staff Total EL Days }
+    { 17  ;   ;Staff Total CL Days ;Decimal       ;CaptionML=ENU=Staff Total CL Days }
+    { 18  ;   ;Worker Total EL Days;Decimal       ;CaptionML=ENU=Worker Total EL Days }
+    { 19  ;   ;Worker Total CL Days;Decimal       ;CaptionML=ENU=Worker Total CL Days }
+    { 20  ;   ;Total Days In a Year;Decimal       ;CaptionML=ENU=Total Days In a Year }
+  }
+  KEYS
+  {
+    {    ;Bonus Id.                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+      LocationHRPayrollSetup@1000000004 : Record 72052;
+      PayrollYear@1000000002 : Record 72054;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      BonusLine@1000000003 : Record 72117;
+
+    PROCEDURE AssistEdit@2(OldBonusHeader@1000 : Record 72116) : Boolean;
+    VAR
+      BonusHeader@1001 : Record 72116;
+    BEGIN
+      WITH BonusHeader DO BEGIN
+        BonusHeader := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Bonus No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Bonus No.",OldBonusHeader."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Bonus Id.");
+          Rec := BonusHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

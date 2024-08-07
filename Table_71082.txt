@@ -1,0 +1,90 @@
+OBJECT Table 71082 Competition Entry Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22-01-18;
+    Time=18:42:21;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               "User ID" := USERID;
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=Competition Entry Line;
+    LookupPageID=Page71094;
+    DrillDownPageID=Page71094;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 3   ;   ;Student Division    ;Code20        ;TableRelation="Student Division";
+                                                   CaptionML=ENU=Student Division }
+    { 4   ;   ;Min Age             ;Integer       ;CaptionML=ENU=Min Age }
+    { 5   ;   ;Cut Off Date        ;Date          ;CaptionML=ENU=Cut Off Date }
+    { 6   ;   ;Max Age             ;Integer       ;CaptionML=ENU=Max Age }
+    { 7   ;   ;Team Size           ;Integer       ;OnValidate=BEGIN
+                                                                // >> SJ6.01
+                                                                // Start 01.VIGNESH
+                                                                //CompetitionEntryHeader.GET("Document No.");
+                                                                //IF (CompetitionEntryHeader."Event Type" <> CompetitionEntryHeader."Event Type"::Team) AND ("Team Size" <> 0) THEN BEGIN
+                                                                //  "Team Size" := 0;
+                                                                //  Substitute := 0;
+                                                                //  ERROR(Text000);
+                                                                //END;
+                                                                // Stop 01.VIGNESH
+                                                                // << SJ6.01
+                                                              END;
+
+                                                   CaptionML=ENU=Team Size }
+    { 8   ;   ;Substitute          ;Integer       ;OnValidate=BEGIN
+                                                                // >> SJ6.01
+                                                                // Start 02.VIGNESH
+                                                                //CompetitionEntryHeader.GET("Document No.");
+                                                                //IF (CompetitionEntryHeader."Event Type" <> CompetitionEntryHeader."Event Type"::Team) AND (Substitute <> 0) THEN BEGIN
+                                                                //  "Team Size" := 0;
+                                                                //  Substitute := 0;
+                                                                //  ERROR(Text000);
+                                                                //END;
+                                                                // Stop 02.VIGNESH
+                                                                // << SJ6.01
+                                                              END;
+
+                                                   CaptionML=ENU=Substitute }
+    { 50000;  ;Temp Cut off Date   ;Date           }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Gender              ;Option        ;OptionCaptionML=ENU=" ,Male,Female,Both";
+                                                   OptionString=[ ,Male,Female,Both] }
+  }
+  KEYS
+  {
+    {    ;Document No.,Student Division           ;Clustered=Yes }
+    {    ;Max Age                                  }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      CompetitionEntryHeader@1102155000 : Record 71081;
+      Text000@1102155001 : TextConst 'ENU=You cannot enter the substitute if event type is not Team.';
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12CompetitionEntryHeader.Gender.09  VIGNESH  OnInsert()              Code added to enter the User id
+
+      SJ6.01 21/01/18 GB
+        Remove team size validation
+    }
+    END.
+  }
+}
+

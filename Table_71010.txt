@@ -1,0 +1,54 @@
+OBJECT Table 71010 Application Certificate
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU2.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Application Certificate;
+    LookupPageID=Page71017;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Application No.     ;Code20        ;CaptionML=ENU=Application No. }
+    { 2   ;   ;Ceritificate        ;Code20        ;TableRelation=Certificate;
+                                                   CaptionML=ENU=Ceritificate }
+    { 3   ;   ;Certificate Status  ;Option        ;CaptionML=ENU=Status;
+                                                   OptionCaptionML=ENU=" ,Received,Submit Later";
+                                                   OptionString=[ ,Received,Submit Later] }
+    { 4   ;   ;Receipt Date / Submission date;Date;CaptionML=ENU=Receipt Date / Submission date }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Application No.,Ceritificate            ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

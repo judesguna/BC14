@@ -1,0 +1,108 @@
+OBJECT Table 71180 Alumni Registration
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22-09-18;
+    Time=11:40:02;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 06. VANDHANA
+               "User ID" := USERID;
+               // Stop 06. VANDHANA
+             END;
+
+    CaptionML=ENU=Alumni Registration;
+    LookupPageID=Page71181;
+    DrillDownPageID=Page71181;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Student No.         ;Code20        ;CaptionML=ENU=Student No. }
+    { 2   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 3   ;   ;Gender              ;Option        ;OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 4   ;   ;Date of Birth       ;Date           }
+    { 5   ;   ;Year Of Joining     ;Integer       ;CaptionML=ENU=Year Of Joining }
+    { 6   ;   ;Year Of Graduation  ;Integer       ;CaptionML=ENU=Year Of Graduation }
+    { 7   ;   ;Class Of Graduation ;Option        ;CaptionML=ENU=Class Of Graduation;
+                                                   OptionCaptionML=ENU=" ,10,12";
+                                                   OptionString=[ ,10,12] }
+    { 8   ;   ;Present Occupation  ;Option        ;OptionCaptionML=ENU=" ,Student,Employed,Self-Employed";
+                                                   OptionString=[ ,Student,Employed,Self-Employed] }
+    { 9   ;   ;Bachelor Degree     ;Text80        ;TableRelation="Course and Stream".Course WHERE (Course Stream=CONST(Bachelor Degree)) }
+    { 11  ;   ;Master Degree       ;Text80        ;TableRelation="Course and Stream".Course WHERE (Course Stream=CONST(Master Degree)) }
+    { 12  ;   ;PhD                 ;Text80        ;TableRelation="Course and Stream".Course WHERE (Course Stream=CONST(Doctoral degrees)) }
+    { 13  ;   ;Medical Courses     ;Option        ;OptionCaptionML=ENU=" ,MBBS,BDS,MDS";
+                                                   OptionString=[ ,MBBS,BDS,MDS] }
+    { 14  ;   ;Doctor of Medicine  ;Text80        ;TableRelation="Course and Stream".Course WHERE (Course Stream=CONST(MD)) }
+    { 15  ;   ;Name of the Institution;Text30      }
+    { 16  ;   ;Qualification       ;Text30         }
+    { 17  ;   ;Name of the Company ;Text30        ;CaptionML=ENU=Name Of the  Company }
+    { 18  ;   ;Designation         ;Text30        ;CaptionML=ENU=Designation }
+    { 19  ;   ;Type of Business    ;Text30         }
+    { 20  ;   ;Mobile Number       ;Code15        ;CaptionML=ENU=Mobile Number }
+    { 21  ;   ;Telephone           ;Code15         }
+    { 22  ;   ;E-mail              ;Text80        ;CaptionML=ENU=E-mail }
+    { 23  ;   ;Present-Address     ;Text250       ;CaptionML=ENU=Present-Address1 }
+    { 25  ;   ;Persent-City        ;Code20        ;ValidateTableRelation=Yes }
+    { 26  ;   ;Present-PostCode    ;Code20        ;CaptionML=ENU=Present-PostCode }
+    { 27  ;   ;Present-State       ;Code20        ;CaptionML=ENU=Present-State }
+    { 28  ;   ;Present-Country     ;Code20        ;CaptionML=ENU=Present-Country }
+    { 29  ;   ;Permanent-Address   ;Text250        }
+    { 31  ;   ;Permanent-City      ;Code20         }
+    { 32  ;   ;Permanent-PostCode  ;Code20         }
+    { 33  ;   ;Permanent-State     ;Code20         }
+    { 34  ;   ;Permanent-Country   ;Code20         }
+    { 35  ;   ;Achievements        ;Text250        }
+    { 36  ;   ;Hobbies             ;Text100        }
+    { 37  ;   ;Comments            ;Text250        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Mobile2             ;Code15         }
+    { 70123;  ;QualificationName   ;Text100        }
+    { 70124;  ;BachelorInstitute   ;Text50         }
+    { 70125;  ;MasterInstitute     ;Text50         }
+    { 70126;  ;PhDInstitute        ;Text50         }
+    { 70127;  ;MedicalInstitute    ;Text50         }
+    { 70128;  ;MDInstitute         ;Text50         }
+    { 70129;  ;MS                  ;Text50         }
+    { 70130;  ;MSInstitute         ;Text50         }
+    { 70131;  ;AgreeToUseComment   ;Boolean        }
+    { 70132;  ;IsRegistered        ;Boolean        }
+    { 70133;  ;Event1              ;Boolean        }
+    { 70134;  ;Event1Desc          ;Text150        }
+    { 70135;  ;Event2              ;Boolean        }
+    { 70136;  ;Event2Desc          ;Text150        }
+  }
+  KEYS
+  {
+    {    ;Student No.                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Student@1102155000 : Record 71046;
+      PostCode1@1102155001 : Record 225;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                      Description
+      -----------------------------------------------------------------------------------------------
+        01  29.09.09  VANDHANA  Student No. - OnValidate()   Code to get the Student details
+        02  16.10.09  VANDHANA  City-OnValidate              Code added for Validate PostCode
+        03  16.10.09  VANDHANA  City-Onlookup                Code added for Validate PostCode
+        04  16.10.09  VANDHANA  PostCode-OnValidate          Code added for Validate PostCode
+        05  16.10.09  VANDHANA  PostCode-Onlookup            Code added for Validate PostCode
+        06  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

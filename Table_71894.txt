@@ -1,0 +1,61 @@
+OBJECT Table 71894 Rank Generation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               EducationSetup.GET;
+               EducationSetup.TESTFIELD(EducationSetup."Rank Generation No.");
+
+               "Entry No." := "No.seriesManagement".GetNextNo(EducationSetup."Rank Generation No.",0D,TRUE);
+               // Stop 01.VIGNESH
+
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Rank Generation;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;CaptionML=ENU=No. }
+    { 2   ;   ;Average             ;Decimal       ;CaptionML=ENU=Average }
+    { 3   ;   ;Rank                ;Integer       ;CaptionML=ENU=Rank }
+    { 4   ;   ;Entry No.           ;Code20        ;CaptionML=ENU=Entry No. }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Average                                  }
+    {    ;Entry No.                                }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationSetup@1102155000 : Record 71884;
+      "No.seriesManagement"@1102155001 : Codeunit 396;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  13.10.09  VIGNESH   OnInsert()        Code added to generate the Entry No.
+      02  19/10/09  VANDHANA  OnInsert          Code to assign User ID.
+    }
+    END.
+  }
+}
+

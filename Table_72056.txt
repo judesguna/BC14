@@ -1,0 +1,85 @@
+OBJECT Table 72056 Weekly Off
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Calendar Year,Day No.;
+    CaptionML=ENU=Weekly Off;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Calendar Year       ;Code20        ;TableRelation="Payroll Year";
+                                                   CaptionML=ENU=Calendar Year }
+    { 4   ;   ;Day No.             ;Integer       ;CaptionML=ENU=Day No. }
+    { 5   ;   ;Day                 ;Option        ;OnValidate=BEGIN
+                                                                IF Day = 0 THEN
+                                                                  "Day No." := 0;
+                                                                IF Day = 1 THEN
+                                                                  "Day No." := 7;
+                                                                IF Day = 2 THEN
+                                                                  "Day No." := 1;
+                                                                IF Day = 3 THEN
+                                                                  "Day No." := 2;
+                                                                IF Day = 4 THEN
+                                                                  "Day No." := 3;
+                                                                IF Day = 5 THEN
+                                                                  "Day No." := 4;
+                                                                IF Day = 6 THEN
+                                                                  "Day No." := 5;
+                                                                IF Day = 7 THEN
+                                                                  "Day No." := 6;
+                                                              END;
+
+                                                   CaptionML=ENU=Day;
+                                                   OptionCaptionML=ENU=" ,Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
+                                                   OptionString=[ ,Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday] }
+    { 6   ;   ;Week Wise (Weekly Off);Option      ;CaptionML=ENU=Week Wise (Weekly Off);
+                                                   OptionCaptionML=ENU=All Week,1st-Week,2nd-Week,3rd-Week,4th-Week,5th-Week;
+                                                   OptionString=All Week,1st-Week,2nd-Week,3rd-Week,4th-Week,5th-Week }
+    { 7   ;   ;First Half (Weekly Off);Boolean    ;OnValidate=BEGIN
+                                                                IF "First Half (Weekly Off)" THEN
+                                                                  "Non Working Days" := TRUE;
+
+                                                                IF NOT "First Half (Weekly Off)" AND NOT "Second Half (Weekly Off)" THEN
+                                                                  "Non Working Days" := FALSE;
+                                                              END;
+
+                                                   CaptionML=ENU=First Half (Weekly Off) }
+    { 8   ;   ;Second Half (Weekly Off);Boolean   ;OnValidate=BEGIN
+                                                                IF "Second Half (Weekly Off)" THEN
+                                                                  "Non Working Days" := TRUE;
+
+                                                                IF NOT "First Half (Weekly Off)" AND NOT "Second Half (Weekly Off)" THEN
+                                                                  "Non Working Days" := FALSE;
+                                                              END;
+
+                                                   CaptionML=ENU=Second Half (Weekly Off) }
+    { 9   ;   ;Non Working Days    ;Boolean       ;CaptionML=ENU=Non Working Days }
+    { 10  ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Calendar Year,Line No.;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

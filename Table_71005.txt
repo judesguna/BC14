@@ -1,0 +1,71 @@
+OBJECT Table 71005 Application Co-Curricular
+{
+  OBJECT-PROPERTIES
+  {
+    Date=26-02-18;
+    Time=09:27:04;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Application Co-Curricular;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Application No.     ;Code10        ;CaptionML=ENU=Application No. }
+    { 2   ;   ;Co-Curricular Code  ;Code20        ;TableRelation="Co-Curricular Activities";
+                                                   CaptionML=ENU=Co-Curricular Code }
+    { 3   ;   ;Description         ;Text100       ;CaptionML=ENU=Description }
+    { 4   ;   ;Classification Code ;Code20        ;TableRelation="Co-Curricular Classification"."Classification Code" WHERE (Co-Curricular Code=FIELD(Co-Curricular Code));
+                                                   OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                IF "Co-CurricularClassification".GET("Co-Curricular Code","Classification Code") THEN
+                                                                BEGIN
+                                                                  Description := "Co-CurricularClassification".Description;
+                                                                  "Student No." := Stud."No.";
+                                                                END
+                                                                ELSE
+                                                                BEGIN
+                                                                  Description := '';
+                                                                END;
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Classification Code }
+    { 5   ;   ;Student No.         ;Code20        ;TableRelation=Student }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Student No.,Co-Curricular Code          ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      "Co-CurricularActivities"@1102155000 : Record 71892;
+      "Co-CurricularClassification"@1102155001 : Record 71898;
+      Stud@1000000000 : Record 71046;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                             Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                            Code to assign User ID.
+        02  16.11.09  VIGNESH   Co-Curricular Code - OnValidate()   Code added to validate the Description field
+        03  16.11.09  Vignesh                                       added new filed classification CODE
+    }
+    END.
+  }
+}
+

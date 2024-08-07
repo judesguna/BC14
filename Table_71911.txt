@@ -1,0 +1,124 @@
+OBJECT Table 71911 Announcement
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. Ankesh
+               IF "Announcement No." = '' THEN BEGIN
+                 AnnouncementSetup.GET;
+                 AnnouncementSetup.TESTFIELD("Announcement No.");
+                 NoSeriesMgt.InitSeries(AnnouncementSetup."Announcement No.",xRec."No. Series",0D,"Announcement No.","No. Series");
+               END
+               // Stop 01. Ankesh
+             END;
+
+    CaptionML=ENU=Announcement;
+    LookupPageID=Page71917;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Announcement No.    ;Code20        ;OnValidate=BEGIN
+                                                                // Start 02. Ankesh
+                                                                IF "Announcement No." <> xRec."Announcement No." THEN BEGIN
+                                                                  AnnouncementSetup.GET;
+                                                                  NoSeriesMgt.TestManual(AnnouncementSetup."Announcement No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                                // Stop 02. Ankesh
+                                                              END;
+
+                                                   CaptionML=ENU=Announcement No. }
+    { 2   ;   ;Announcement Type   ;Option        ;CaptionML=ENU=Announcement Type;
+                                                   OptionCaptionML=ENU=" ,Staff,Student,Everyone";
+                                                   OptionString=[ ,Staff,Student,Everyone] }
+    { 3   ;   ;No.                 ;Code20        ;TableRelation=IF (Announcement Type=CONST(Staff)) Employee
+                                                                 ELSE IF (Announcement Type=CONST(Student)) "Student Subjects";
+                                                   CaptionML=ENU=No. }
+    { 9   ;   ;Date Created        ;Date          ;CaptionML=ENU=Starting Date;
+                                                   NotBlank=Yes }
+    { 11  ;   ;Priority            ;Option        ;InitValue=Normal;
+                                                   CaptionML=ENU=Priority;
+                                                   OptionCaptionML=ENU=Low,Normal,High;
+                                                   OptionString=Low,Normal,High }
+    { 12  ;   ;Description-1       ;Text250       ;CaptionML=ENU=Description }
+    { 13  ;   ;Closed              ;Boolean       ;OnValidate=BEGIN
+                                                                IF Closed THEN
+                                                                  "Date Closed" := TODAY;
+                                                              END;
+
+                                                   CaptionML=ENU=Closed }
+    { 14  ;   ;Date Closed         ;Date          ;CaptionML=ENU=Date Closed }
+    { 15  ;   ;No. Series          ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=No. Series;
+                                                   Editable=No }
+    { 17  ;   ;Canceled            ;Boolean       ;OnValidate=BEGIN
+                                                                IF Canceled AND NOT Closed THEN
+                                                                  VALIDATE(Closed,TRUE);
+
+                                                                IF (NOT Canceled) AND Closed THEN
+                                                                  VALIDATE(Closed,FALSE);
+                                                              END;
+
+                                                   CaptionML=ENU=Canceled }
+    { 18  ;   ;Start Date          ;Date          ;CaptionML=ENU=Start Date }
+    { 19  ;   ;End Date            ;Date          ;CaptionML=ENU=End Date }
+    { 20  ;   ;Document Type       ;Option        ;CaptionML=ENU=Document Type;
+                                                   OptionCaptionML=ENU=" ,Event,Announcement,Circular";
+                                                   OptionString=[ ,Event,Announcement,Circular] }
+    { 21  ;   ;Subject             ;Text250       ;CaptionML=ENU=Subject }
+    { 22  ;   ;Description-2       ;Text250        }
+    { 23  ;   ;Description-3       ;Text250        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Announcement No.                        ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Announcement@1102155002 : Record 71911;
+      AnnouncementSetup@1102155001 : Record 71884;
+      NoSeriesMgt@1102155000 : Codeunit 396;
+
+    PROCEDURE AssistEdit@1000000000(OldAnnouncement@1000000000 : Record 71911) : Boolean;
+    BEGIN
+      // Start 03. Ankesh
+      WITH Announcement DO BEGIN
+        Announcement := Rec;
+        AnnouncementSetup.GET;
+        AnnouncementSetup.TESTFIELD("Announcement No.");
+        IF NoSeriesMgt.SelectSeries(AnnouncementSetup."Announcement No.",OldAnnouncement."No. Series","No. Series") THEN BEGIN
+          AnnouncementSetup.GET;
+          AnnouncementSetup.TESTFIELD("Announcement No.");
+          NoSeriesMgt.SetSeries("Announcement No.");
+          Rec := Announcement;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 03. Ankesh
+    END;
+
+    BEGIN
+    {
+         No    Date        Sign         Trigger              Description
+      -----------------------------------------------------------------------------------------------
+        01     07.01.10    ANKESH      OnInsert()            To Initialize The Series.
+        02     07.01.10    ANKESH    Task No.-OnValidate()   To Run TestManual Function Of NoSeriesManagment Codeunit.
+        03     07.01.10    ANKESH      AssistEdit()          The Code will Run when the AssistEdit Button Is activated on Form.
+    }
+    END.
+  }
+}
+

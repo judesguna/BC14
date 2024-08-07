@@ -1,0 +1,58 @@
+OBJECT Table 71014 Selection Process Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Selection Process Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Selection No.       ;Code10        ;CaptionML=ENU=Selection No. }
+    { 2   ;   ;Application No      ;Code20        ;TableRelation=Application;
+                                                   OnValidate=BEGIN
+                                                                // Start 01. VANDHANA
+                                                                IF Application.GET("Application No") THEN BEGIN
+                                                                  Name := Application."Name of the pupil";
+                                                                  Gender := Application."Applicant Gender";
+                                                                END;
+                                                                // Stop 01. VANDHANA
+                                                              END;
+
+                                                   CaptionML=ENU=Application No }
+    { 3   ;   ;Name                ;Text30        ;CaptionML=ENU=Name }
+    { 4   ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 5   ;   ;Evaluation Total    ;Decimal       ;CaptionML=ENU=Evaluation Total }
+    { 6   ;   ;Rank                ;Integer       ;CaptionML=ENU=Rank }
+    { 7   ;   ;Select              ;Boolean       ;CaptionML=ENU=Select }
+  }
+  KEYS
+  {
+    {    ;Selection No.,Application No            ;Clustered=Yes }
+    {    ;Rank                                     }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Application@1102155000 : Record 71002;
+
+    BEGIN
+    {
+         No     Date    Sign       Trigger                 Description
+      -----------------------------------------------------------------------------------------------
+        01     07/10/09 VANDHANA   OnValidate()          Code to update name & Gender
+    }
+    END.
+  }
+}
+

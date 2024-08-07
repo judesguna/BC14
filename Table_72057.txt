@@ -1,0 +1,69 @@
+OBJECT Table 72057 Holidays
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Calendar Year,Holiday Date,Holiday Name;
+    CaptionML=ENU=Holidays;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Calendar Year       ;Code20        ;TableRelation="Payroll Year";
+                                                   CaptionML=ENU=Calendar Year }
+    { 4   ;   ;Holiday Date        ;Date          ;CaptionML=ENU=Holiday Date }
+    { 5   ;   ;Holiday Name        ;Text50        ;CaptionML=ENU=Holiday Name }
+    { 6   ;   ;First Half (Holiday);Boolean       ;OnValidate=BEGIN
+                                                                IF "First Half (Holiday)" THEN
+                                                                  "Non Working Days" := TRUE;
+
+                                                                IF NOT "First Half (Holiday)" AND NOT "Second Half (Holiday)" THEN
+                                                                  "Non Working Days" := FALSE;
+                                                              END;
+
+                                                   CaptionML=ENU=First Half (Holiday) }
+    { 7   ;   ;Second Half (Holiday);Boolean      ;OnValidate=BEGIN
+                                                                IF "Second Half (Holiday)" THEN
+                                                                  "Non Working Days" := TRUE;
+
+                                                                IF (NOT "First Half (Holiday)") AND (NOT "Second Half (Holiday)") THEN
+                                                                  "Non Working Days" := FALSE;
+                                                              END;
+
+                                                   CaptionML=ENU=Second Half (Holiday) }
+    { 8   ;   ;Non Working Days    ;Boolean       ;CaptionML=ENU=Non Working Days }
+    { 9   ;   ;OT Applicable for the Day;Boolean  ;CaptionML=ENU=OT Applicable for the Day }
+  }
+  KEYS
+  {
+    {    ;Holiday Date,Location Code,Salary Plan Code,Calendar Year;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

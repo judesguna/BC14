@@ -1,0 +1,95 @@
+OBJECT Table 71066 Exam Schedule Line - SCH
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:41:55;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               "Academic Year" := EducationVertical.GetAcademicYear;
+               "User ID" := USERID;
+               // Start 01.GUNA
+               IF ExamScheduleHead.GET("Document No.") THEN BEGIN
+                 "Exam Slot" := ExamScheduleHead."Exam Slot";
+                 "Start Time" := ExamScheduleHead."Start Time";
+                 "End Time" := ExamScheduleHead."End Time";
+                 "Exam Date" := ExamScheduleHead.Date;
+                 "Exam Code" := ExamScheduleHead."Exam Code";
+               END;
+
+               // Stop 01.GUNA
+             END;
+
+    CaptionML=ENU=Exam Schedule Line - SCH;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 2   ;   ;Class               ;Code20        ;CaptionML=ENU=Class;
+                                                   Editable=Yes }
+    { 3   ;   ;Section             ;Code20        ;CaptionML=ENU=Section;
+                                                   Editable=Yes }
+    { 4   ;   ;Subject Code        ;Code20        ;TableRelation=Subject;
+                                                   CaptionML=ENU=Subject Code }
+    { 5   ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculam Code;
+                                                   Editable=Yes }
+    { 6   ;   ;Hall Code           ;Code20        ;CaptionML=ENU=Hall Code }
+    { 7   ;   ;No of Students      ;Integer       ;CaptionML=ENU=No of Students }
+    { 8   ;   ;Examiner Type       ;Option        ;CaptionML=ENU=Examiner Type;
+                                                   OptionCaptionML=ENU=" ,Internal,External";
+                                                   OptionString=[ ,Internal,External] }
+    { 9   ;   ;Examiner Code       ;Code20        ;CaptionML=ENU=Examiner Code }
+    { 10  ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 11  ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year;
+                                                   Editable=Yes }
+    { 12  ;   ;Start Time          ;Time          ;CaptionML=ENU=Start Time }
+    { 13  ;   ;End Time            ;Time          ;CaptionML=ENU=End Time }
+    { 14  ;   ;Exam Slot           ;Code20        ;CaptionML=ENU=Exam Slot }
+    { 15  ;   ;Exam Date           ;Date          ;CaptionML=ENU=Exam Date }
+    { 16  ;   ;Exam Code           ;Code20        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Code }
+    { 17  ;   ;Mark Header Code    ;Code20        ;CaptionML=ENU=Mark Header Code }
+    { 18  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Document No.,Line No.                   ;Clustered=Yes }
+    {    ;Class                                    }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationVertical@1102155000 : Codeunit 71880;
+      ExamScheduleHead@1102155001 : Record 71065;
+      ClassSection@1102155002 : Record 71015;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger            Description
+      -----------------------------------------------------------------------------------------------
+        01  08.02.10   GUNA    OnInsert()       Inserted slot and time from the header
+    }
+    END.
+  }
+}
+

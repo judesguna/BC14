@@ -1,0 +1,65 @@
+OBJECT Table 71908 Initial Fee Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Initial Fee Setup;
+    LookupPageID=Page71912;
+    DrillDownPageID=Page71912;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Fee Type Code       ;Code20        ;TableRelation="Fee Type";
+                                                   OnValidate=BEGIN
+                                                                // Start 01.VIGNESH
+                                                                IF FeeType.GET("Fee Type Code") THEN
+                                                                  Description := FeeType.Description
+                                                                ELSE
+                                                                  Description := '';
+                                                                // Stop 01.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Fee Type Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Fee Type Code                           ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      FeeType@1102155000 : Record 71906;
+
+    BEGIN
+    {
+
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  23.09.09  VIGNESH   Fee Type Code - OnLookup()  Code added to get the description from Fee type
+      02  19/10/09  VANDHANA  OnInsert                    Code to assign User ID.
+    }
+    END.
+  }
+}
+

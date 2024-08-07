@@ -1,0 +1,50 @@
+OBJECT Table 72026 Employee Skill - Certification
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Employee Skill - Certification;
+    LookupPageID=Page72038;
+    DrillDownPageID=Page72038;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Employee No         ;Code20        ;CaptionML=ENU=Employee No;
+                                                   Editable=No }
+    { 2   ;   ;Skills Code         ;Code120       ;TableRelation=Skill;
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=ENU=Skills Code }
+    { 3   ;   ;Certifications Code ;Code100       ;TableRelation=Certification;
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=ENU=Certifications Code }
+    { 4   ;   ;Experience in Skills;Decimal       ;CaptionML=ENU=Experience in Skills }
+  }
+  KEYS
+  {
+    {    ;Employee No                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

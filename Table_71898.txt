@@ -1,0 +1,42 @@
+OBJECT Table 71898 Co-Curricular Classification
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Co-Curricular Classification;
+    LookupPageID=Page71903;
+    DrillDownPageID=Page71903;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Co-Curricular Code  ;Code20        ;TableRelation="Co-Curricular Activities";
+                                                   CaptionML=ENU=Co-Curricular Code }
+    { 2   ;   ;Classification Code ;Code20        ;CaptionML=ENU=Classification Code }
+    { 3   ;   ;Description         ;Text100       ;CaptionML=ENU=Description }
+  }
+  KEYS
+  {
+    {    ;Co-Curricular Code,Classification Code  ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  16/10/09  VIGNESH                       Created new table for co curicular classification
+    }
+    END.
+  }
+}
+

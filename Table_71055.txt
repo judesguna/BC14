@@ -1,0 +1,139 @@
+OBJECT Table 71055 Student Mark Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Student Mark Header;
+    LookupPageID=Page71067;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Student No.         ;Code20        ;TableRelation=Student;
+                                                   CaptionML=ENU=Student No.;
+                                                   Editable=No }
+    { 2   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 3   ;   ;Class               ;Code20        ;CaptionML=ENU=Class;
+                                                   Editable=No }
+    { 4   ;   ;Section             ;Code20        ;CaptionML=ENU=Section;
+                                                   Editable=No }
+    { 5   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year;
+                                                   Editable=No }
+    { 6   ;   ;Exam Type           ;Code20        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Type;
+                                                   Editable=No }
+    { 7   ;   ;Curriculum          ;Code20        ;CaptionML=ENU=Curriculum;
+                                                   Editable=Yes }
+    { 8   ;   ;Total Marks         ;Decimal       ;CaptionML=ENU=Total Marks;
+                                                   BlankZero=Yes;
+                                                   Editable=Yes }
+    { 9   ;   ;Average             ;Decimal       ;CaptionML=ENU=Average;
+                                                   BlankZero=Yes;
+                                                   Editable=Yes }
+    { 10  ;   ;Rank                ;Integer       ;CaptionML=ENU=Rank;
+                                                   BlankZero=Yes;
+                                                   Editable=Yes }
+    { 11  ;   ;Grade               ;Code10        ;CaptionML=ENU=Grade;
+                                                   Editable=No }
+    { 12  ;   ;Total No of Subject Failed;Integer ;CaptionML=ENU=Total No of Subject Failed;
+                                                   Editable=No }
+    { 13  ;   ;Failed              ;Boolean       ;CaptionML=ENU=Failed;
+                                                   Editable=No }
+    { 14  ;   ;Remarks             ;Text200       ;CaptionML=ENU=Remarks }
+    { 15  ;   ;Height              ;Decimal       ;CaptionML=ENU=Height;
+                                                   BlankZero=Yes }
+    { 16  ;   ;Weight              ;Decimal       ;CaptionML=ENU=Weight;
+                                                   BlankZero=Yes }
+    { 17  ;   ;GPA Grade           ;Code10        ;CaptionML=ENU=GPA Grade }
+    { 18  ;   ;GPA Points          ;Decimal       ;CaptionML=ENU=GPA Points }
+    { 19  ;   ;Percentage Scored   ;Decimal       ;CaptionML=ENU=Percentage Scored;
+                                                   Editable=No }
+    { 20  ;   ;Total Marks Conducted;Decimal      ;CaptionML=ENU=Total Marks Conducted }
+    { 21  ;   ;Average Attendance Percent;Decimal ;CaptionML=ENU=Average Attendance Percent;
+                                                   BlankZero=Yes }
+    { 22  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 23  ;   ;Total No of Subject Absent;Integer  }
+    { 50000;  ;Principal Comment2  ;Text250        }
+    { 50001;  ;Class Teacher Comment2;Text250      }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Regularity          ;Option        ;OptionCaptionML=ENU=" ,Very Good,Good,Average,Poor";
+                                                   OptionString=[ ,Very Good,Good,Average,Poor] }
+    { 70123;  ;Effort              ;Option        ;OptionCaptionML=ENU=" ,Very Good,Good,Average,Poor";
+                                                   OptionString=[ ,Very Good,Good,Average,Poor] }
+    { 70124;  ;Discipline          ;Option        ;OptionCaptionML=ENU=" ,Very Good,Good,Average,Poor";
+                                                   OptionString=[ ,Very Good,Good,Average,Poor] }
+    { 70125;  ;Etiquette Manners   ;Option        ;OptionCaptionML=ENU=" ,Very Good,Good,Average,Poor";
+                                                   OptionString=[ ,Very Good,Good,Average,Poor] }
+    { 70126;  ;Principal Comment   ;Text200        }
+    { 70127;  ;Extra Curr Excellence;Option       ;OptionCaptionML=ENU=" ,School Level,District Level,State Level";
+                                                   OptionString=[ ,School Level,District Level,State Level] }
+    { 70128;  ;Personal Traits     ;Option        ;OptionCaptionML=ENU=" ,Pleasant,Systematic,Smart,A Bit Moody,Temperamental,Sensitive";
+                                                   OptionString=[ ,Pleasant,Systematic,Smart,A Bit Moody,Temperamental,Sensitive] }
+    { 70129;  ;Social Movement     ;Option        ;OptionCaptionML=ENU=" ,A,B,C,D";
+                                                   OptionString=[ ,A,B,C,D] }
+    { 70130;  ;Hospitability       ;Option        ;OptionCaptionML=ENU=" ,A,B,C,D";
+                                                   OptionString=[ ,A,B,C,D] }
+    { 70131;  ;Leadership          ;Option        ;OptionCaptionML=ENU=" ,A,B,C,D";
+                                                   OptionString=[ ,A,B,C,D] }
+    { 70132;  ;Class Teacher Comment;Text200       }
+    { 70133;  ;Description         ;Text200        }
+    { 70134;  ;Published           ;Boolean       ;Description=Coding added by kathir on 2nd aug 11 for web portal }
+    { 70135;  ;Maximum Working Days;Decimal       ;BlankZero=Yes }
+  }
+  KEYS
+  {
+    {    ;Student No.,Academic Year,Exam Type     ;SumIndexFields=GPA Points;
+                                                   Clustered=Yes }
+    {    ;Class,Section,Academic Year,Curriculum,Exam Type,Student No. }
+    {    ;Class Code,Exam Type,Average             }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ClassSectionLook@1102155000 : Record 71015;
+      ClassSection@1102155001 : Record 71015;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        02  23/11/09   VIGNESH  Class - OnValidate()                Code added to get the Class Section & Curriculum
+        03  23/11/09   VIGNESH  Class - OnLookup()                  Code added to get the Class Section & Curriculum
+        04  23/11/09   VIGNESH  Curriculum - OnValidate()           Code added to get the Class Section & Curriculum
+        05  23/11/09   VIGNESH  Curriculum - OnLookup()             Code added to get the Class Section & Curriculum
+        06  23/11/09   VIGNESH  Section - OnValidate()              Code added to get the Class Section & Curriculum
+        07  23/11/09   VIGNESH  Section - OnLookup()                Code added to get the Class Section & Curriculum
+        08  13/1/10    KAVITHA                                      Added 2 new fields GPA Points and GPA Grade.
+    }
+    END.
+  }
+}
+

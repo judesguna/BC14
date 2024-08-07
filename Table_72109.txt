@@ -1,0 +1,61 @@
+OBJECT Table 72109 Piece Rate Pay Elements
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Piece Rate Pay Elements;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements" WHERE (Location Code=FIELD(Location Code),
+                                                                                       Salary Plan Code=FIELD(Salary Plan Code));
+                                                   OnValidate=BEGIN
+                                                                IF PayElements.GET("Pay Element Code", "Location Code","Salary Plan Code") THEN
+                                                                  Description := PayElements.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Pay Element Code }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description;
+                                                   Editable=No }
+    { 5   ;   ;Percent(%)          ;Decimal       ;CaptionML=ENU=Percent(%) }
+    { 6   ;   ;Rate Type           ;Option        ;CaptionML=ENU=Rate Type;
+                                                   OptionCaptionML=ENU=Hourly Rate,Piece Rate;
+                                                   OptionString=Hourly Rate,Piece Rate }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Pay Element Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PayElements@1000000000 : Record 72060;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

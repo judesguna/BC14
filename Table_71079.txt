@@ -1,0 +1,88 @@
+OBJECT Table 71079 House Incharge Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               "User ID" := USERID;
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=House Incharge Line;
+    LookupPageID=Page71089;
+    DrillDownPageID=Page71089;
+  }
+  FIELDS
+  {
+    { 1   ;   ;House Code          ;Code20        ;CaptionML=ENU=House Code }
+    { 2   ;   ;Staff Code          ;Code20        ;TableRelation="Employee Alll";
+                                                   OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                HouseInchargeLine.RESET;
+                                                                HouseInchargeLine.SETRANGE("Staff Code","Staff Code");
+                                                                //IF HouseInchargeLine.ISEMPTY THEN BEGIN
+                                                                 //"Employee all".GET("Employee all"."Employee No.");
+                                                                   "Staff Name" := "Employee all".Name;
+                                                                //END ELSE
+                                                                  //IF HouseInchargeLine.FINDFIRST THEN
+                                                                   // ERROR(Text000,HouseInchargeLine."House Code")
+                                                                  //ELSE
+                                                                    //"Staff Name" := '';
+
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Staff Code }
+    { 3   ;   ;Staff Name          ;Text50        ;CaptionML=ENU=Staff Name;
+                                                   Editable=Yes }
+    { 4   ;   ;Is Incharge         ;Boolean       ;OnValidate=BEGIN
+                                                                // Start 03.VIGNESH
+                                                                House.GET("House Code");
+                                                                House.TESTFIELD("No Incharge");
+                                                                HouseInchargeLine.RESET;
+                                                                HouseInchargeLine.SETRANGE("House Code","House Code");
+                                                                HouseInchargeLine.SETRANGE("Is Incharge",TRUE);
+                                                                IF HouseInchargeLine.COUNT >= House."No Incharge" THEN
+                                                                  ERROR(Text001,House."No Incharge");
+                                                                // Stop 03.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Is Incharge }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;House Code,Staff Code                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HouseInchargeLine@1102155000 : Record 71079;
+      "Employee all"@1102155001 : Record 71091;
+      House@1102155002 : Record 71073;
+      Text000@1102155003 : TextConst 'ENU=Staffs already allotted for house %1.';
+      Text001@1102155004 : TextConst 'ENU=Only %1 staff can be allottted for Incharge.';
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                 Code added to enter the User id
+      02   15.12.09  VIGNESH  Staff Code - OnValidate()  Code added to validate the Staff
+      03   15.12.09  VIGNESH  Is Incharge - OnValidate() Code added to validate the Staff Incharge
+    }
+    END.
+  }
+}
+

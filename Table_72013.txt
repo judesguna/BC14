@@ -1,0 +1,159 @@
+OBJECT Table 72013 Resume
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=16:58:21;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=No,Name;
+    OnInsert=BEGIN
+               IF No = '' THEN BEGIN
+                 HRSetup.GET;
+                 HRSetup.TESTFIELD("ResumeDB SNo");
+                 NoSeriesMgt.InitSeries(HRSetup."ResumeDB SNo",xRec."No. Series",0D,No,"No. Series");
+               END;
+
+               "Submitted Date" := TODAY;
+             END;
+
+    CaptionML=ENU=Resume;
+    LookupPageID=Page72019;
+    DrillDownPageID=Page72019;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No                  ;Code20        ;OnValidate=BEGIN
+                                                                IF No <> xRec.No THEN BEGIN
+                                                                  HRSetup.GET;
+                                                                  NoSeriesMgt.TestManual(HRSetup."ResumeDB SNo");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=No }
+    { 2   ;   ;Name                ;Text30        ;CaptionML=ENU=Name }
+    { 7   ;   ;Post Code           ;Code10        ;TableRelation="Post Code";
+                                                   OnValidate=BEGIN
+                                                                //PostCode.ValidatePostCode(City,"Post Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpPostCode(City,"Post Code",TRUE);
+                                                            END;
+
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Post Code }
+    { 8   ;   ;City                ;Text30        ;OnValidate=BEGIN
+                                                                //PostCode.ValidateCity(City,"Post Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpCity(City,"Post Code",TRUE);
+                                                            END;
+
+                                                   CaptionML=ENU=City }
+    { 9   ;   ;State               ;Code10        ;CaptionML=ENU=State }
+    { 10  ;   ;Country             ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country }
+    { 14  ;   ;Date of Birth       ;Date          ;OnValidate=BEGIN
+                                                                IF "Date of Birth" <> 0D THEN BEGIN
+                                                                  Age := TODAY - "Date of Birth";
+                                                                  TempAge := ROUND(Age / 365,1,'=');
+                                                                  AgeCalculation := Age MOD 365;
+                                                                  Months := ROUND(AgeCalculation / 30,1,'=');
+                                                                  Age := TempAge;
+                                                                END;
+
+                                                                IF Age <= 19 THEN
+                                                                  ERROR('Enter the Valid Date of Birth\Because should not accept the below age of 19');
+                                                              END;
+
+                                                   CaptionML=ENU=Date of Birth }
+    { 15  ;   ;Age                 ;Integer       ;CaptionML=ENU=Age;
+                                                   Editable=No }
+    { 16  ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Female,Male";
+                                                   OptionString=[ ,Female,Male] }
+    { 18  ;   ;Phone No            ;Text30        ;CaptionML=ENU=Phone No }
+    { 19  ;   ;Mobile No           ;Text30        ;CaptionML=ENU=Mobile No }
+    { 20  ;   ;E-Mail              ;Text50        ;CaptionML=ENU=E-Mail }
+    { 21  ;   ;Current CTC         ;Decimal       ;CaptionML=ENU=Current CTC }
+    { 22  ;   ;Expected CTC        ;Decimal       ;CaptionML=ENU=Expected CTC }
+    { 24  ;   ;No. Series          ;Code10        ;CaptionML=ENU=No. Series }
+    { 25  ;   ;Attachment 1        ;Text100       ;CaptionML=ENU=Attachment 1 }
+    { 26  ;   ;Attachment 2        ;Text100       ;CaptionML=ENU=Attachment 2 }
+    { 27  ;   ;Submitted Date      ;Date          ;CaptionML=ENU=Submitted Date;
+                                                   Editable=No }
+    { 28  ;   ;Tot Experience(In Yrs);Decimal     ;CaptionML=ENU=Tot Experience(In Yrs) }
+    { 29  ;   ;Blocked             ;Boolean       ;CaptionML=ENU=Blocked;
+                                                   Editable=No }
+    { 30  ;   ;Current Employer    ;Text50        ;CaptionML=ENU=Current Employer }
+    { 31  ;   ;Current Experience(In Yrs);Decimal ;CaptionML=ENU=Current Experience(In Yrs) }
+    { 32  ;   ;Skills              ;Code250       ;TableRelation=Skill;
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=ENU=Skills }
+    { 33  ;   ;Certifications      ;Code250       ;TableRelation=Certification;
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=ENU=Certifications }
+    { 34  ;   ;Qualifications      ;Code100       ;TableRelation=Qualification;
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=ENU=Qualifications }
+    { 35  ;   ;Comment             ;Boolean       ;FieldClass=FlowField;
+                                                   CalcFormula=Exist("Human Resource Comment Line" WHERE (Table Name=CONST(12),
+                                                                                                          No.=FIELD(No)));
+                                                   CaptionML=ENU=Comment;
+                                                   Editable=No }
+    { 36  ;   ;Notice Period       ;Code10        ;CaptionML=ENU=Notice Period }
+  }
+  KEYS
+  {
+    {    ;No                                      ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRSetup@1000000000 : Record 72000;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      PostCode@1000000002 : Record 225;
+      TempAge@1000000003 : Decimal;
+      AgeCalculation@1000000004 : Decimal;
+      Months@1000000006 : Integer;
+      Resume@1000000005 : Record 72013;
+
+    PROCEDURE AssistEdit@1000000001(Resume@1000000000 : Record 72013) : Boolean;
+    BEGIN
+      WITH Resume DO BEGIN
+        Resume := Rec;
+        HRSetup.GET;
+        HRSetup.TESTFIELD("ResumeDB SNo");
+        IF NoSeriesMgt.SelectSeries(HRSetup."ResumeDB SNo","No. Series","No. Series") THEN BEGIN
+          HRSetup.GET;
+          HRSetup.TESTFIELD("ResumeDB SNo");
+          NoSeriesMgt.SetSeries(No);
+          Rec := Resume;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

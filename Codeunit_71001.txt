@@ -1,0 +1,279 @@
+OBJECT Codeunit 71001 Evaluation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Application@1102155000 : Record 71002;
+      ApplicantEvaluation@1102155001 : Record 71009;
+      EvaluationHead@1102155002 : Record 71012;
+      ClassEvaluation@1102155003 : Record 71008;
+      Total@1102155004 : Decimal;
+      EducationVertical@1102155005 : Codeunit 71880;
+      StartNo@1102155006 : Code[10];
+      EndNo@1102155007 : Code[10];
+      Application1@1102155008 : Record 71002;
+      SelectionProcessLine@1102155009 : Record 71014;
+      ApplicantEvaluation1@1102155010 : Record 71009;
+      ClassEvaluation1@1102155011 : Record 71008;
+      Text000@1102155012 : TextConst 'ENU=Total Weight-Age should be 100 for class %1 and for curriculam %2';
+      Text001@1102155013 : TextConst 'ENU=Class Evaluation does not EXIST';
+      Text002@1102155014 : TextConst 'ENU=Evaluation %1 is not calculated for Class %2 and Curriculum %3';
+      Text003@1102155015 : TextConst 'ENU=Selection Updated sucessfully';
+
+    PROCEDURE GetApplicants@1102155000(VAR EvaluationNo@1102155000 : Code[10]);
+    VAR
+      TotalWeightage@1102155001 : Decimal;
+    BEGIN
+      // Start 01.GUNA
+      TotalWeightage := 0;
+      EvaluationHead.GET(EvaluationNo);
+      EvaluationHead.TESTFIELD(Class);
+      EvaluationHead.TESTFIELD(Curriculum);
+      EvaluationHead.TESTFIELD("Academic Year");
+      EvaluationHead.TESTFIELD("Evaluation Code");
+      // Start 07.VIGNESH
+      ClassEvaluation1.RESET;
+      ClassEvaluation1.SETRANGE(Class,EvaluationHead.Class);
+      ClassEvaluation1.SETRANGE(Curriculum,EvaluationHead.Curriculum);
+      ClassEvaluation1.SETRANGE("Academic Year",EvaluationHead."Academic Year");
+      IF ClassEvaluation1.FINDSET THEN
+        REPEAT
+          TotalWeightage += ClassEvaluation1.Weightage;
+        UNTIL ClassEvaluation1.NEXT = 0;
+      IF TotalWeightage <> 100 THEN
+        ERROR(Text000,EvaluationHead.Class,EvaluationHead.Curriculum);
+      // Stop 07.VIGNESH
+      ClassEvaluation.RESET;
+      ClassEvaluation.SETRANGE(Class,EvaluationHead.Class);
+      ClassEvaluation.SETRANGE(Curriculum,EvaluationHead.Curriculum);
+      ClassEvaluation.SETRANGE("Academic Year",EvaluationHead."Academic Year");
+      ClassEvaluation.SETRANGE("Evaluation Method Code",EvaluationHead."Evaluation Code");
+      IF ClassEvaluation.ISEMPTY THEN
+        ERROR(Text001)
+      ELSE
+        IF ClassEvaluation.FINDFIRST THEN;
+      Application.RESET;
+      Application.SETCURRENTKEY(Class,"Curriculum Intrested","Academic Year");
+      Application.SETRANGE(Class,EvaluationHead.Class);
+      Application.SETRANGE("Curriculum Intrested",EvaluationHead.Curriculum);
+      Application.SETRANGE("Academic Year",EvaluationHead."Academic Year");
+      Application.SETRANGE("Application Status",Application."Application Status"::Received);
+      IF Application.FINDSET THEN
+        REPEAT
+          // Start 08.VIGNESH
+          ApplicantEvaluation1.RESET;
+          ApplicantEvaluation1.SETRANGE("Application No.",Application."No.");
+          ApplicantEvaluation1.SETRANGE("Evaluation Method Code",EvaluationHead."Evaluation Code");
+          ApplicantEvaluation1.SETRANGE(ApplicantEvaluation1.Class,EvaluationHead.Class);
+          IF ApplicantEvaluation1.ISEMPTY THEN BEGIN
+          // Stop 08.VIGNESH
+            ApplicantEvaluation."Application No." := Application."No.";
+            ApplicantEvaluation."Evaluation Method Code" := EvaluationHead."Evaluation Code";
+            ApplicantEvaluation."Maximum Mark" := ClassEvaluation."Maximum Mark";
+            ApplicantEvaluation."Pass Mark" := ClassEvaluation."Pass Mark";
+            ApplicantEvaluation.Weightage := ClassEvaluation.Weightage;
+            ApplicantEvaluation."Applicant Name" := Application."Name of the pupil";
+            ApplicantEvaluation."Evaluation No." := EvaluationNo;
+            ApplicantEvaluation.Class := Application.Class;
+            IF ClassEvaluation."Prequalification Mark" THEN
+              "Prequalification Marks"(ApplicantEvaluation);
+            ApplicantEvaluation.INSERT;
+          // Start 08.VIGNESH
+          END;
+          // Stop 08.VIGNESH
+        UNTIL Application.NEXT = 0;
+      // Stop 01.GUNA
+    END;
+
+    PROCEDURE "Selection Process"@1102155001(VAR "SelectionNo."@1102155000 : Code[10]) : Decimal;
+    VAR
+      SelectionProcess@1102155001 : Record 71013;
+    BEGIN
+      // Start 02.GUNA
+      IF SelectionProcess.GET("SelectionNo.") THEN BEGIN
+        SelectionProcess.TESTFIELD(Class);
+        SelectionProcess.TESTFIELD(Curriculum);
+        SelectionProcess.TESTFIELD("Academic Year");
+      // Start 09.VIGNESH
+        ClassEvaluation.RESET;
+        ClassEvaluation.SETRANGE(Class,SelectionProcess.Class);
+        ClassEvaluation.SETRANGE(Curriculum,SelectionProcess.Curriculum);
+        ClassEvaluation.SETRANGE("Academic Year",SelectionProcess."Academic Year");
+        IF ClassEvaluation.FINDSET THEN
+          REPEAT
+            EvaluationHead.RESET;
+            EvaluationHead.SETCURRENTKEY(Class,Curriculum,"Academic Year","Evaluation Code");
+            EvaluationHead.SETRANGE(Class,SelectionProcess.Class);
+            EvaluationHead.SETRANGE(Curriculum,SelectionProcess.Curriculum);
+            EvaluationHead.SETRANGE("Academic Year",SelectionProcess."Academic Year");
+            EvaluationHead.SETRANGE("Evaluation Code",ClassEvaluation."Evaluation Method Code");
+            IF EvaluationHead.FINDFIRST THEN BEGIN
+              ApplicantEvaluation.RESET;
+              ApplicantEvaluation.SETCURRENTKEY("Evaluation No.");
+              ApplicantEvaluation.SETRANGE("Evaluation No.",EvaluationHead."Evaluation No.");
+              IF ApplicantEvaluation.ISEMPTY THEN
+                ERROR(Text002,ClassEvaluation."Evaluation Method Code",SelectionProcess.Class,SelectionProcess.Curriculum);
+            END ELSE
+              ERROR(Text002,ClassEvaluation."Evaluation Method Code",SelectionProcess.Class,SelectionProcess.Curriculum);
+          UNTIL ClassEvaluation.NEXT = 0;
+      // Stop 09.VIGNESH
+
+        Application.RESET;
+        Application.SETRANGE(Class,SelectionProcess.Class);
+        Application.SETRANGE("Curriculum Intrested",SelectionProcess.Curriculum);
+        Application.SETRANGE("Academic Year",SelectionProcess."Academic Year");
+        Application.SETRANGE("Application Status",Application."Application Status"::Received);
+      //  Application.SETRANGE(Application."No.",'APP01909');
+
+        IF Application.FINDSET THEN
+          REPEAT
+      //      MESSAGE('inside');
+            SelectionProcessLine."Evaluation Total" := CalcTotal(Application."No.");
+            SelectionProcessLine."Selection No." := "SelectionNo.";
+            SelectionProcessLine."Application No" := Application."No.";
+            SelectionProcessLine.Name := Application."Name of the pupil";
+            SelectionProcessLine.Gender := Application."Applicant Gender";
+            SelectionProcessLine.INSERT;
+          UNTIL Application.NEXT = 0;
+
+        SelectionProcessLine.RESET;
+        SelectionProcessLine.SETRANGE("Selection No.","SelectionNo.");
+        IF SelectionProcessLine.FINDSET THEN;
+        CalcRank(SelectionProcessLine);
+      END;
+      // Stop 02.GUNA
+    END;
+
+    PROCEDURE CalcTotal@1102155002(VAR "ApplicationNo."@1102155000 : Code[10]) : Decimal;
+    BEGIN
+      // Start 03.GUNA
+      CLEAR(Total);
+      ApplicantEvaluation.RESET;
+      ApplicantEvaluation.SETRANGE("Application No.","ApplicationNo.");
+      IF ApplicantEvaluation.FINDSET THEN
+        REPEAT
+      //    MESSAGE("ApplicationNo.");
+      //    MESSAGE(ApplicantEvaluation."Evaluation Method Code");
+          IF(ApplicantEvaluation."Mark Obtained" = 0) AND
+            (ApplicantEvaluation."Maximum Mark" = 0) THEN
+            Total := Total + 0
+          ELSE
+            Total := Total + ((ApplicantEvaluation."Mark Obtained" / ApplicantEvaluation."Maximum Mark" * 100)
+            * (ApplicantEvaluation.Weightage / 100));
+        UNTIL ApplicantEvaluation.NEXT = 0;
+      EXIT(Total);
+      // Stop 03.GUNA
+    END;
+
+    PROCEDURE CalcRank@1102155006(VAR SelectionProcessLine@1102155000 : Record 71014);
+    VAR
+      Ranking@1102155001 : Record 71894;
+    BEGIN
+      // Start 04.GUNA
+      IF SelectionProcessLine.FINDSET THEN
+        REPEAT
+          Ranking."No." := SelectionProcessLine."Application No";
+          Ranking.Average := SelectionProcessLine."Evaluation Total";
+          Ranking.INSERT(TRUE);
+        UNTIL SelectionProcessLine.NEXT = 0;
+
+      IF SelectionProcessLine.FINDSET THEN
+        IF Ranking.GET(SelectionProcessLine."Application No") THEN
+          StartNo := Ranking."Entry No.";
+
+      IF SelectionProcessLine.FINDLAST THEN
+        IF Ranking.GET(SelectionProcessLine."Application No") THEN
+          EndNo := Ranking."Entry No.";
+
+      EducationVertical.RankGeneration(StartNo,EndNo);
+
+      IF SelectionProcessLine.FINDSET THEN
+        REPEAT
+          Ranking.SETRANGE("No.",SelectionProcessLine."Application No");
+          IF Ranking.FINDFIRST THEN BEGIN
+            SelectionProcessLine.Rank := Ranking.Rank;
+            SelectionProcessLine.MODIFY;
+          END;
+        UNTIL SelectionProcessLine.NEXT = 0;
+      Ranking.RESET;
+      Ranking.SETRANGE("Entry No.",StartNo,EndNo);
+      IF Ranking.FINDSET THEN
+        Ranking.DELETEALL;
+      // Stop 04.GUNA
+    END;
+
+    PROCEDURE UpdateStatus@1102155003(SelectionNo@1102155000 : Code[10]);
+    BEGIN
+      // Start 05 VANDHANA
+      SelectionProcessLine.RESET;
+      SelectionProcessLine.SETRANGE("Selection No.",SelectionNo);
+      IF SelectionProcessLine.FINDSET THEN
+        REPEAT
+          IF Application1.GET(SelectionProcessLine."Application No") THEN BEGIN
+            Application1."Application Status" := Application1."Application Status"::Received;
+            IF SelectionProcessLine.Select THEN BEGIN
+              Application1."Selection Number" := SelectionProcessLine."Selection No.";
+              Application1."Evaluation Total" := SelectionProcessLine."Evaluation Total";
+              Application1.Rank := SelectionProcessLine.Rank;
+              Application1."Application Status" := Application1."Application Status"::Selected;
+            END;
+            Application1.MODIFY;
+          END;
+        UNTIL SelectionProcessLine.NEXT = 0;
+      MESSAGE(Text003);
+      // Stop 05 VANDHANA
+    END;
+
+    PROCEDURE "Prequalification Marks"@1102155004(VAR ApplicantEvaluation@1102155000 : Record 71009);
+    VAR
+      ApplicationMark@1102155001 : Record 71003;
+      ObtainedMarks@1102155002 : Decimal;
+      TotalMarks@1102155003 : Decimal;
+    BEGIN
+      // Start 07.GUNA
+      CLEAR(TotalMarks);
+      ApplicationMark.RESET;
+      ApplicationMark.SETRANGE("Application No",ApplicantEvaluation."Application No.");
+      IF ApplicationMark.FINDSET THEN
+        REPEAT
+          ObtainedMarks := ObtainedMarks + ApplicationMark."Mark Obtained";
+          TotalMarks := TotalMarks + ApplicationMark.Maximum;
+        UNTIL ApplicationMark.NEXT = 0;
+
+      ApplicantEvaluation."Maximum Mark" := TotalMarks;
+      ApplicantEvaluation."Mark Obtained" := ObtainedMarks;
+      // Stop 07.GUNA
+    END;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  06.10.09   GUNA    GetApplicants
+      02  06.10.09   GUNA    Selection Process
+      03  06.10.09   GUNA    CalcTotal
+      04  06.10.09   GUNA    Calcrank
+      05  07.10.09  VANDHANA UpdateStatus                 Code to update the Sel. Process Line details in the application table.
+      06  16.11.09   GUNA    UpdateStatus                 Code commented to allow all applications to be updated
+      06  17.11.09   GUNA   "Prequalification Marks"      Code to calculate prequalification TOTALs
+      07  17.11.09   VIGNESH GetApplicants                Code added to validate the weight age
+      08  24.11.09   VIGNESH GetApplicants                Code added to validate the Applicant
+      09  24.11.09   VIGNESH Selection Process            Code added to run the selection process is all the evaluation is recorded
+    }
+    END.
+  }
+}
+

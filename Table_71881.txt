@@ -1,0 +1,49 @@
+OBJECT Table 71881 Citizenship
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-24;
+    Time=15:39:22;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Citizenship;
+    LookupPageID=Page71881;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+        No   Date        Sign       Trigger          Description
+      -----------------------------------------------------------------------------------------------
+        01   17/09/09    Kathir                      Table Created by Kathir
+        02   19/10/09    VANDHANA   OnInsert         Code to assign User ID.
+    }
+    END.
+  }
+}
+

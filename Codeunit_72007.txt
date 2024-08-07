@@ -1,0 +1,956 @@
+OBJECT Codeunit 72007 Payroll Data Creation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            "Pay HR Pay Setup";
+            "Pay Year";
+            "Pay Shift Master";
+            "Pay Weekly Off";
+            "Pay Holiday";
+            "Pay Grade";
+            "Pay Elements";
+            "Pay ESI Setup";
+            "Pay PF Setup";
+            "Pay PT Setup";
+            "Pay Leave Setup";
+            "Pay Business Posting Group";
+            "Pay Product Posting Group";
+            "Pay General Posting Group";
+            "Pay Employee Posting Group";
+
+            MESSAGE('%1', 'System Defined Data is Created..');
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE "Pay HR Pay Setup"@1000000000();
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+    BEGIN
+      WITH HRPayrollSetup DO  BEGIN
+
+      INIT;
+      "Location Code" := 'HO';
+      "Location Name" := 'Head Office';
+      IF NOT INSERT THEN;
+
+      END;
+    END;
+
+    PROCEDURE "Pay Year"@1000000013();
+    VAR
+      PayrollYear@1000000000 : Record 72054;
+    BEGIN
+      WITH PayrollYear DO  BEGIN
+
+         INIT;
+         "Year Code"       := '2008-2008';
+         "Year Type"       := "Year Type"::"Salary Year";
+         "Year Start Date" := 010108D;
+         "Year End Date"   := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2008';
+         "Year Type"        := "Year Type"::"PF Year";
+         "Year Start Date"  := 010108D;
+         "Year End Date"    := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2008';
+         "Year Type"        := "Year Type"::"ESI Year";
+         "Year Start Date"  := 010108D;
+         "Year End Date"    := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2008';
+         "Year Type"        := "Year Type"::"Income Tax Year";
+         "Year Start Date"  := 010108D;
+         "Year End Date"    := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2008';
+         "Year Type"        := "Year Type"::"Bonus Year";
+         "Year Start Date"  := 010108D;
+         "Year End Date"    := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2008';
+         "Year Type"        := "Year Type"::"Leave Year";
+         "Year Start Date"  := 010108D;
+         "Year End Date"    := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2008';
+         "Year Type"        := "Year Type"::"6";
+         "Year Start Date"  := 010108D;
+         "Year End Date"    := 311208D;
+         IF NOT INSERT THEN;
+
+         INIT;
+         "Year Code"        := '2008-2009';
+         "Year Type"        := "Year Type"::"7";
+         "Year Start Date"  := 040108D;
+         "Year End Date"    := 030109D;
+         IF NOT INSERT THEN;
+
+      END;
+    END;
+
+    PROCEDURE "Pay Shift Master"@1000000006();
+    VAR
+      Shift@1000000000 : Record 72059;
+    BEGIN
+      WITH Shift DO  BEGIN
+
+         INIT;
+         Code         := 'GEN';
+         Description  := 'General Shift';
+         "First Half Starting Time"  := 090000T;
+         "First Half Ending Time"    := 130000T;
+         "Second Half Starting Time" := 140000T;
+         "Second Half Ending Time"   := 180000T;
+         "Break Start Time"          := 130000T;
+         "Break End Time"            := 140000T;
+         VALIDATE("First Half Starting Time");
+         VALIDATE("First Half Ending Time");
+         VALIDATE("Second Half Starting Time");
+         VALIDATE("Second Half Ending Time");
+         VALIDATE("Break Start Time");
+         VALIDATE("Break End Time");
+
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code         := 'I';
+         Description  := 'First Shift';
+         "First Half Starting Time"  := 070000T;
+         "First Half Ending Time"    := 110000T;
+         "Second Half Starting Time" := 110000T;
+         "Second Half Ending Time"   := 150000T;
+         "Break Start Time"          := 0T;
+         "Break End Time"            := 0T;
+         VALIDATE("First Half Starting Time");
+         VALIDATE("First Half Ending Time");
+         VALIDATE("Second Half Starting Time");
+         VALIDATE("Second Half Ending Time");
+         VALIDATE("Break Start Time");
+         VALIDATE("Break End Time");
+
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code         := 'II';
+         Description  := 'Second Shift';
+         "First Half Starting Time"  := 150000T;
+         "First Half Ending Time"    := 190000T;
+         "Second Half Starting Time" := 190000T;
+         "Second Half Ending Time"   := 230000T;
+         "Break Start Time"          := 0T;
+         "Break End Time"            := 0T;
+         VALIDATE("First Half Starting Time");
+         VALIDATE("First Half Ending Time");
+         VALIDATE("Second Half Starting Time");
+         VALIDATE("Second Half Ending Time");
+         VALIDATE("Break Start Time");
+         VALIDATE("Break End Time");
+
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code         := 'III';
+         Description  := 'Third Shift';
+         "First Half Starting Time"  := 230000T;
+         "First Half Ending Time"    := 030000T;
+         "Second Half Starting Time" := 030000T;
+         "Second Half Ending Time"   := 070000T;
+         "Break Start Time"          := 0T;
+         "Break End Time"            := 0T;
+         VALIDATE("First Half Starting Time");
+         VALIDATE("First Half Ending Time");
+         VALIDATE("Second Half Starting Time");
+         VALIDATE("Second Half Ending Time");
+         VALIDATE("Break Start Time");
+         VALIDATE("Break End Time");
+
+         IF NOT INSERT THEN;
+      END;
+    END;
+
+    PROCEDURE "Pay Weekly Off"@1000000001();
+    VAR
+      WeekOff@1000000000 : Record 72056;
+    BEGIN
+      WITH WeekOff DO  BEGIN
+        INIT;
+        "Calendar Year"             := '2008-2009';
+        "Day No."                   := 6;
+        Day                         := Day::Saturday;
+        "Week Wise (Weekly Off)"    := "Week Wise (Weekly Off)"::"All Week";
+        "First Half (Weekly Off)"   := FALSE;
+        "Second Half (Weekly Off)"  := TRUE;
+        "Non Working Days"          := TRUE;
+        IF INSERT THEN;
+
+        INIT;
+        "Calendar Year"             := '2008-2009';
+        "Day No."                   := 7;
+        Day                         := Day::Sunday;
+        "Week Wise (Weekly Off)"    := "Week Wise (Weekly Off)"::"All Week";
+        "First Half (Weekly Off)"   := TRUE;
+        "Second Half (Weekly Off)"  := TRUE;
+        "Non Working Days"          := TRUE;
+        IF INSERT THEN;
+      END;
+    END;
+
+    PROCEDURE "Pay Holiday"@1000000002();
+    VAR
+      Holidays@1000000000 : Record 72057;
+    BEGIN
+      WITH Holidays DO  BEGIN
+        INIT;
+        "Calendar Year"         := '2008-2009';
+        "Holiday Date"          := CALCDATE('CM',DMY2DATE(26,1,DATE2DMY(TODAY,3)));
+        "Holiday Name"          := 'Republic Day';
+        "First Half (Holiday)"  := TRUE;
+        "Second Half (Holiday)" := TRUE;
+        "Non Working Days"      := TRUE;
+        IF INSERT THEN;
+
+        "Calendar Year"         := '2008-2009';
+        "Holiday Date"          := CALCDATE('CM',DMY2DATE(6,4,DATE2DMY(TODAY,3)));
+        "Holiday Name"          := 'Good Friday';
+        "First Half (Holiday)"  := TRUE;
+        "Second Half (Holiday)" := TRUE;
+        "Non Working Days"      := TRUE;
+        IF INSERT THEN;
+
+        "Calendar Year"         := '2008-2009';
+        "Holiday Date"          := CALCDATE('CM',DMY2DATE(14,4,DATE2DMY(TODAY,3)));
+        "Holiday Name"          := 'Tamil New Year';
+        "First Half (Holiday)"  := TRUE;
+        "Second Half (Holiday)" := TRUE;
+        "Non Working Days"      := TRUE;
+        IF INSERT THEN;
+
+        "Calendar Year"         := '2008-2009';
+        "Holiday Date"          := CALCDATE('CM',DMY2DATE(15,8,DATE2DMY(TODAY,3)));
+        "Holiday Name"          := 'Independance Day';
+        "First Half (Holiday)"  := TRUE;
+        "Second Half (Holiday)" := TRUE;
+        "Non Working Days"      := TRUE;
+        IF INSERT THEN;
+
+        "Calendar Year"         := '2008-2009';
+        "Holiday Date"          := CALCDATE('CM',DMY2DATE(9,11,DATE2DMY(TODAY,3)));
+        "Holiday Name"          := 'Deepavali';
+        "First Half (Holiday)"  := TRUE;
+        "Second Half (Holiday)" := TRUE;
+        "Non Working Days"      := TRUE;
+        IF INSERT THEN;
+
+        "Calendar Year"         := '2008-2009';
+        "Holiday Date"          := CALCDATE('CM',DMY2DATE(28,12,DATE2DMY(TODAY,3)));
+        "Holiday Name"          := 'Christmas';
+        "First Half (Holiday)"  := TRUE;
+        "Second Half (Holiday)" := TRUE;
+        "Non Working Days"      := TRUE;
+        IF INSERT THEN;
+      END;
+    END;
+
+    PROCEDURE "Pay Grade"@1000000007();
+    VAR
+      Grade@1000000000 : Record 72061;
+    BEGIN
+      WITH Grade DO  BEGIN
+
+        INIT;
+        "Grade Code" := 'JR MGR';
+        "Grade Name" := 'JR Manager';
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Grade Code" := 'MGR';
+        "Grade Name" := 'Manager';
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Grade Code" := 'SR MGR';
+        "Grade Name" := 'SR Manager';
+
+        IF NOT INSERT THEN;
+      END;
+    END;
+
+    PROCEDURE "Pay Elements"@1000000015();
+    VAR
+      PayElements@1000000000 : Record 72060;
+    BEGIN
+      WITH PayElements DO  BEGIN
+
+        INIT;
+        "Pay Element Code"              := 'BASIC';
+        Description                     := 'Basic';
+        "Pay Slip Printing Caption"     := 'BASIC';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Base Pay Elements"             := '';
+        "Base Amount ( For % )"         := 0;
+        Amount                        := 0;
+        "Sorting Order"                 := 10;
+        "Regular Element"               := TRUE;
+        "Variable Element"              := FALSE;
+        "Eligible for ESI Earnings"              := TRUE;
+        "Eligible for PF"               := TRUE;
+        "Eligible for PT"               := TRUE;
+        "Eligible for OT"               := TRUE;
+        "Eligible for Bonus"            := TRUE;
+        "Eligible for Leave Encashment" := TRUE;
+        "Eligible for Gratuity"         := TRUE;
+        "Eligible for Income Tax"       := TRUE;
+        "Included In Pay Slip"          := TRUE;
+        "Excluded In Pay Slip"                 := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'DA';
+        Description                     := 'Dearness Allowence';
+        "Pay Slip Printing Caption"     := 'DA';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Percent;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Base Pay Elements"             := 'BASIC';
+        "Base Amount ( For % )"         := 0;
+        Amount                        := 0;
+        "Sorting Order"                 := 20;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'ALLOWANCE';
+        Description                     := 'Allowance';
+        "Pay Slip Printing Caption"     := 'ALLOWANCE';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 30;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'OT';
+        Description                     := 'Over Time';
+        "Pay Slip Printing Caption"     := 'OT';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Base Pay Elements"             := '';
+        "Base Amount ( For % )"         := 0;
+        "Sorting Order"                 := 40;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'MISC-EARN-01';
+        Description                     := 'Misc Earnings-01';
+        "Pay Slip Printing Caption"     := 'MISC EARN-01';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Sorting Order"                 := 50;
+        "Regular Element"               := FALSE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'MISC-EARN-02';
+        Description                     := 'Misc Earnings-02';
+        "Pay Slip Printing Caption"     := 'MISC EARN-02';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Sorting Order"                 := 60;
+        "Regular Element"               := FALSE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'BONUS';
+        Description                     := 'Bonus Allowance';
+        "Pay Slip Printing Caption"     := 'BONUS';
+        "Paid Category"                 := "Paid Category"::Yearly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 100;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := FALSE;
+        "Predefined Code"               := FALSE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'GRATUITY';
+        Description                     := 'Gratuity';
+        "Pay Slip Printing Caption"     := 'GRATUITY';
+        "Paid Category"                 := "Paid Category"::Yearly;
+        "Pay Type"                      := "Pay Type"::Addition;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 110;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := FALSE;
+        "Predefined Code"               := FALSE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'LTA';
+        Description                     := 'Leave Travel Allowance';
+        "Pay Slip Printing Caption"     := 'LTA';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Reimbursement;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 200;
+        "Regular Element"               := TRUE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'MEDICAL REIM';
+        Description                     := 'Medical Reimbursement';
+        "Pay Slip Printing Caption"     := 'MEDICAL REIM';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Reimbursement;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 210;
+        "Regular Element"               := TRUE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'ESI';
+        Description                     := 'Employee State Insurance';
+        "Pay Slip Printing Caption"     := 'ESI';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 300;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'PF';
+        Description                     := 'Provident Fund';
+        "Pay Slip Printing Caption"     := 'PF';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 310;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'PT';
+        Description                     := 'Professional Tax';
+        "Pay Slip Printing Caption"     := 'PT';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 320;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'TDS';
+        Description                     := 'Tax Deducted at Source';
+        "Pay Slip Printing Caption"     := 'TDS';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 330;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'LIC';
+        Description                     := 'LIC';
+        "Pay Slip Printing Caption"     := 'LIC';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Pay Day";
+        "Sorting Order"                 := 340;
+        "Regular Element"               := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'CANTEEN';
+        Description                     := 'Canteen Deductions';
+        "Pay Slip Printing Caption"     := 'CANTEEN';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Sorting Order"                 := 400;
+        "Regular Element"               := FALSE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'MISC-DEDU-01';
+        Description                     := 'Misc Deduction-01';
+        "Pay Slip Printing Caption"     := 'MISC DEDU-01';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Sorting Order"                 := 410;
+        "Regular Element"               := FALSE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'MISC-DEDU-02';
+        Description                     := 'Misc Deduction-02';
+        "Pay Slip Printing Caption"     := 'MISC DEDU-02';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Sorting Order"                 := 420;
+        "Regular Element"               := FALSE;
+        "Variable Element"              := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := TRUE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'HLOAN';
+        Description                     := 'Housing Loan';
+        "Pay Slip Printing Caption"     := 'HLOAN';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Base Pay Elements"             := '';
+        "Base Amount ( For % )"         := 0;
+        Amount                        := 50000.0;
+        "Sorting Order"                 := 500;
+        "Loan Element"                  := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := FALSE;
+        IF NOT INSERT THEN;
+
+        INIT;
+        "Pay Element Code"              := 'VLOAN';
+        Description                     := 'Vechicle Loan';
+        "Pay Slip Printing Caption"     := 'VEC LOAN';
+        "Paid Category"                 := "Paid Category"::Monthly;
+        "Pay Type"                      := "Pay Type"::Deduction;
+        "Fixed/Percent"                 := "Fixed/Percent"::Fixed;
+        "Amount Calculation Type"       := "Amount Calculation Type"::"Full Amount";
+        "Base Pay Elements"             := '';
+        "Base Amount ( For % )"         := 0;
+        Amount                        := 25000.0;
+        "Sorting Order"                 := 510;
+        "Loan Element"                  := TRUE;
+        "All Grade"                     := TRUE;
+        "Predefined Code"               := FALSE;
+        IF NOT INSERT THEN;
+      END;
+    END;
+
+    PROCEDURE "Pay ESI Setup"@1000000003();
+    VAR
+      ESISetup@1000000000 : Record 72063;
+    BEGIN
+      WITH ESISetup DO  BEGIN
+
+        INIT;
+        "Effective Date"          := 010108D;
+        "ESI Gross Salary Amount" := 10000;
+        "ESI % ( Employee )"      := 4.75;
+        "ESI % ( Company )"       := 1.75;
+        "ESI Rounding Amount"     := 0.5;
+        "ESI Rounding Type"       := "ESI Rounding Type"::Nearest;
+        IF NOT INSERT THEN;
+
+      END
+    END;
+
+    PROCEDURE "Pay PF Setup"@1000000004();
+    VAR
+      PFSetup@1000000000 : Record 72064;
+    BEGIN
+      WITH PFSetup DO  BEGIN
+
+        INIT;
+        "Effective Date"              := 010108D;
+        "PF Gross Salary Limit"       := 6500;
+        "EPS Gross Salary Limit"      := 6500;
+        "Employee PF (Employee) %"    := 12.0;
+        "Employer PF (Company) %"     := 3.67;
+        "Employer EPS ( Company) %"   := 8.33;
+        "Employee VPF ( Employee) %"  := 12.0;
+        "PF Admin Charges %"          := 1.1;
+        "PF EDLI %"                   := 0.5;
+        "PF RIFA %"                   := 0.01;
+        "PF Rounding Amount"          := 1.0;
+        "PF Rounding Type"            := "PF Rounding Type"::Nearest;
+
+        IF NOT INSERT THEN;
+
+      END
+    END;
+
+    PROCEDURE "Pay PT Setup"@1000000005();
+    VAR
+      PTSetup@1000000000 : Record 72065;
+    BEGIN
+      WITH PTSetup DO  BEGIN
+        INIT;
+        "Effective Date"                  := 010108D;
+        "Branch Code"                   := 'TN';
+        "Branch Name"                   := 'Tamil Nadu';
+        IF NOT INSERT THEN;
+      END
+    END;
+
+    PROCEDURE "Pay Leave Setup"@1000000008();
+    VAR
+      LeaveMaster@1000000000 : Record 72069;
+      LVCode@1000000001 : Code[4];
+    BEGIN
+      LVCode := '1M';
+      {
+      WITH  LeaveMaster DO  BEGIN
+
+        INIT;
+        "Leave Code"                      := 'CL';
+        Description                       := 'Casual Leave';
+        Regular                           := TRUE;
+        EVALUATE("Leave in a Credit Int. Regular", LVCode);
+        Probationary                      := TRUE;
+        "Credit Interval Prob."           := 12;
+        "Leave in a Credit Int. Prob."                      := TRUE;
+        "Maximum Encash Leave"               := "Maximum Encash Leave"::"0";
+        EVALUATE("Carry Forward",LVCode);
+        "Paid Leave"    := 0.5;
+        "UnPaid Leave"        := 1;
+        "Create Leave Balance"        := 6;
+        "First Half Daily Attendance"                    := FALSE;
+        "Second Half Daily Attendance"            := 0;
+        "Maximum Encash Leave"            := 0;
+        "All Grade"                       := TRUE;
+        "Carry Forward"                   := FALSE;
+        "Applicable Date"                 := TODAY;
+
+        VALIDATE(Probationary);
+        VALIDATE("Paid Leave");
+
+
+        IF NOT INSERT THEN;
+
+      END;
+      }
+    END;
+
+    PROCEDURE "Pay Business Posting Group"@1000000009();
+    VAR
+      PayrollBusinessPostingGroup@1000000000 : Record 72074;
+    BEGIN
+      WITH  PayrollBusinessPostingGroup DO  BEGIN
+
+         INIT;
+         Code                  := 'EMP';
+         Description           := 'Employee';
+
+         IF NOT INSERT THEN;
+      END;
+    END;
+
+    PROCEDURE "Pay Product Posting Group"@1000000010();
+    VAR
+      PayrollProductPostingGroup@1000000000 : Record 72075;
+    BEGIN
+      WITH PayrollProductPostingGroup DO  BEGIN
+
+         INIT;
+         Code                   := 'BASIC';
+         Description            := 'Basic';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'DA';
+         Description            := 'Dearness Allowance';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'ALLOWANCE';
+         Description            := 'Allowance';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'OT';
+         Description            := 'Over Time';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'BONUS';
+         Description            := 'Bonus';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'GRATUITY';
+         Description            := 'Gratuity';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'LTA';
+         Description            := 'Leave Travel Allowance';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'MEDICAL REIM';
+         Description            := 'Medical Reimburesment';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'ESI';
+         Description            := 'Employee State Insurance Corp.';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'PF';
+         Description            := 'Provident Fund';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'PT';
+         Description            := 'Professional Tax';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'TDS';
+         Description            := 'Tax Deducted at Source';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'LIC';
+         Description            := 'Life Insurance Co. Deduction';
+         IF NOT INSERT THEN;
+
+         INIT;
+         Code                   := 'CANTEEN';
+         Description            := 'Canteen Deduction';
+         IF NOT INSERT THEN;
+
+      END;
+    END;
+
+    PROCEDURE "Pay General Posting Group"@1000000011();
+    VAR
+      PayrollGeneralPostingSetup@1000000000 : Record 72076;
+    BEGIN
+      WITH PayrollGeneralPostingSetup DO  BEGIN
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'BASIC';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'DA';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'ALLOWANCE';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'OT';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'BONUS';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'GRATUITY';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'LTA';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'MEDICAL REIM';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'ESI';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'PF';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'PT';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'TDS';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'LIC';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+         INIT;
+         "Pay Bus.Posting Group"    := 'EMP';
+         "Pay Prod. Posting Group"  := 'CANTEEN';
+         "G/L Code"                 := '8720';
+
+        IF NOT INSERT THEN;
+
+      END;
+    END;
+
+    PROCEDURE "Pay Employee Posting Group"@1000000012();
+    VAR
+      PayrollEmployeePostingGroup@1000000000 : Record 72077;
+    BEGIN
+      WITH PayrollEmployeePostingGroup DO  BEGIN
+
+         INIT;
+         Code                          := 'STAFF';
+         Description                   := 'Staff';
+         "Salary Payable1 A/c"          := '8720';
+         "ESI Payable A/c"             := '8720';
+         "PF Payable A/c"              := '8720';
+         "EPS Payable A/c"             := '8720';
+         "PF Admin Charge Payable A/c" := '8720';
+         "EDLI Payable A/c"            := '8720';
+         "RIFA Payable A/c"            := '8720';
+         "PT Payable A/c"              := '8720';
+         "TDS Payable A/c"             := '8720';
+         "Bonus Payable A/c"           := '8720';
+         "Arrear Salary Payable A/c"   := '8720';
+         "Loan Refundable A/c"         := '8720';
+
+        IF NOT INSERT THEN;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

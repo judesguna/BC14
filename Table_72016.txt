@@ -1,0 +1,126 @@
+OBJECT Table 72016 Interview Process Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=No;
+    OnInsert=BEGIN
+               IF No = '' THEN BEGIN
+                 HRSetup.GET;
+                 HRSetup.TESTFIELD("Interview SNo");
+                 NoSeriesMgt.InitSeries(HRSetup."Interview SNo",xRec."No. Series",0D,No,"No. Series");
+               END;
+             END;
+
+    CaptionML=ENU=Interview Process Header;
+    LookupPageID=Page72025;
+    DrillDownPageID=Page72025;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No                  ;Code20        ;OnValidate=BEGIN
+                                                                IF No <> xRec.No THEN BEGIN
+                                                                  HRSetup.GET;
+                                                                  NoSeriesMgt.TestManual(HRSetup."Interview SNo");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=No }
+    { 2   ;   ;Resume No           ;Code20        ;CaptionML=ENU=Resume No }
+    { 3   ;   ;Name                ;Text30        ;CaptionML=ENU=Name }
+    { 4   ;   ;Designation Code    ;Code10        ;CaptionML=ENU=Designation Code }
+    { 5   ;   ;Designation Description;Text30     ;CaptionML=ENU=Designation Description }
+    { 6   ;   ;Department Code     ;Code10        ;CaptionML=ENU=Department Code }
+    { 7   ;   ;Department Description;Text30      ;CaptionML=ENU=Department Description }
+    { 8   ;   ;Indenting No        ;Code20        ;CaptionML=ENU=Indenting No }
+    { 9   ;   ;Schedule Date       ;Date          ;CaptionML=ENU=Schedule Date }
+    { 10  ;   ;Schedule Time From  ;Time          ;CaptionML=ENU=Schedule Time From }
+    { 11  ;   ;Schedule to Time    ;Time          ;OnValidate=BEGIN
+                                                                IF "Schedule Time From" < "Schedule Time From" THEN
+                                                                  ERROR('enter the Proper Time');
+                                                              END;
+
+                                                   CaptionML=ENU=Schedule to Time }
+    { 12  ;   ;Actual Date         ;Date          ;OnValidate=BEGIN
+                                                                IF "Actual Date" < "Schedule Date" THEN
+                                                                  ERROR('Enter the Proper Date');
+                                                              END;
+
+                                                   CaptionML=ENU=Actual Date }
+    { 13  ;   ;Actual Time From    ;Time          ;CaptionML=ENU=Actual Time From }
+    { 14  ;   ;Actual To Time      ;Time          ;OnValidate=BEGIN
+                                                                IF "Actual Time From" < "Actual To Time" THEN
+                                                                  ERROR('enter the Proper Time');
+                                                              END;
+
+                                                   CaptionML=ENU=Actual To Time }
+    { 15  ;   ;Current CTC         ;Decimal       ;CaptionML=ENU=Current CTC }
+    { 16  ;   ;Expected CTC        ;Decimal       ;CaptionML=ENU=Expected CTC }
+    { 17  ;   ;CTC Offer           ;Decimal       ;CaptionML=ENU=CTC Offer }
+    { 18  ;   ;Current Status      ;Text30        ;CaptionML=ENU=Current Status;
+                                                   Editable=No }
+    { 19  ;   ;Final Status        ;Option        ;CaptionML=ENU=Final Status;
+                                                   OptionCaptionML=ENU=Inprocess,Reject,On Hold,Offer,Joined;
+                                                   OptionString=Inprocess,Reject,On Hold,Offer,Joined }
+    { 20  ;   ;Remarks             ;Text50        ;CaptionML=ENU=Remarks }
+    { 21  ;   ;No. Series          ;Code10        ;CaptionML=ENU=No. Series }
+    { 22  ;   ;Attachment 1        ;Text100       ;CaptionML=ENU=Attachment 1 }
+    { 23  ;   ;Attachment 2        ;Text100       ;CaptionML=ENU=Attachment 2 }
+    { 24  ;   ;Comment             ;Boolean       ;FieldClass=FlowField;
+                                                   CalcFormula=Exist("Human Resource Comment Line" WHERE (Table Name=CONST(10),
+                                                                                                          No.=FIELD(No)));
+                                                   CaptionML=ENU=Comment;
+                                                   Editable=No }
+    { 25  ;   ;Interview           ;Option        ;CaptionML=ENU=Interview;
+                                                   OptionCaptionML=ENU=Phone,Letter;
+                                                   OptionString=Phone,Letter }
+  }
+  KEYS
+  {
+    {    ;No                                      ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRSetup@1000000000 : Record 72000;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+
+    PROCEDURE AssistEdit@1000000004(InterviewProcessHeader@1000000000 : Record 72016) : Boolean;
+    BEGIN
+      WITH InterviewProcessHeader DO BEGIN
+        InterviewProcessHeader := Rec;
+        HRSetup.GET;
+        HRSetup.TESTFIELD("Interview SNo");
+        IF NoSeriesMgt.SelectSeries(HRSetup."Interview SNo","No. Series","No. Series") THEN BEGIN
+          HRSetup.GET;
+          HRSetup.TESTFIELD("Interview SNo");
+          NoSeriesMgt.SetSeries(No);
+          Rec := InterviewProcessHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

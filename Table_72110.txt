@@ -1,0 +1,129 @@
+OBJECT Table 72110 Piece Rate Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF "Piece Rate ID No." = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Piece Rate No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Piece Rate No.",xRec."No. Series",0D,"Piece Rate ID No.","No. Series");
+               END;
+
+               IF HRPayrollSetup.GET(USERID) THEN BEGIN
+                 "Location Code" := HRPayrollSetup."Location Code";
+                 "Salary Plan Code" := HRPayrollSetup."Salary Plan Code";
+                 "Salary Cyclic Code" := HRPayrollSetup."Salary Cyclic Code";
+                 "Starting Date" := HRPayrollSetup."Salary Start Date";
+                 "Ending Date" := HRPayrollSetup."Salary End Date";
+               END;
+
+               "Piece Rate Entry Date" := TODAY;
+               "Creator User Id" := USERID;
+               "Created Date Time" := CURRENTDATETIME;
+             END;
+
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 PieceRateLine.RESET;
+                 PieceRateLine.SETRANGE("Piece Rate ID No.", "Piece Rate ID No.");
+                 IF PieceRateLine.FINDFIRST THEN BEGIN
+                   PieceRateLine.LOCKTABLE;
+                   PieceRateLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Piece Rate Header;
+    LookupPageID=Page72146;
+    DrillDownPageID=Page72146;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Piece Rate ID No.   ;Code20        ;OnValidate=BEGIN
+                                                                IF "Piece Rate ID No." <> xRec."Piece Rate ID No." THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Piece Rate No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Piece Rate ID No. }
+    { 2   ;   ;Piece Rate Entry Date;Date         ;CaptionML=ENU=Piece Rate Entry Date;
+                                                   Editable=No }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 5   ;   ;Salary Cyclic Code  ;Code20        ;CaptionML=ENU=Salary Cyclic Code;
+                                                   Editable=No }
+    { 6   ;   ;Starting Date       ;Date          ;CaptionML=ENU=Starting Date;
+                                                   Editable=No }
+    { 7   ;   ;Ending Date         ;Date          ;CaptionML=ENU=Ending Date;
+                                                   Editable=No }
+    { 8   ;   ;Remarks             ;Text50        ;CaptionML=ENU=Remarks }
+    { 9   ;   ;Creator User Id     ;Code20        ;CaptionML=ENU=Creator User Id;
+                                                   Editable=No }
+    { 10  ;   ;Created Date Time   ;DateTime      ;CaptionML=ENU=Created Date Time;
+                                                   Editable=No }
+    { 11  ;   ;Posted              ;Boolean       ;CaptionML=ENU=Posted;
+                                                   Editable=No }
+    { 12  ;   ;Posted Date Time    ;DateTime      ;CaptionML=ENU=Posted Date Time;
+                                                   Editable=No }
+    { 13  ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+  }
+  KEYS
+  {
+    {    ;Piece Rate ID No.                       ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000002 : Record 72051;
+      LocationHRPayrollSetup@1000000003 : Record 72052;
+      Employee@1000000000 : Record 5200;
+      NoSeriesMgt@1000000004 : Codeunit 396;
+      PieceRateLine@1000000005 : Record 72111;
+
+    PROCEDURE AssistEdit@2(OldPieceRateHeader@1000 : Record 72110) : Boolean;
+    VAR
+      PieceRateHeader@1001 : Record 72110;
+    BEGIN
+      WITH PieceRateHeader DO BEGIN
+        PieceRateHeader := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Piece Rate No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Piece Rate No.",OldPieceRateHeader."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Piece Rate ID No.");
+          Rec := PieceRateHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,51 @@
+OBJECT Table 72058 Calendar
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Calendar Year,Date,Description;
+    CaptionML=ENU=Calendar;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Calendar Year       ;Code20        ;TableRelation="Payroll Year";
+                                                   CaptionML=ENU=Calendar Year }
+    { 4   ;   ;Date                ;Date          ;CaptionML=ENU=Date }
+    { 5   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 6   ;   ;Non-Working Days    ;Boolean       ;CaptionML=ENU=Non-Working Days }
+    { 7   ;   ;Holiday             ;Boolean       ;CaptionML=ENU=Holiday }
+    { 8   ;   ;First Half (Holiday);Boolean       ;CaptionML=ENU=First Half (Holiday) }
+    { 9   ;   ;Second Half (Holiday);Boolean      ;CaptionML=ENU=Second Half (Holiday) }
+    { 10  ;   ;WeeklyOff           ;Boolean       ;CaptionML=ENU=WeeklyOff }
+    { 11  ;   ;First Half (Weekly Off);Boolean    ;CaptionML=ENU=First Half (Weekly Off) }
+    { 12  ;   ;Second Half (Weekly Off);Boolean   ;CaptionML=ENU=Second Half (Weekly Off) }
+    { 13  ;   ;Day No.             ;Integer       ;CaptionML=ENU=Day No. }
+    { 14  ;   ;OT Applicable for the Day;Boolean  ;CaptionML=ENU=OT Applicable for the Day }
+    { 15  ;   ;Week No.            ;Integer       ;CaptionML=ENU=Week No. }
+  }
+  KEYS
+  {
+    {    ;Date,Calendar Year,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,235 @@
+OBJECT Table 50012 Allocation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=24-08-11;
+    Time=16:03:47;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No         ;Code20        ;Editable=Yes }
+    { 2   ;   ;Line No.            ;Integer       ;Editable=No }
+    { 3   ;   ;Company             ;Text30        ;TableRelation=Company;
+                                                   Editable=Yes }
+    { 4   ;   ;Balance             ;Decimal       ;Editable=No }
+    { 5   ;   ;Amount              ;Decimal       ;OnValidate=BEGIN
+
+                                                                AllocationRec.RESET;
+                                                                AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                AllocationRec.SETFILTER(AllocationRec.Cnt,'<>%1',Cnt);
+                                                                IF AllocationRec.FINDSET THEN
+                                                                REPEAT
+                                                                  Tot:=Tot+AllocationRec.Amount;
+                                                                UNTIL AllocationRec.NEXT = 0;
+
+                                                                  GenJnlLineRec.RESET;
+                                                                  GenJnlLineRec.SETRANGE(GenJnlLineRec."Document No.","Document No");
+                                                                  GenJnlLineRec.SETRANGE(GenJnlLineRec."Line No.","Line No.");
+                                                                  IF GenJnlLineRec.FINDFIRST THEN
+                                                                  BEGIN
+                                                                    IF (Tot + Amount) > GenJnlLineRec."Credit Amount" THEN
+                                                                      ERROR('Total Value Exeeds the amount entered in Journal');
+                                                                  END;
+
+
+                                                                    {
+                                                                    CASE Cnt OF
+
+
+                                                                    1  :  BEGIN
+                                                                            CLEAR(Tot);
+                                                                            AllocationRec.RESET;
+                                                                            AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                            AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                            AllocationRec.SETFILTER(AllocationRec.Cnt,'<>%1',Cnt);
+                                                                            IF AllocationRec.FINDSET THEN
+                                                                            REPEAT
+                                                                              Tot:=Tot+AllocationRec.Amount;
+                                                                            UNTIL AllocationRec.NEXT = 0;
+                                                                           // IF Tot+Amount- > GenJnlLineRec."Credit Amount" THEN
+                                                                            //  ERROR('Total Value Exeeds the amount entered in Journal')
+                                                                          //  ELSE
+                                                                            BEGIN
+                                                                              AllocationRec.RESET;
+                                                                              AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                              AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                              AllocationRec.SETRANGE(AllocationRec.Cnt,2);
+                                                                              IF AllocationRec.FINDFIRST THEN
+                                                                              BEGIN
+                                                                                 Temp:=Tot-AllocationRec.Amount-xRec.Amount;
+
+
+                                                                               // MESSAGE('%1',GenJnlLineRec."Credit Amount" - Tot);
+                                                                              //  EXIT;
+                                                                               // MESSAGE('%1',AllocationRec.Amount);
+                                                                                AllocationRec.Amount:=  GenJnlLineRec."Credit Amount" - (Temp + Amount) ;
+                                                                   //             MESSAGE('%1',AllocationRec.Amount);
+                                                                                AllocationRec.MODIFY;
+                                                                              END;
+
+                                                                            END;
+
+                                                                          END;
+
+                                                                    2  :  BEGIN
+                                                                            AllocationRec.RESET;
+                                                                            AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                            AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                            AllocationRec.SETFILTER(AllocationRec.Cnt,'<>%1',Cnt);
+                                                                            IF AllocationRec.FINDSET THEN
+                                                                            REPEAT
+                                                                              Tot:=Tot+AllocationRec.Amount;
+                                                                            UNTIL AllocationRec.NEXT = 0;
+                                                                            IF Tot+Amount > GenJnlLineRec."Credit Amount" THEN
+                                                                              ERROR('Total Value Exeeds the amount entered in Journal')
+                                                                            ELSE
+                                                                            BEGIN
+                                                                              AllocationRec.RESET;
+                                                                              AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                              AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                              AllocationRec.SETRANGE(AllocationRec.Cnt,3);
+                                                                              IF AllocationRec.FINDFIRST THEN
+                                                                              BEGIN
+                                                                                AllocationRec.Amount:=  GenJnlLineRec."Credit Amount" - Tot;
+                                                                                AllocationRec.MODIFY;
+                                                                              END;
+
+                                                                            END;
+
+
+                                                                          END;
+
+                                                                    3  :  BEGIN
+                                                                            AllocationRec.RESET;
+                                                                            AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                            AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                            AllocationRec.SETFILTER(AllocationRec.Cnt,'<>%1',Cnt);
+                                                                            IF AllocationRec.FINDSET THEN
+                                                                            REPEAT
+                                                                              Tot:=Tot+AllocationRec.Amount;
+                                                                            UNTIL AllocationRec.NEXT = 0;
+                                                                            IF Tot+Amount > GenJnlLineRec."Credit Amount" THEN
+                                                                              ERROR('Total Value Exeeds the amount entered in Journal')
+                                                                            ELSE
+                                                                            BEGIN
+                                                                              AllocationRec.RESET;
+                                                                              AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                              AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                              AllocationRec.SETRANGE(AllocationRec.Cnt,4);
+                                                                              IF AllocationRec.FINDFIRST THEN
+                                                                              BEGIN
+                                                                                AllocationRec.Amount:=  GenJnlLineRec."Credit Amount" - Tot;
+                                                                                AllocationRec.MODIFY;
+                                                                              END;
+
+                                                                            END;
+
+                                                                           END;
+
+                                                                    4  :  BEGIN
+                                                                            AllocationRec.RESET;
+                                                                            AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                            AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                            AllocationRec.SETFILTER(AllocationRec.Cnt,'<>%1',Cnt);
+                                                                            IF AllocationRec.FINDSET THEN
+                                                                            REPEAT
+                                                                              Tot:=Tot+AllocationRec.Amount;
+                                                                            UNTIL AllocationRec.NEXT = 0;
+                                                                            IF Tot+Amount > GenJnlLineRec."Credit Amount" THEN
+                                                                              ERROR('Total Value Exeeds the amount entered in Journal')
+                                                                            ELSE
+                                                                            BEGIN
+                                                                              AllocationRec.RESET;
+                                                                              AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                              AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                              AllocationRec.SETRANGE(AllocationRec.Cnt,3);
+                                                                              IF AllocationRec.FINDFIRST THEN
+                                                                              BEGIN
+                                                                                AllocationRec.Amount:=  GenJnlLineRec."Credit Amount" - Tot;
+                                                                                AllocationRec.MODIFY;
+                                                                              END;
+
+                                                                            END;
+
+                                                                          END;
+
+                                                                    END; // Case
+
+
+
+
+                                                                 }
+
+
+
+
+
+
+
+                                                                  {
+                                                                  AllocationRec.RESET;
+                                                                  AllocationRec.SETRANGE(AllocationRec."Document No","Document No");
+                                                                  AllocationRec.SETRANGE(AllocationRec."Line No.","Line No.");
+                                                                  AllocationRec.SETFILTER(AllocationRec.Cnt,'<>%1',Cnt);
+                                                                  IF AllocationRec.FINDSET THEN
+                                                                  REPEAT
+                                                                    Tot:=Tot+AllocationRec.Amount;
+                                                                  UNTIL AllocationRec.NEXT = 0;
+
+
+
+
+                                                                  GenJnlLineRec.RESET;
+                                                                  GenJnlLineRec.SETRANGE(GenJnlLineRec."Document No.","Document No");
+                                                                  GenJnlLineRec.SETRANGE(GenJnlLineRec."Line No.","Line No.");
+                                                                  IF GenJnlLineRec.FINDFIRST THEN
+                                                                  BEGIN
+                                                                    IF (Tot + Amount-xRec.Amount) > GenJnlLineRec."Credit Amount" THEN
+                                                                      ERROR('Total Value Exeeds the amount entered in Journal');
+                                                                  END;
+
+                                                                  {GenJnlLineRec.RESET;
+                                                                  GenJnlLineRec.SETRANGE(GenJnlLineRec."Document No.","Document No");
+                                                                  GenJnlLineRec.SETRANGE(GenJnlLineRec."Line No.","Line No.");
+                                                                  IF GenJnlLineRec.FINDFIRST THEN
+                                                                  BEGIN
+                                                                    IF (Tot + Amount-xRec.Amount) < GenJnlLineRec."Credit Amount" THEN
+
+                                                                  END;
+
+                                                                   }
+                                                                   }
+                                                              END;
+                                                               }
+    { 6   ;   ;Cnt                 ;Integer        }
+    { 7   ;   ;Student No.         ;Code20        ;TableRelation=Customer }
+    { 8   ;   ;Type Of Payment     ;Option        ;OptionCaptionML=ENU=" ,Cash,Cheque";
+                                                   OptionString=[ ,Cash,Cheque] }
+    { 9   ;   ;Posting Date        ;Date           }
+  }
+  KEYS
+  {
+    {    ;Document No,Line No.,Company            ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      AllocationRec@1000000000 : Record 50012;
+      Tot@1000000001 : Decimal;
+      GenJnlLineRec@1000000002 : Record 81;
+      Temp@1000000003 : Decimal;
+
+    BEGIN
+    END.
+  }
+}
+

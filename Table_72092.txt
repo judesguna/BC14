@@ -1,0 +1,101 @@
+OBJECT Table 72092 Revision Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Revision Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Pay Revision Id     ;Code20        ;CaptionML=ENU=Pay Revision Id }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Last Effective Date ;Date          ;CaptionML=ENU=Last Effective Date }
+    { 5   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements";
+                                                   CaptionML=ENU=Pay Element Code }
+    { 6   ;   ;Description         ;Text50        ;CaptionML=ENU=Description;
+                                                   Editable=No }
+    { 7   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No }
+    { 8   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 9   ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement;
+                                                   Editable=No }
+    { 10  ;   ;Fixed/Percent       ;Option        ;CaptionML=ENU=Fixed/Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent;
+                                                   Editable=No }
+    { 11  ;   ;Amount Calculation Type;Option     ;CaptionML=ENU=Amount Calculation Type;
+                                                   OptionCaptionML=ENU=Pay Day,Full Amount;
+                                                   OptionString=Pay Day,Full Amount;
+                                                   Editable=No }
+    { 12  ;   ;Base Pay Elements   ;Text250       ;CaptionML=ENU=Base Pay Elements }
+    { 13  ;   ;Last Drawn Amount   ;Decimal       ;CaptionML=ENU=Last Drawn Amount }
+    { 14  ;   ;Last Drawn Percent (%);Decimal     ;CaptionML=ENU=Last Drawn Percent (%) }
+    { 15  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order;
+                                                   Editable=No }
+    { 16  ;   ;New Effective Date  ;Date          ;CaptionML=ENU=New Effective Date }
+    { 17  ;   ;Revised Amount      ;Decimal       ;OnValidate=BEGIN
+                                                                "Difference Amount" := "Revised Amount" - "Last Drawn Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Revised Amount }
+    { 18  ;   ;Revised Percent (%) ;Decimal       ;OnValidate=BEGIN
+                                                                "Difference Percent (%)" := "Revised Percent (%)" - "Last Drawn Percent (%)";
+                                                              END;
+
+                                                   CaptionML=ENU=Revised Percent (%) }
+    { 19  ;   ;Difference Amount   ;Decimal       ;OnValidate=BEGIN
+                                                                "Revised Amount" := "Last Drawn Amount" + "Difference Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Difference Amount }
+    { 20  ;   ;Difference Percent (%);Decimal     ;CaptionML=ENU=Difference Percent (%) }
+    { 21  ;   ;Old Grade Code      ;Code20        ;TableRelation=Grades;
+                                                   CaptionML=ENU=Old Grade Code }
+    { 22  ;   ;New Grade Code      ;Code20        ;TableRelation=Grades;
+                                                   CaptionML=ENU=New Grade Code }
+    { 23  ;   ;Posted              ;Boolean       ;CaptionML=ENU=Posted }
+    { 24  ;   ;Posted Date         ;Date          ;CaptionML=ENU=Posted Date }
+    { 25  ;   ;Pay Revised         ;Boolean       ;CaptionML=ENU=Pay Revised }
+    { 26  ;   ;Excluded In Pay Slip;Boolean       ;CaptionML=ENU=Excluded In Pay Slip }
+    { 27  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary] }
+  }
+  KEYS
+  {
+    {    ;Pay Revision Id,Location Code,Salary Plan Code,Last Effective Date,Pay Element Code,Employee No;
+                                                   Clustered=Yes }
+    {    ;Employee No,Sorting Order                }
+    {    ;Last Drawn Amount,Employee No            }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

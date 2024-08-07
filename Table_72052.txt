@@ -1,0 +1,303 @@
+OBJECT Table 72052 Location HR & Payroll Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Location Name;
+    CaptionML=ENU=Location HR & Payroll Setup;
+    LookupPageID=Page72063;
+    DrillDownPageID=Page72063;
+  }
+  FIELDS
+  {
+    { 2   ;   ;Location Code       ;Code20        ;CaptionML=ENU=Location Code }
+    { 3   ;   ;Location Name       ;Text50        ;CaptionML=ENU=Location Name }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 5   ;   ;Salary Cyclic Code  ;Code20        ;TableRelation="Payroll Month & Year";
+                                                   CaptionML=ENU=Salary Cyclic Code }
+    { 6   ;   ;Salary Date Interval;DateFormula   ;CaptionML=ENU=Salary Date Interval }
+    { 7   ;   ;Salary Start Date   ;Date          ;CaptionML=ENU=Salary Start Date;
+                                                   Editable=No }
+    { 8   ;   ;Salary End Date     ;Date          ;CaptionML=ENU=Salary End Date;
+                                                   Editable=No }
+    { 9   ;   ;Processing Payroll Date;Date       ;CaptionML=ENU=Processing Payroll Date }
+    { 10  ;   ;Current Salary Process Month;Integer;
+                                                   CaptionML=ENU=Current Salary Process Month;
+                                                   MinValue=0;
+                                                   MaxValue=12 }
+    { 11  ;   ;Current Salary Process Year;Integer;CaptionML=ENU=Current Salary Process Year;
+                                                   MinValue=1900;
+                                                   MaxValue=9999 }
+    { 12  ;   ;Last Posted Month   ;Integer       ;CaptionML=ENU=Last Posted Month;
+                                                   MinValue=0;
+                                                   MaxValue=12 }
+    { 13  ;   ;Last Posted Year    ;Integer       ;CaptionML=ENU=Last Posted Year;
+                                                   MinValue=1900;
+                                                   MaxValue=9999 }
+    { 14  ;   ;Default Attendance Type;Option     ;CaptionML=ENU=Default Attendance Type;
+                                                   OptionCaptionML=ENU=" ,Present,Absent";
+                                                   OptionString=[ ,Present,Absent] }
+    { 15  ;   ;No of Hours Per Day ;Decimal       ;CaptionML=ENU=No of Hours Per Day;
+                                                   MinValue=0;
+                                                   MaxValue=12 }
+    { 16  ;   ;No of Hours in Half Day;Decimal    ;CaptionML=ENU=No of Hours in Half Day;
+                                                   MinValue=0;
+                                                   MaxValue=6 }
+    { 17  ;   ;Over Time Applicable;Boolean       ;CaptionML=ENU=Over Time Applicable }
+    { 18  ;   ;Over Time Approval Check;Boolean   ;CaptionML=ENU=Over Time Approval Check }
+    { 19  ;   ;Over Time Min Minutes;Decimal      ;CaptionML=ENU=Over Time Min Minutes }
+    { 20  ;   ;Over Time Max Minutes;Decimal      ;CaptionML=ENU=Over Time Max Minutes }
+    { 21  ;   ;Over Time Multiplier;Decimal       ;CaptionML=ENU=Over Time Multiplier;
+                                                   MinValue=0;
+                                                   MaxValue=5 }
+    { 22  ;   ;Bonus Applicable    ;Boolean       ;CaptionML=ENU=Bonus Applicable }
+    { 23  ;   ;Bonus Declare Date  ;Date          ;CaptionML=ENU=Bonus Declare Date }
+    { 24  ;   ;Bonus Min. No of Years;Integer     ;CaptionML=ENU=Bonus Min. No of Years }
+    { 25  ;   ;Bonus Max No of Years;Integer      ;CaptionML=ENU=Bonus Max No of Years }
+    { 26  ;   ;Bonusable Earning Min Limit;Decimal;CaptionML=ENU=Bonusable Earning Min Limit }
+    { 27  ;   ;Bonusable Earning Max Limit;Decimal;CaptionML=ENU=Bonusable Earning Max Limit }
+    { 28  ;   ;Bonus (%)           ;Decimal       ;CaptionML=ENU=Bonus (%);
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 29  ;   ;Ex-Gratia (%)       ;Decimal       ;CaptionML=ENU=Ex-Gratia (%);
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 30  ;   ;Gratuity Applicable ;Boolean       ;CaptionML=ENU=Gratuity Applicable }
+    { 31  ;   ;Gratuity Min. No of Years;Integer  ;CaptionML=ENU=Gratuity Min. No of Years }
+    { 32  ;   ;Gratuity Max. No of Years;Integer  ;CaptionML=ENU=Gratuity Max. No of Years }
+    { 33  ;   ;Gratuity No. of Days Salary;Integer;CaptionML=ENU=Gratuity No. of Days Salary;
+                                                   MinValue=0;
+                                                   MaxValue=31 }
+    { 34  ;   ;Gratuity No. of Days in Month;Integer;
+                                                   CaptionML=ENU=Gratuity No. of Days in Month;
+                                                   MinValue=0;
+                                                   MaxValue=31 }
+    { 35  ;   ;ESI to All          ;Boolean       ;CaptionML=ENU=ESI to All }
+    { 36  ;   ;PF to All           ;Boolean       ;CaptionML=ENU=PF to All }
+    { 37  ;   ;EPS to All          ;Boolean       ;CaptionML=ENU=EPS to All }
+    { 38  ;   ;VPF to All          ;Boolean       ;CaptionML=ENU=VPF to All }
+    { 39  ;   ;PT to All           ;Boolean       ;CaptionML=ENU=PT to All }
+    { 40  ;   ;LWF to All          ;Boolean       ;CaptionML=ENU=LWF to All }
+    { 41  ;   ;Leave Encashment to All;Boolean    ;CaptionML=ENU=Leave Encashment to All }
+    { 42  ;   ;General Rounding Amount;Decimal    ;CaptionML=ENU=General Rounding Amount }
+    { 43  ;   ;General Rounding Type;Option       ;CaptionML=ENU=General Rounding Type;
+                                                   OptionCaptionML=ENU=Nearest,Up,Down;
+                                                   OptionString=Nearest,Up,Down }
+    { 44  ;   ;Net Salary Rounding Amount;Decimal ;CaptionML=ENU=Net Salary Rounding Amount }
+    { 45  ;   ;Net Salary Rounding Type;Option    ;CaptionML=ENU=Net Salary Rounding Type;
+                                                   OptionCaptionML=ENU=Nearest,Up,Down;
+                                                   OptionString=Nearest,Up,Down }
+    { 46  ;   ;VDA Rate            ;Decimal       ;CaptionML=ENU=VDA Rate }
+    { 47  ;   ;FDA Amount          ;Decimal       ;CaptionML=ENU=FDA Amount }
+    { 48  ;   ;Employee No.        ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Employee No. }
+    { 49  ;   ;Loan No.            ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Loan No. }
+    { 50  ;   ;Pay Revision No.    ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Pay Revision No. }
+    { 51  ;   ;Pay Arrear No.      ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Pay Arrear No. }
+    { 52  ;   ;Employer PF GL Code ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Employer PF GL Code }
+    { 53  ;   ;Employer EPS GL Code;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Employer EPS GL Code }
+    { 54  ;   ;PF Admin Charges GL Code;Code20    ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=PF Admin Charges GL Code }
+    { 55  ;   ;EDLI Charges GLCode ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=EDLI Charges GLCode }
+    { 56  ;   ;RIFA Charges GL Code;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=RIFA Charges GL Code }
+    { 57  ;   ;Employer ESI GL Code;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Employer ESI GL Code }
+    { 58  ;   ;LWF GL Code         ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=LWF GL Code }
+    { 59  ;   ;Cash Account GL Code;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Cash Account GL Code }
+    { 60  ;   ;Bank Account GL Code;Code20        ;TableRelation="Bank Account";
+                                                   CaptionML=ENU=Bank Account GL Code }
+    { 61  ;   ;Year Code           ;Code20        ;CaptionML=ENU=Year Code }
+    { 62  ;   ;Bonus No.           ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Bonus No. }
+    { 63  ;   ;Leave No.           ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Leave No. }
+    { 64  ;   ;Minimum Attendance Credit Days;Integer;
+                                                   CaptionML=ENU=Minimum Attendance Credit Days;
+                                                   MinValue=0;
+                                                   MaxValue=31 }
+    { 65  ;   ;Eligible Days for Credit Days;Integer;
+                                                   CaptionML=ENU=Eligible Days for Credit Days;
+                                                   MinValue=0;
+                                                   MaxValue=31 }
+    { 66  ;   ;Attendance Bonus (%);Integer       ;CaptionML=ENU=Attendance Bonus (%);
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 67  ;   ;Atte. Bonus Permission Limit;Decimal;
+                                                   CaptionML=ENU=Atte. Bonus Permission Limit }
+    { 68  ;   ;Piece Rate No.      ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Piece Rate No. }
+    { 69  ;   ;Employee Gate Pass No;Code20       ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Employee Gate Pass No }
+    { 70  ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 71  ;   ;Name 2              ;Text50        ;CaptionML=ENU=Name 2 }
+    { 72  ;   ;Address             ;Text50        ;CaptionML=ENU=Address }
+    { 73  ;   ;Address 2           ;Text50        ;CaptionML=ENU=Address 2 }
+    { 74  ;   ;City                ;Text30        ;CaptionML=ENU=City }
+    { 75  ;   ;Pin Code            ;Text30        ;CaptionML=ENU=Pin Code }
+    { 76  ;   ;Phone No.           ;Text30        ;CaptionML=ENU=Phone No. }
+    { 77  ;   ;Telex No.           ;Text30        ;CaptionML=ENU=Telex No. }
+    { 78  ;   ;Fax No.             ;Text30        ;CaptionML=ENU=Fax No. }
+    { 79  ;   ;Database Type       ;Option        ;OnValidate=BEGIN
+                                                                Provider := '';
+                                                                "Presist Security Info" := '';
+                                                                "User ID" := '';
+                                                                Password := '';
+                                                                "Initial Catalog" := '';
+                                                                "Data Source" := '';
+                                                                "Extended Properties" := '';
+
+                                                                IF "Database Type" = "Database Type"::"Sql Server 2005" THEN BEGIN
+                                                                  Provider := 'SQLOLEDB.1';
+                                                                  "Presist Security Info" := 'False';
+                                                                  "User ID" := 'DB User Id';
+                                                                  Password := 'DB Password';
+                                                                  "Initial Catalog" := 'Database Name';
+                                                                  "Data Source" := 'Database Server Name';
+                                                                END;
+
+                                                                IF "Database Type" = "Database Type"::"Access Database" THEN BEGIN
+                                                                  Provider := 'Microsoft.Jet.OLEDB.4.0';
+                                                                  "Presist Security Info" := 'False';
+                                                                  "Data Source" := 'C:\PATHNAME\FILENAME.MDB';
+                                                                END;
+
+                                                                IF "Database Type" = "Database Type"::"Fox Pro" THEN BEGIN
+                                                                  Provider := 'Microsoft.Jet.OLEDB.4.0';
+                                                                  "Presist Security Info" := 'False';
+                                                                  "Data Source" := 'C:\PATHNAME\FILENAME.DBF';
+                                                                  "Extended Properties" := 'DBASE III';
+                                                                END;
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Database;
+                                                   OptionCaptionML=ENU=" ,Sql Server 2005,Access Database,Fox Pro";
+                                                   OptionString=[ ,Sql Server 2005,Access Database,Fox Pro] }
+    { 80  ;   ;Provider            ;Text50        ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Provider }
+    { 81  ;   ;Presist Security Info;Text10       ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Presist Security Info }
+    { 82  ;   ;User ID             ;Text20        ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=User ID }
+    { 83  ;   ;Password            ;Text20        ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Password }
+    { 84  ;   ;Initial Catalog     ;Text20        ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Initial Catalog }
+    { 85  ;   ;Data Source         ;Text50        ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Data Source }
+    { 86  ;   ;Extended Properties ;Text20        ;OnValidate=BEGIN
+                                                                Connect;
+                                                              END;
+
+                                                   CaptionML=ENU=Extended Properties }
+    { 87  ;   ;Connection String   ;Text250       ;CaptionML=ENU=Connection String }
+    { 88  ;   ;Hourly Rate No.     ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Hourly Rate No. }
+    { 89  ;   ;Table Name          ;Text30        ;CaptionML=ENU=Table Name }
+    { 90  ;   ;Late Coming Permission Limit;Decimal;
+                                                   CaptionML=ENU=Late Coming Permission Limit }
+    { 91  ;   ;Early Going Permission Limit;Decimal;
+                                                   CaptionML=ENU=Early Going Permission Limit }
+    { 92  ;   ;Weekly Off Full Days Limit;Decimal ;CaptionML=ENU=Weekly Off Full Days Limit }
+    { 94  ;   ;Absent Hours Limit  ;Decimal       ;CaptionML=ENU=Absent Hours Limit }
+    { 95  ;   ;Weekly Off Half Days Limit;Decimal ;CaptionML=ENU=Weekly Off Half Days Limit }
+    { 96  ;   ;Extra Wages Min Hours;Decimal      ;CaptionML=ENU=Extra Wages Min Hours }
+    { 97  ;   ;Extra Wages Max Hours;Decimal      ;CaptionML=ENU=Extra Wages Max Hours }
+    { 98  ;   ;Ex.Wages Days Min 3 To 6 Hours;Decimal;
+                                                   CaptionML=ENU=Ex.Wages Days Min 3 To 6 Hours }
+    { 99  ;   ;Ex.Wages Days 6 Hours Above;Decimal;CaptionML=ENU=Ex.Wages Days 6 Hours Above }
+    { 100 ;   ;PF Establishment No ;Code50        ;CaptionML=ENU=PF Establishment No }
+    { 101 ;   ;ESI Establishment No;Code50        ;CaptionML=ENU=ESI Establishment No }
+    { 102 ;   ;Factory Establishment No;Code50    ;CaptionML=ENU=Factory Establishment No }
+    { 103 ;   ;Over Time Hours Round Off;Boolean  ;CaptionML=ENU=Over Time Hours Round Off }
+    { 104 ;   ;Location Pictures   ;BLOB          ;CaptionML=ENU=Location Pictures }
+    { 105 ;   ;PF Pictures         ;BLOB          ;CaptionML=ENU=PF Pictures }
+    { 106 ;   ;ESI Pictures        ;BLOB          ;CaptionML=ENU=ESI Pictures }
+    { 107 ;   ;Total No Pieces Per Day;Decimal    ;CaptionML=ENU=Total No Pieces Per Day }
+    { 108 ;   ;Worker Base Calc. Not Required;Boolean;
+                                                   CaptionML=ENU=Worker Base Calc. Not Required }
+  }
+  KEYS
+  {
+    {    ;Location Code                           ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Quote@1000000000 : Char;
+      Quote1@1000000001 : Text[1];
+
+    PROCEDURE Connect@1000000000();
+    BEGIN
+      Quote := 39;
+      Quote1 := FORMAT(Quote);
+      IF "Database Type" = "Database Type"::"Sql Server 2005" THEN
+        "Connection String" := Quote1 + 'Provider=' + Provider + ';' +
+        'Presist Security Info=' + "Presist Security Info" + ';' +
+        'User ID=' + "User ID" + ';' +
+        'Password=' + Password + ';' +
+        'Initial Catalog=' + "Initial Catalog" + ';' +
+        'Data Source=' + "Data Source" + Quote1;
+
+      IF "Database Type" = "Database Type"::"Access Database" THEN
+        "Connection String" := 'Provider=' + Provider + ';' +
+      //'Data Source=' + "Data Source" + ';' +
+        'Presist Security Info=' + "Presist Security Info";
+
+      IF "Database Type" = "Database Type"::"Fox Pro" THEN
+        "Connection String" := Quote1 + 'Provider=' + Provider + ';' +
+        'Presist Security Info=' + "Presist Security Info" + ';' +
+        'Data Source=' + "Data Source" + ';' +
+        'Extended Properties=' + "Extended Properties" + Quote1;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

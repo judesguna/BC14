@@ -1,0 +1,124 @@
+OBJECT Table 72117 Bonus Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnDelete=BEGIN
+               BonusDetailedLine.RESET;
+               BonusDetailedLine.SETRANGE("Location Code", "Location Code");
+               BonusDetailedLine.SETRANGE("Salary Plan Code", "Salary Plan Code");
+               BonusDetailedLine.SETRANGE("Bonus Id.", "Bonus Id.");
+               BonusDetailedLine.SETRANGE("Employee No", "Employee No");
+               IF BonusDetailedLine.FINDFIRST THEN BEGIN
+                 BonusDetailedLine.LOCKTABLE;
+                 BonusDetailedLine.DELETEALL;
+               END;
+             END;
+
+    CaptionML=ENU=Bonus Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Bonus Id.           ;Code20        ;CaptionML=ENU=Bonus Id. }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Bonus Year          ;Code20        ;CaptionML=ENU=Bonus Year }
+    { 5   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                                  "Employee Category" := Employee."Employee Category";
+                                                                END
+                                                                ELSE BEGIN
+                                                                  Name := '';
+                                                                  "Employee Category" := "Employee Category"::" ";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 7   ;   ;Pay Element Code    ;Code20        ;CaptionML=ENU=Pay Element Code }
+    { 8   ;   ;Service Year        ;Integer       ;CaptionML=ENU=Service Year }
+    { 9   ;   ;No of Days Worked   ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Bonus Detailed Line"."Days Worked" WHERE (Bonus Id.=FIELD(Bonus Id.),
+                                                                                                              Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                              Bonus Year=FIELD(Bonus Year),
+                                                                                                              Employee No=FIELD(Employee No)));
+                                                   CaptionML=ENU=No of Days Worked;
+                                                   Editable=No }
+    { 10  ;   ;Bonusable Earnings  ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Bonus Detailed Line"."Bonusable Earnings" WHERE (Bonus Id.=FIELD(Bonus Id.),
+                                                                                                                     Location Code=FIELD(Location Code),
+                                                                                                                     Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                                     Bonus Year=FIELD(Bonus Year),
+                                                                                                                     Employee No=FIELD(Employee No)));
+                                                   CaptionML=ENU=Bonusable Earnings;
+                                                   Editable=No }
+    { 11  ;   ;Bonus %             ;Decimal       ;CaptionML=ENU=Bonus % }
+    { 12  ;   ;Ex-Gratia %         ;Decimal       ;CaptionML=ENU=Ex-Gratia % }
+    { 13  ;   ;Bonus Amt           ;Decimal       ;CaptionML=ENU=Bonus Amt }
+    { 14  ;   ;Ex-Gratia Amt       ;Decimal       ;CaptionML=ENU=Ex-Gratia Amt }
+    { 15  ;   ;Gross Bonus Amt     ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Bonus Misc Add/Deductions".Amount WHERE (Location Code=FIELD(Location Code),
+                                                                                                             Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                             Bonus ID.=FIELD(Bonus Id.),
+                                                                                                             Employee No.=FIELD(Employee No),
+                                                                                                             Pay Type=FILTER(Addition)));
+                                                   CaptionML=ENU=Gross Bonus Amt;
+                                                   Editable=No }
+    { 16  ;   ;Deduction Amt       ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Bonus Misc Add/Deductions".Amount WHERE (Location Code=FIELD(Location Code),
+                                                                                                             Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                             Bonus ID.=FIELD(Bonus Id.),
+                                                                                                             Employee No.=FIELD(Employee No),
+                                                                                                             Pay Type=FILTER(Deduction)));
+                                                   CaptionML=ENU=Deduction Amt;
+                                                   Editable=No }
+    { 17  ;   ;Total Net Bonus Amt ;Decimal       ;CaptionML=ENU=Total Net Bonus Amt;
+                                                   Editable=No }
+    { 18  ;   ;Select (Y/N)        ;Boolean       ;CaptionML=ENU=Select (Y/N) }
+    { 19  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary] }
+    { 20  ;   ;Service Month       ;Decimal       ;CaptionML=ENU=Service Month }
+    { 21  ;   ;Total Days In a Year;Decimal       ;CaptionML=ENU=Total Days In a Year }
+  }
+  KEYS
+  {
+    {    ;Bonus Id.,Location Code,Salary Plan Code,Bonus Year,Employee No;
+                                                   Clustered=Yes }
+    {    ;Employee Category,Service Year,Service Month,Employee No }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1102159000 : Record 5200;
+      BonusDetailedLine@1102159001 : Record 72118;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,81 @@
+OBJECT Table 72025 Training Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=17:05:20;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Training Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Training No.        ;Code20        ;CaptionML=ENU=Training No. }
+    { 2   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  "First Name" := Employee."First Name";
+                                                                  "Middle Name" := Employee."Middle Name";
+                                                                  "Last Name" := Employee."Last Name";
+                                                                  Initial := Employee.Initials;
+                                                                  "Department Code" := Employee."Designation Code";
+                                                                  "Department Description" := Employee."Job Title";;
+                                                                  "Designation Code" := Employee."Global Dimension 1 Code";
+
+                                                                  IF Department.GET("Designation Code") THEN
+                                                                    "Designation Description" := Department.Name;
+                                                                  "E-Mail" := Employee."E-Mail";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee  No }
+    { 3   ;   ;First Name          ;Text30        ;CaptionML=ENU=First Name;
+                                                   Editable=No }
+    { 4   ;   ;Middle Name         ;Text30        ;CaptionML=ENU=Middle Name;
+                                                   Editable=No }
+    { 5   ;   ;Last Name           ;Text30        ;CaptionML=ENU=Last Name;
+                                                   Editable=No }
+    { 6   ;   ;Initial             ;Text30        ;CaptionML=ENU=Initial;
+                                                   Editable=No }
+    { 7   ;   ;Department Code     ;Code10        ;CaptionML=ENU=Department Code;
+                                                   Editable=No }
+    { 8   ;   ;Department Description;Text30      ;CaptionML=ENU=Department Description;
+                                                   Editable=No }
+    { 9   ;   ;Designation Code    ;Code10        ;CaptionML=ENU=Designation Code;
+                                                   Editable=No }
+    { 10  ;   ;Designation Description;Text30     ;CaptionML=ENU=Designation Description;
+                                                   Editable=No }
+    { 11  ;   ;E-Mail              ;Text30        ;CaptionML=ENU=E-Mail;
+                                                   Editable=No }
+    { 12  ;   ;Send Mail           ;Boolean       ;CaptionML=ENU=Send Mail }
+    { 13  ;   ;Notes               ;Text30        ;CaptionML=ENU=Notes }
+  }
+  KEYS
+  {
+    {    ;Training No.,Employee No                ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000000 : Record 5200;
+      Department@1000000001 : Record 349;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

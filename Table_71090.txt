@@ -1,0 +1,35 @@
+OBJECT Table 71090 Event Master
+{
+  OBJECT-PROPERTIES
+  {
+    Date=12-02-18;
+    Time=11:54:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    LookupPageID=Page71113;
+    DrillDownPageID=Page71113;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20         }
+    { 2   ;   ;Description         ;Text50         }
+    { 3   ;   ;IsSportsAndGames    ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

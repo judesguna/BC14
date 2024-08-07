@@ -1,0 +1,108 @@
+OBJECT Table 72096 Final Settlement Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Final Settlement Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cycle Code   ;Code20        ;CaptionML=ENU=Salary Cycle Code }
+    { 4   ;   ;Payroll Start Date  ;Date          ;CaptionML=ENU=Payroll Start Date }
+    { 5   ;   ;Payroll End Date    ;Date          ;CaptionML=ENU=Payroll End Date }
+    { 6   ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+    { 7   ;   ;Month               ;Integer       ;CaptionML=ENU=Month }
+    { 8   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No;
+                                                   NotBlank=Yes }
+    { 9   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements";
+                                                   CaptionML=ENU=Pay Element Code;
+                                                   NotBlank=Yes }
+    { 10  ;   ;Paid Category       ;Option        ;CaptionML=ENU=Paid Category;
+                                                   OptionCaptionML=ENU=Monthly,Yearly;
+                                                   OptionString=Monthly,Yearly }
+    { 11  ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement }
+    { 12  ;   ;Fixed / Percent     ;Option        ;CaptionML=ENU=Fixed / Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent }
+    { 13  ;   ;Amount Calculation Type;Option     ;CaptionML=ENU=Amount Calculation Type;
+                                                   OptionCaptionML=ENU=Pay Day,Full Amount;
+                                                   OptionString=Pay Day,Full Amount }
+    { 14  ;   ;Base Pay Elements   ;Text250       ;CaptionML=ENU=Base Pay Elements;
+                                                   Editable=No }
+    { 15  ;   ;Percentage (%)      ;Decimal       ;CaptionML=ENU=Percentage (%) }
+    { 16  ;   ;Included In Pay Slip;Boolean       ;CaptionML=ENU=Included In Pay Slip }
+    { 17  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order }
+    { 18  ;   ;Total Days in a Month;Integer      ;CaptionML=ENU=Total Days in a Month }
+    { 19  ;   ;Paid Days           ;Decimal       ;CaptionML=ENU=Paid Days }
+    { 20  ;   ;Actual Amount       ;Decimal       ;OnValidate=BEGIN
+                                                                IF "Pay Type" = "Pay Type"::Deduction THEN
+                                                                  "Actual Amount" := - "Actual Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Actual Amount }
+    { 21  ;   ;Payable Amount      ;Decimal       ;OnValidate=BEGIN
+                                                                IF "Pay Type" = "Pay Type"::Deduction THEN
+                                                                  "Payable Amount" := - "Payable Amount";
+                                                              END;
+
+                                                   CaptionML=ENU=Payable Amount }
+    { 22  ;   ;PF / ESI / PT Gross Earnings;Decimal;
+                                                   CaptionML=ENU=PF / ESI / PT Gross Earnings }
+    { 23  ;   ;EPS Gross Earnings  ;Decimal       ;CaptionML=ENU=EPS Gross Earnings }
+    { 24  ;   ;Account No.         ;Code20        ;CaptionML=ENU=Account No. }
+    { 25  ;   ;Employee VPF Amount ;Decimal       ;CaptionML=ENU=Employee VPF Amount }
+    { 26  ;   ;Employee PF / ESI Amount;Decimal   ;CaptionML=ENU=Employee PF / ESI Amount }
+    { 27  ;   ;Employer PF / ESI Amount;Decimal   ;CaptionML=ENU=Employer PF / ESI Amount }
+    { 28  ;   ;Employer EPS Amount ;Decimal       ;CaptionML=ENU=Employer EPS Amount }
+    { 29  ;   ;PF Admin Charges Amount;Decimal    ;CaptionML=ENU=PF Admin Charges Amount }
+    { 30  ;   ;PF EDLI Amount      ;Decimal       ;CaptionML=ENU=PF EDLI Amount }
+    { 31  ;   ;PF RIFA Amount      ;Decimal       ;CaptionML=ENU=PF RIFA Amount }
+    { 32  ;   ;Salary Processed    ;Boolean       ;CaptionML=ENU=Salary Processed }
+    { 33  ;   ;Salary Posted       ;Boolean       ;CaptionML=ENU=Salary Posted }
+    { 34  ;   ;Loan                ;Boolean       ;CaptionML=ENU=Loan }
+    { 35  ;   ;Payment Type        ;Option        ;CaptionML=ENU=Payment Type;
+                                                   OptionCaptionML=ENU=Full Payment,First Payment,Second Payment;
+                                                   OptionString=Full Payment,First Payment,Second Payment }
+    { 36  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary] }
+    { 37  ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Salary Cycle Code,Employee No,Pay Element Code;
+                                                   Clustered=Yes }
+    {    ;Pay Type,Sorting Order                  ;SumIndexFields=Payable Amount }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

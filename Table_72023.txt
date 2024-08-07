@@ -1,0 +1,91 @@
+OBJECT Table 72023 Reviewer
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=17:05:02;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=App No.,App EmpNo.,Employee No;
+    CaptionML=ENU=Reviewer;
+    LookupPageID=Page72034;
+    DrillDownPageID=Page72034;
+  }
+  FIELDS
+  {
+    { 1   ;   ;App No.             ;Code20        ;CaptionML=ENU=App No. }
+    { 2   ;   ;App EmpNo.          ;Code20        ;CaptionML=ENU=App EmpNo. }
+    { 3   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  "Employee Name" := Employee."First Name" + ' ' + Employee."Middle Name" + ' ' + Employee."Last Name";
+                                                                  "Designation Code" := Employee."Designation Code";
+                                                                  "Designation Description" := Employee."Job Title";
+                                                                  "Department Code" := Employee."Global Dimension 1 Code";
+
+                                                                  IF Department.GET("Department Code") THEN
+                                                                    "Department Description" := Department.Name;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No }
+    { 4   ;   ;Evaluation Code     ;Code10        ;OnValidate=BEGIN
+                                                                IF PerformanceAppraisal.GET("Evaluation Code") THEN
+                                                                  "Evaluation Description" := PerformanceAppraisal.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Evaluation Code;
+                                                   Editable=No }
+    { 5   ;   ;Evaluation Description;Text30      ;CaptionML=ENU=Evaluation Description }
+    { 6   ;   ;Employee Name       ;Text30        ;CaptionML=ENU=Employee Name;
+                                                   Editable=No }
+    { 7   ;   ;Designation Code    ;Code10        ;CaptionML=ENU=Designation Code }
+    { 8   ;   ;Designation Description;Text30     ;CaptionML=ENU=Designation Description;
+                                                   Editable=No }
+    { 9   ;   ;Department Code     ;Code10        ;CaptionML=ENU=Department Code }
+    { 10  ;   ;Department Description;Text30      ;CaptionML=ENU=Department Description;
+                                                   Editable=No }
+    { 11  ;   ;Result of Performance;Option       ;CaptionML=ENU=Result of Performance;
+                                                   OptionCaptionML=ENU=" ,Bad,Average,Good,V.Good,Excellent";
+                                                   OptionString=[ ,Bad,Average,Good,V.Good,Excellent] }
+    { 12  ;   ;Evaluation Date     ;Date          ;CaptionML=ENU=Evaluation Date }
+    { 13  ;   ;Evaluation Time     ;Time          ;CaptionML=ENU=Evaluation Time }
+    { 14  ;   ;Evaluation Type     ;Option        ;CaptionML=ENU=Evaluation Type;
+                                                   OptionCaptionML=ENU=" ,I Round,II Round,III Round,IV Round";
+                                                   OptionString=[ ,I Round,II Round,III Round,IV Round] }
+    { 15  ;   ;Evaluator Rating %  ;Code10        ;TableRelation="Rating Value";
+                                                   CaptionML=ENU=Evaluator Rating % }
+    { 16  ;   ;Feedback            ;Text30        ;CaptionML=ENU=Feedback }
+    { 17  ;   ;Objectives Code     ;Code10        ;CaptionML=ENU=Objectives Code }
+  }
+  KEYS
+  {
+    {    ;App No.,App EmpNo.,Employee No,Evaluation Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000000 : Record 5200;
+      Department@1000000001 : Record 349;
+      PerformanceAppraisal@1000000002 : Record 72006;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

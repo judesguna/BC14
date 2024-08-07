@@ -1,0 +1,152 @@
+OBJECT Table 71089 Student Leave Application
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. Ankesh
+               IF "No." = '' THEN BEGIN
+                 LeaveSetup.GET;
+                 LeaveSetup.TESTFIELD("Student Leave Application No.");
+                 NoSeriesMgt.InitSeries(LeaveSetup."Student Leave Application No.",xRec."No. Series",0D,"No.","No. Series");
+               END;
+               "User ID" := USERID;
+               // Stop 01. Ankesh
+             END;
+
+    CaptionML=ENU=Student Leave Application;
+    LookupPageID=Page71104;
+    DrillDownPageID=Page71104;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                // Start 02. Ankesh
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  LeaveSetup.GET;
+                                                                  NoSeriesMgt.TestManual(LeaveSetup."Student Leave Application No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                                // Stop 02. Ankesh
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Student No.         ;Code20        ;TableRelation=Student;
+                                                   OnLookup=BEGIN
+                                                              // Start 03.Ankesh
+                                                              IF EduSetup.GET THEN;
+                                                              StudentRec.SETRANGE("Academic Year",EduSetup."Academic Year");
+                                                              IF StudentRec.FINDSET THEN
+                                                                IF PAGE.RUNMODAL(0,StudentRec) = ACTION::LookupOK THEN BEGIN
+                                                                  "Student No." := StudentRec."No.";
+                                                                  "Student Name" := StudentRec.Name;
+                                                                  Class := StudentRec.Class;
+                                                                  Curriculum := StudentRec.Curriculum;
+                                                                  Section := StudentRec.Section;
+                                                                END;
+                                                              // Stop 03. Ankesh
+                                                            END;
+
+                                                   CaptionML=ENU=Student No. }
+    { 3   ;   ;Student Name        ;Text50        ;CaptionML=ENU=Student Name }
+    { 4   ;   ;Class               ;Code20        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class }
+    { 5   ;   ;Curriculum          ;Code20        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 6   ;   ;Section             ;Code20        ;CaptionML=ENU=Section }
+    { 7   ;   ;From Date           ;Date          ;OnValidate=BEGIN
+                                                                // Start 04.Ankesh
+                                                                IF "To Date" <> 0D THEN
+                                                                  "No. Of Days" := "To Date" - "From Date" + 1;
+                                                                // Stop 04. Ankesh
+                                                              END;
+
+                                                   CaptionML=ENU=From Date }
+    { 8   ;   ;To Date             ;Date          ;OnValidate=BEGIN
+                                                                // Start 05.Ankesh
+                                                                IF "From Date" <> 0D THEN
+                                                                  "No. Of Days" := "To Date" - "From Date" + 1;
+                                                                // Stop 05. Ankesh
+                                                              END;
+
+                                                   CaptionML=ENU=To Date }
+    { 9   ;   ;Reason              ;Text250       ;CaptionML=ENU=Reason }
+    { 10  ;   ;No. Of Days         ;Decimal       ;CaptionML=ENU=No. Of Days;
+                                                   Editable=No }
+    { 11  ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 13  ;   ;Leave Status        ;Option        ;CaptionML=ENU=Status;
+                                                   OptionCaptionML=ENU=" ,Requested,Sanctioned,Cancelled";
+                                                   OptionString=[ ,Requested,Sanctioned,Cancelled];
+                                                   Editable=Yes }
+    { 14  ;   ;Applicant Type      ;Option        ;CaptionML=ENU=Applicant Type;
+                                                   OptionCaptionML=ENU=" ,Student,Parent,Guardian";
+                                                   OptionString=[ ,Student,Parent,Guardian] }
+    { 15  ;   ;Leave Taken         ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Student Leave Application"."No. Of Days" WHERE (Student No.=FIELD(Student No.),
+                                                                                                                    Leave Status=FILTER(Sanctioned),
+                                                                                                                    Academic Year=FIELD(Academic Year)));
+                                                   CaptionML=ENU=Leave Taken;
+                                                   Editable=No }
+    { 16  ;   ;Applicant E-Mail ID ;Text100       ;CaptionML=ENU=Applicant E-Mail ID }
+    { 17  ;   ;No. Series          ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=No. Series }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Class Code          ;Code30         }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Academic Year,Leave Status,Student No.  ;SumIndexFields=No. Of Days }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      StudentRec@1102155000 : Record 71046;
+      EduSetup@1102155001 : Record 71884;
+      LeaveSetup@1102155003 : Record 71040;
+      NoSeriesMgt@1102155004 : Codeunit 396;
+
+    PROCEDURE Assistedit@1102155001(OldRec@1102155000 : Record 71089) : Boolean;
+    BEGIN
+      // Start 07.Ankesh
+      WITH OldRec DO BEGIN
+        OldRec := Rec;
+        LeaveSetup.GET;
+        LeaveSetup.TESTFIELD("Student Leave Application No.");
+        IF NoSeriesMgt.SelectSeries(LeaveSetup."Student Leave Application No.",OldRec."No. Series",OldRec."No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := OldRec;
+          EXIT(TRUE);
+        END;
+      END;
+      // stop 07.Ankesh
+    END;
+
+    BEGIN
+    {
+
+         No    Date        Sign          Trigger                      Description
+      -----------------------------------------------------------------------------------------------
+        01     28.06.10    ANKESH        OnInsert()             To Use No Series.
+        02     28.06.10    ANKESH    No. - OnValidate()         To Use No Series.
+        03     28.06.10    ANKESH  Student No. - OnLookup()     To Look Up the Student list
+        04     28.06.10    ANKESH   From Date - OnValidate()    To Update From Date
+        05     28.06.10    ANKESH   To Date - OnValidate()      To Update To Date
+        06     28.06.10    ANKESH ApplicationSanctionOrCancel() To Change the status when the user click
+        07     28.06.10    ANKESH        AssistEdit             To Use No Series.
+    }
+    END.
+  }
+}
+

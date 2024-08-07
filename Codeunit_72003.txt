@@ -1,0 +1,205 @@
+OBJECT Codeunit 72003 Loan Calculation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      EmployeeLoanDetails@1000000001 : Record 72088;
+      PaymentDate@1000000002 : Date;
+
+    PROCEDURE LoanInstallments@1000000000(EmployeeLoan@1000000000 : Record 72087);
+    BEGIN
+      IF EmployeeLoan."Loan Type" = 0 THEN
+        MESSAGE('Select any one of the Loan Type in Option')
+      ELSE BEGIN
+        IF EmployeeLoan."Loan Type" = EmployeeLoan."Loan Type"::"Interest Free" THEN
+          InterestFree(EmployeeLoan);
+        IF EmployeeLoan."Loan Type" = EmployeeLoan."Loan Type"::"Flat Rate" THEN
+          FlatRate(EmployeeLoan);
+        IF EmployeeLoan."Loan Type" = EmployeeLoan."Loan Type"::"Dimnishing Rate" THEN
+          DimnishingRate(EmployeeLoan);
+      END;
+    END;
+
+    PROCEDURE InterestFree@1000000001(EmployeeLoan@1000000000 : Record 72087);
+    VAR
+      Employee@1000000003 : Record 5200;
+      I@1000000002 : Integer;
+    BEGIN
+      EmployeeLoan.TESTFIELD("No of Installment");
+
+      PaymentDate := CALCDATE('CM',EmployeeLoan."Loan Starting Date");
+
+      IF EmployeeLoan."Loan Type" = EmployeeLoan."Loan Type"::"Interest Free" THEN BEGIN
+        FOR I := 1 TO EmployeeLoan."No of Installment" DO BEGIN
+          EmployeeLoanDetails.INIT;
+          EmployeeLoanDetails.LoanId := EmployeeLoan."Loan Id";
+          EmployeeLoanDetails."Location Code" := EmployeeLoan."Location Code";
+          EmployeeLoanDetails."Salary Plan Code" := EmployeeLoan."Salary Plan Code";
+          EmployeeLoanDetails."Employee No" := EmployeeLoan."Employee No";
+          EmployeeLoanDetails."Line No." += 10000;
+          EmployeeLoanDetails."Loan Deduction Interval" := EmployeeLoan."Loan Date Interval";
+          EmployeeLoanDetails."Loan Amount" := EmployeeLoan."Total Loan Amount";
+          EmployeeLoanDetails."Loan Code" := EmployeeLoan."Loan Code";
+          EmployeeLoanDetails."Salary Process Date" := PaymentDate;
+          EmployeeLoanDetails."EMI Amount" := ROUND((EmployeeLoan."Total Loan Amount" / EmployeeLoan."No of Installment"),0.01,'=');
+          EmployeeLoanDetails.Principal := ROUND((EmployeeLoan."Total Loan Amount" / EmployeeLoan."No of Installment"),0.01,'=');
+          EmployeeLoanDetails."Balance Amount" := EmployeeLoan."Total Loan Amount";
+
+          IF Employee.GET(EmployeeLoan."Employee No") THEN
+            EmployeeLoanDetails.Name := Employee."First Name";
+
+          IF EmployeeLoanDetails.INSERT THEN;
+
+          PaymentDate := CALCDATE('1M',PaymentDate);
+          PaymentDate := CALCDATE('CM',PaymentDate);
+        END;
+
+        EmployeeLoan."Installment Amount" := ROUND((EmployeeLoan."Total Loan Amount" / EmployeeLoan."No of Installment"),0.01,'=');
+        EmployeeLoan."Loan Balance Amount" := EmployeeLoan."Total Loan Amount";
+        EmployeeLoan.MODIFY;
+        MESSAGE('Create a Installment Successfully');
+
+      END;
+    END;
+
+    PROCEDURE FlatRate@1000000002(EmployeeLoan@1000000000 : Record 72087);
+    VAR
+      EmployeeLoanDetail@1000000008 : Record 72088;
+      Employee@1000000009 : Record 5200;
+      Principal@1000000006 : Decimal;
+      InterestAmount@1000000005 : Decimal;
+      MonthlyInterest@1000000004 : Decimal;
+      IntRateperMonth@1000000003 : Decimal;
+      EMIAmount@1000000002 : Decimal;
+      I@1000000001 : Integer;
+    BEGIN
+      EmployeeLoan.TESTFIELD("No of Installment");
+
+      IntRateperMonth := EmployeeLoan."Rate of Interest" / 12;
+      MonthlyInterest := ROUND((EmployeeLoan."Total Loan Amount" * IntRateperMonth) / 100,0.01);
+      InterestAmount := ROUND((MonthlyInterest * EmployeeLoan."No of Installment"),0.01);
+      PaymentDate := CALCDATE('CM',EmployeeLoan."Loan Starting Date");
+      EMIAmount :=
+        ROUND(((EmployeeLoan."Total Loan Amount" + InterestAmount) /
+          EmployeeLoan."No of Installment"),0.01);
+
+      IF EmployeeLoan."Loan Type" = EmployeeLoan."Loan Type"::"Flat Rate" THEN BEGIN
+        FOR I := 1 TO EmployeeLoan."No of Installment" DO BEGIN
+          EmployeeLoanDetails.INIT;
+          EmployeeLoanDetails."Location Code" := EmployeeLoan."Location Code";
+          EmployeeLoanDetails."Salary Plan Code" := EmployeeLoan."Salary Plan Code";
+          EmployeeLoanDetails."Employee No" := EmployeeLoan."Employee No";
+          EmployeeLoanDetail.LoanId := EmployeeLoan."Loan Id";
+          EmployeeLoanDetails."Line No." += 10000;
+          EmployeeLoanDetails."Salary Process Date" := PaymentDate;
+          EmployeeLoanDetails."Loan Code" := EmployeeLoan."Loan Code";
+          EmployeeLoanDetails."Loan Amount" := EmployeeLoan."Total Loan Amount";
+          EmployeeLoanDetails."EMI Amount" := EMIAmount;
+          EmployeeLoanDetails.Interest := MonthlyInterest;
+          EmployeeLoanDetails.Principal := EMIAmount - MonthlyInterest;
+          EmployeeLoanDetails."Balance Amount" := EmployeeLoan."Total Loan Amount" +
+            (MonthlyInterest * EmployeeLoan."No of Installment");
+
+          IF Employee.GET(EmployeeLoan."Employee No") THEN
+            EmployeeLoanDetails.Name := Employee."First Name";
+
+          IF EmployeeLoanDetails.INSERT THEN;
+
+          PaymentDate := CALCDATE('1M',PaymentDate);
+          PaymentDate := CALCDATE('CM',PaymentDate);
+        END;
+
+        IF EmployeeLoan."Rate of Interest" <> 0 THEN BEGIN
+          EmployeeLoan."Installment Amount" := EMIAmount;
+          EmployeeLoan."Loan Balance Amount" := EmployeeLoan."Total Loan Amount" +
+             (MonthlyInterest * EmployeeLoan."No of Installment");
+          EmployeeLoan."Total Interest Amount" := MonthlyInterest * EmployeeLoan."No of Installment";
+        END ELSE
+          EmployeeLoan."Installment Amount" :=
+              ROUND((EmployeeLoan."Total Loan Amount" /
+            EmployeeLoan."No of Installment"),1,'=');
+        EmployeeLoan.MODIFY;
+
+        MESSAGE('Create a Installment Successfully');
+      END;
+    END;
+
+    PROCEDURE DimnishingRate@1000000003(EmployeeLoan@1000000000 : Record 72087);
+    VAR
+      Employee@1000000001 : Record 5200;
+      Principal@1000000007 : Decimal;
+      InterestAmount@1000000006 : Decimal;
+      MonthlyInterest@1000000005 : Decimal;
+      IntRateperMonth@1000000004 : Decimal;
+      EMIAmount@1000000003 : Decimal;
+      EMICalculation1@1000000008 : Decimal;
+      EMICalculation2@1000000009 : Decimal;
+      Balance@1000000010 : Decimal;
+      BufferDate@1000000012 : Date;
+      I@1000000002 : Integer;
+      J@1000000011 : Integer;
+    BEGIN
+      EmployeeLoan.TESTFIELD("No of Installment");
+
+      PaymentDate := CALCDATE('CM',EmployeeLoan."Loan Starting Date");
+      IntRateperMonth := (1200 + EmployeeLoan."Rate of Interest") / 1200;
+      EMICalculation1 := EmployeeLoan."Total Loan Amount" * POWER(IntRateperMonth,EmployeeLoan."No of Installment");
+
+      FOR I := 0 TO (EmployeeLoan."No of Installment" - 1) DO
+        EMICalculation2 += POWER(IntRateperMonth,I);
+      EMIAmount := ROUND((EMICalculation1 / EMICalculation2),0.01,'=');
+      Balance := EmployeeLoan."Total Loan Amount";
+      FOR J := 1 TO EmployeeLoan."No of Installment" DO BEGIN
+        BufferDate := PaymentDate;
+        EmployeeLoanDetails.INIT;
+        EmployeeLoanDetails."Location Code" := EmployeeLoan."Location Code";
+        EmployeeLoanDetails."Salary Plan Code" := EmployeeLoan."Salary Plan Code";
+        EmployeeLoanDetails."Employee No" := EmployeeLoan."Employee No";
+        EmployeeLoanDetails."Line No." += 10000;
+        EmployeeLoanDetails."Loan Code" := EmployeeLoan."Loan Code";
+        EmployeeLoanDetails."Salary Process Date" := PaymentDate;
+        EmployeeLoanDetails.Name := EmployeeLoan.Name;
+        EmployeeLoanDetails."Loan Amount" := EmployeeLoan."Total Loan Amount";
+        EmployeeLoanDetails."EMI Amount" := EMIAmount;
+        EmployeeLoanDetails.Interest := (Balance * EmployeeLoan."Rate of Interest") / 1200;
+        EmployeeLoanDetails.Principal := EMIAmount - EmployeeLoanDetails.Interest;
+        EmployeeLoanDetails."Balance Amount" := Balance;
+        Balance := Balance - EmployeeLoanDetails.Principal;
+        IF EmployeeLoanDetails.INSERT THEN;
+
+        PaymentDate := CALCDATE('1M',PaymentDate);
+        PaymentDate := CALCDATE('CM',PaymentDate);
+
+      END;
+
+      EmployeeLoan."Installment Amount" := EmployeeLoanDetails."EMI Amount";
+      EmployeeLoan.MODIFY;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

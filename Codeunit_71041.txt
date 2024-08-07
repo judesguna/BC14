@@ -1,0 +1,466 @@
+OBJECT Codeunit 71041 Mark Processing
+{
+  OBJECT-PROPERTIES
+  {
+    Date=04-04-23;
+    Time=22:30:05;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      ExamSchedLine@1102155000 : Record 71066;
+      StudMarksHeader@1102159000 : Record 71055;
+
+    PROCEDURE "Get Students"@1102155003(MarkNo@1102155000 : Code[20]);
+    VAR
+      MarksHeader@1102155001 : Record 71052;
+      StudentSubjects@1102155002 : Record 71049;
+      MarksLine@1102155003 : Record 71053;
+      Student@1102155004 : Record 71046;
+      ExamCode@1102155005 : Record 71903;
+    BEGIN
+       // Start 01.KATHIR
+      MarksHeader.GET(MarkNo);
+      MarksHeader.TESTFIELD("Class Code");
+      MarksHeader.TESTFIELD(Class);
+      MarksHeader.TESTFIELD(Section);
+      MarksHeader.TESTFIELD("Academic Year");
+      MarksHeader.TESTFIELD(Curriculum);
+      MarksHeader.TESTFIELD(Subject);
+      MarksHeader.TESTFIELD("Max Mark");
+      MarksHeader.TESTFIELD("Pass Mark");
+      MarksHeader.TESTFIELD("Exam Type");
+      ExamCode.GET(MarksHeader."Exam Type");
+      StudentSubjects.RESET;
+      StudentSubjects.SETRANGE(Subject,MarksHeader.Subject);
+      StudentSubjects.SETRANGE("Class Code",MarksHeader."Class Code");
+      IF StudentSubjects.FINDSET THEN
+        REPEAT
+          Student.GET(StudentSubjects."Student No.");
+          IF Student."Student Status" = Student."Student Status"::Student THEN BEGIN
+            MarksLine."Document No." := MarkNo;
+            MarksLine.VALIDATE("Document No.");
+            MarksLine."Student No." := StudentSubjects."Student No.";
+            // Start 03.VIGNESH
+            MarksLine."Student Name" := Student.Name;
+            // Stop 03.VIGNESH
+            MarksLine.Gender := Student.Gender;
+            MarksLine."Max Mark" := MarksHeader."Max Mark";
+            MarksLine.Class := MarksHeader.Class;
+            MarksLine.Section := MarksHeader.Section;
+            MarksLine."Academic Year" := MarksHeader."Academic Year";
+            MarksLine.Curriculum := MarksHeader.Curriculum;
+            MarksLine."Exam Type" := MarksHeader."Exam Type";
+            MarksLine."Pass Mark" := MarksHeader."Pass Mark";
+            MarksLine.ExamCount := ExamCode."Exam Order";
+            MarksLine.Subject := MarksHeader.Subject;
+            MarksLine."User ID" := MarksHeader."User ID";
+            MarksLine."Class Code" := MarksHeader."Class Code";
+            MarksLine.INSERT;
+          END;
+        UNTIL StudentSubjects.NEXT = 0;
+      // Stop 01.KATHIR
+    END;
+
+    PROCEDURE "Marks Entry Completed"@1102155000(MarkNo@1102155000 : Code[20]);
+    VAR
+      MarksHeader@1102155001 : Record 71052;
+    BEGIN
+      // Start 02.KATHIR
+      MarksHeader.GET(MarkNo);
+      MarksHeader."Entry Completed" := TRUE;
+      MarksHeader.MODIFY;
+      // Stop 02.KATHIR
+      // Start 04.Ankesh
+      ExamSchedLine.RESET;
+      //ExamSchedLine.SETRANGE("Academic Year",MarksHeader."Academic Year");
+      //ExamSchedLine.SETRANGE("Exam Code",MarksHeader."Exam Type");
+      //ExamSchedLine.SETRANGE("Subject Code",MarksHeader.Subject);
+      ExamSchedLine.SETRANGE(ExamSchedLine."Class Code",MarksHeader."Class Code");
+      ExamSchedLine.SETRANGE(ExamSchedLine."Exam Code",MarksHeader."Exam Type");
+      ExamSchedLine.SETRANGE(ExamSchedLine."Subject Code",MarksHeader.Subject);
+      IF ExamSchedLine.FINDFIRST THEN BEGIN
+        ExamSchedLine."Mark Header Code" := MarkNo;
+        ExamSchedLine.MODIFY;
+      END;
+      // Stop 04.Ankesh
+    END;
+
+    PROCEDURE GenerateRank@1102155001(ClassCode@1102155000 : Code[20];ExamCode@1102155001 : Code[20]) Ret : Boolean;
+    VAR
+      Student@1102155002 : Record 71046;
+    BEGIN
+      Ret := FALSE;
+      IF ValidateMarkEntry(ClassCode,ExamCode)THEN
+      BEGIN
+        Student.SETRANGE(Student."Class Code",ClassCode);
+        Student.SETRANGE(Student."Student Status",Student."Student Status"::Student);
+        IF Student.FINDSET THEN BEGIN
+          REPEAT
+            CreateStudentMark(Student."No.",ExamCode,ClassCode);
+            UpdateRank(ClassCode,ExamCode);
+          UNTIL Student.NEXT=0;
+          Ret := TRUE;
+        END;
+      END ELSE
+        EXIT(Ret);
+    END;
+
+    PROCEDURE ValidateMarkEntry@1102155002(ClassCode@1102155001 : Code[20];ExamCode@1102155000 : Code[20]) Ret : Boolean;
+    VAR
+      ClassSecSubjects@1102155002 : Record 71016;
+      MarkHeader@1102155003 : Record 71052;
+    BEGIN
+      ClassSecSubjects.SETRANGE(ClassSecSubjects."Class Code",ClassCode);
+      IF ClassSecSubjects.FINDSET THEN
+      REPEAT
+        MarkHeader.RESET;
+        MarkHeader.SETRANGE(MarkHeader."Class Code",ClassCode);
+        MarkHeader.SETRANGE(MarkHeader."Exam Type",ExamCode);
+        MarkHeader.SETRANGE(MarkHeader.Subject,ClassSecSubjects.Subject);
+        IF MarkHeader.FINDFIRST THEN
+        BEGIN
+          IF NOT MarkHeader."Entry Completed" THEN
+            EXIT(FALSE);
+        END
+        ELSE
+           EXIT(FALSE);
+      UNTIL ClassSecSubjects.NEXT=0;
+      EXIT(TRUE);
+    END;
+
+    PROCEDURE CreateStudentMark@1102155004(StudentNo@1102155000 : Code[20];ExamCode@1102155001 : Code[20];ClassCode@1102159000 : Code[20]);
+    VAR
+      MarksLine@1102155002 : Record 71053;
+      StudMarkHead@1102155007 : Record 71055;
+      Student@1102155008 : Record 71046;
+      Total@1102155003 : Decimal;
+      FailCnt@1102155004 : Integer;
+      SubjCnt@1102155005 : Integer;
+      AbsSubjCnt@1102155006 : Integer;
+      TotalMarkconducted@1102159001 : Decimal;
+    BEGIN
+      CLEAR(Total);
+      CLEAR(FailCnt);
+      CLEAR(SubjCnt);
+      CLEAR(AbsSubjCnt);
+      Student.GET(StudentNo);
+
+      MarksLine.RESET;
+      MarksLine.SETRANGE(MarksLine."Student No.",StudentNo);
+      MarksLine.SETRANGE(MarksLine."Exam Type",ExamCode);
+      MarksLine.SETRANGE(MarksLine."Class Code",ClassCode);
+      IF MarksLine.FINDSET THEN
+      REPEAT
+        Total += MarksLine."Marks Obtained";
+        TotalMarkconducted += MarksLine."Max Mark";   //DK-16.07.13
+        IF MarksLine.Result = MarksLine.Result::Fail THEN
+          FailCnt+= 1;
+        IF MarksLine.Result = MarksLine.Result::Absent THEN
+        BEGIN
+          AbsSubjCnt+=1;
+          FailCnt+= 1;
+        END;
+        SubjCnt+=1;
+      UNTIL MarksLine.NEXT=0;
+
+      StudMarkHead.RESET;
+      StudMarkHead.SETRANGE(StudMarkHead."Student No.",StudentNo);
+      StudMarkHead.SETRANGE(StudMarkHead."Class Code",Student."Class Code");
+      StudMarkHead.SETRANGE(StudMarkHead."Exam Type",ExamCode);
+      IF StudMarkHead.FINDFIRST THEN
+      BEGIN
+        StudMarkHead."Total Marks":=Total;
+        StudMarkHead."Total No of Subject Failed":= FailCnt;
+        IF FailCnt > 0 THEN  BEGIN
+          StudMarkHead.Failed:=TRUE;
+          StudMarkHead.Rank := 0;
+        END
+        ELSE
+          StudMarkHead.Failed:=FALSE;
+        StudMarkHead."Total No of Subject Absent":=AbsSubjCnt;
+        IF StudMarkHead."Total Marks" > 0 THEN
+          StudMarkHead.Average:= StudMarkHead."Total Marks"/(SubjCnt-AbsSubjCnt);
+
+        StudMarkHead.MODIFY;
+      END
+      ELSE
+      BEGIN
+        StudMarkHead."Student No.":=StudentNo;
+        StudMarkHead."Exam Type":=ExamCode;
+        StudMarkHead.Name:=Student.Name;
+        StudMarkHead."Class Code":=Student."Class Code";
+        StudMarkHead.Class:=Student.Class;
+        StudMarkHead.Section:=Student.Section;
+        StudMarkHead.Curriculum:=Student.Curriculum;
+        StudMarkHead."Academic Year":= Student."Academic Year";
+        StudMarkHead.Height:=Student.Height;
+        StudMarkHead.Weight:=Student.Weight;
+        StudMarkHead."Total Marks Conducted" := SubjCnt;//DK 15-07-13
+
+        StudMarkHead."Total Marks":=Total;
+        StudMarkHead."Total No of Subject Failed":= FailCnt;
+        IF FailCnt>0 THEN
+          BEGIN
+           StudMarkHead.Failed:=TRUE;
+           StudMarkHead.Rank := 0;
+          END
+          ELSE
+            StudMarkHead.Failed:=FALSE;
+        StudMarkHead."Total No of Subject Absent":=AbsSubjCnt;
+        IF StudMarkHead."Total Marks" > 0 THEN BEGIN
+          StudMarkHead.Average:= StudMarkHead."Total Marks"/(SubjCnt-AbsSubjCnt);
+          StudMarksHeader."Percentage Scored" := (StudMarkHead."Total Marks" / TotalMarkconducted) * 100; //DK-16.07.13
+        StudMarkHead.INSERT;
+        END;
+      END;
+    END;
+
+    PROCEDURE UpdateRank@1102155015(ClassCode@1102155000 : Code[20];ExamCode@1102155001 : Code[20]);
+    VAR
+      StudMarkHead@1102155002 : Record 71055;
+      varPrevTot@1102155003 : Decimal;
+      varRank@1102155004 : Integer;
+      varSame@1102155005 : Boolean;
+      SetRank@1102159000 : Integer;
+      StudMarkHead1@1102159001 : Record 71055;
+      CountSMH@1102159002 : Integer;
+    BEGIN
+       {
+      StudMarkHead.RESET;
+      StudMarkHead.SETCURRENTKEY(StudMarkHead."Class Code",StudMarkHead."Exam Type",StudMarkHead.Average);
+      StudMarkHead.SETRANGE(StudMarkHead."Class Code",ClassCode);
+      StudMarkHead.SETRANGE(StudMarkHead."Exam Type",ExamCode);
+      StudMarkHead.SETRANGE(StudMarkHead.Failed,FALSE);
+      IF StudMarkHead.ASCENDING(FALSE) THEN;
+      IF StudMarkHead.FIND('-') THEN
+      REPEAT
+        IF varPrevTot= 0 THEN
+        BEGIN
+          varRank:= varRank + 1;
+          varPrevTot:=StudMarkHead."Total Marks";
+        END
+        ELSE
+        BEGIN
+        IF varPrevTot = StudMarkHead."Total Marks" THEN
+        BEGIN
+          varRank:= varRank ;
+          varPrevTot:=StudMarkHead."Total Marks";
+          varSame:=TRUE;
+        END
+        ELSE
+          IF varPrevTot <> StudMarkHead."Total Marks" THEN
+          BEGIN
+          IF varSame THEN
+            varRank:= varRank + 2
+          ELSE
+            varRank:= varRank + 1;
+
+          varPrevTot:=StudMarkHead."Total Marks";
+          CLEAR(varSame);
+        END
+        END;
+        StudMarkHead.Rank:=varRank;
+        StudMarkHead.MODIFY;
+      UNTIL StudMarkHead.NEXT=0
+      ELSE BEGIN
+        StudMarkHead.Rank:= 0;
+        StudMarkHead.MODIFY;
+      END;
+      }
+      CLEAR(StudMarkHead);
+      StudMarkHead.SETRANGE(StudMarkHead."Class Code",ClassCode);
+      StudMarkHead.SETRANGE(StudMarkHead."Exam Type",ExamCode);
+      IF StudMarkHead.FINDSET(TRUE,TRUE) THEN
+        StudMarkHead.MODIFYALL(StudMarkHead.Rank,0);
+
+      SetRank := 1;
+      CLEAR(StudMarkHead);
+      StudMarkHead.SETCURRENTKEY(StudMarkHead."Class Code",StudMarkHead."Exam Type",StudMarkHead.Average);
+      StudMarkHead.SETRANGE(StudMarkHead."Class Code",ClassCode);
+      StudMarkHead.SETRANGE(StudMarkHead."Exam Type",ExamCode);
+      StudMarkHead.SETRANGE(StudMarkHead.Failed,FALSE);
+      IF StudMarkHead.ASCENDING(FALSE) THEN;
+      IF StudMarkHead.FIND('-') THEN
+      REPEAT
+        StudMarkHead1.RESET;
+        StudMarkHead1.SETRANGE("Class Code",ClassCode);
+        StudMarkHead1.SETRANGE("Exam Type",ExamCode);
+        StudMarkHead1.SETRANGE(Failed,FALSE);
+        StudMarkHead1.SETRANGE(Rank,0);
+        StudMarkHead1.SETRANGE(Average,StudMarkHead.Average);
+        IF StudMarkHead1.FINDSET(TRUE,TRUE) THEN;
+        CountSMH := StudMarkHead1.COUNT;
+        StudMarkHead1.MODIFYALL(StudMarkHead1.Rank,SetRank);
+        IF CountSMH <> 0 THEN
+          SetRank := CountSMH + SetRank;
+      UNTIL StudMarkHead.NEXT=0;
+
+      StudMarkHead.RESET;
+      StudMarkHead.SETCURRENTKEY(StudMarkHead."Class Code",StudMarkHead."Exam Type",StudMarkHead.Average);
+      StudMarkHead.SETRANGE(StudMarkHead."Class Code",ClassCode);
+      StudMarkHead.SETRANGE(StudMarkHead."Exam Type",ExamCode);
+      StudMarkHead.SETRANGE(StudMarkHead.Failed,TRUE);
+      IF StudMarkHead.FINDSET THEN BEGIN
+        StudMarkHead.MODIFYALL(StudMarkHead.Rank,0);
+      END;
+    END;
+
+    PROCEDURE MarkEntryNotCompleted@1102155005(ClassCode@1102155001 : Code[20];ExamCode@1102155000 : Code[20]) Ret : ARRAY [50] OF Text[50];
+    VAR
+      ClassSecSubjects@1102155002 : Record 71016;
+      MarkHeader@1102155003 : Record 71052;
+      FacultySubject@1102155004 : Record 71150;
+      i@1102155005 : Integer;
+    BEGIN
+      i:=1;
+      ClassSecSubjects.SETRANGE(ClassSecSubjects."Class Code",ClassCode);
+      IF ClassSecSubjects.FINDSET THEN
+      REPEAT
+        FacultySubject.RESET;
+        FacultySubject.SETRANGE(FacultySubject."Class Code",ClassCode);
+        FacultySubject.SETRANGE(FacultySubject."Subject Code",ClassSecSubjects.Subject);
+        IF FacultySubject.FINDFIRST THEN;
+        MarkHeader.RESET;
+        MarkHeader.SETRANGE(MarkHeader."Class Code",ClassCode);
+        MarkHeader.SETRANGE(MarkHeader."Exam Type",ExamCode);
+        MarkHeader.SETRANGE(MarkHeader.Subject,ClassSecSubjects.Subject);
+        IF MarkHeader.FINDFIRST THEN
+        BEGIN
+          IF MarkHeader."Entry Completed" THEN BEGIN
+            Ret[i] += ClassSecSubjects.Subject+','
+                     +'TRUE'+','+FacultySubject."Faculty Code"+','+FacultySubject."Faculty Name";
+          END ELSE BEGIN
+            Ret[i] += ClassSecSubjects.Subject+','
+                     +'FALSE'+','+FacultySubject."Faculty Code"+','+FacultySubject."Faculty Name";
+          END;
+        END ELSE
+          Ret[i] += ClassSecSubjects.Subject+','
+                     +'FALSE'+','+FacultySubject."Faculty Code"+','+FacultySubject."Faculty Name";
+
+      i+=1;
+      UNTIL ClassSecSubjects.NEXT=0;
+      Ret[i] := '#EOF';
+    END;
+
+    PROCEDURE StudentMarkHeaderPublish@1102159000(ClassCode@1102159000 : Code[20];ExamCode@1102159001 : Code[20]);
+    VAR
+      MarksLine@1102159002 : Record 71053;
+    BEGIN
+      // Start .KATHIR
+      StudMarksHeader.RESET;
+      StudMarksHeader.SETRANGE(StudMarksHeader."Class Code",ClassCode);
+      StudMarksHeader.SETRANGE(StudMarksHeader."Exam Type",ExamCode);
+      IF StudMarksHeader.FINDFIRST THEN
+      REPEAT
+        IF NOT StudMarksHeader.Failed THEN //SJ6.01
+          UpdateAcademicPts(StudMarksHeader."Student No.",StudMarksHeader."Academic Year",StudMarksHeader."Exam Type");  //SJ6.01
+        StudMarksHeader.Published := TRUE;
+        StudMarksHeader.MODIFY;
+      UNTIL StudMarksHeader.NEXT = 0;
+
+      MarksLine.RESET;
+      MarksLine.SETRANGE(MarksLine."Exam Type",ExamCode);
+      MarksLine.SETRANGE(MarksLine."Class Code",ClassCode);
+      IF MarksLine.FINDSET THEN
+      REPEAT
+        MarksLine.Published := TRUE;
+        MarksLine.MODIFY;
+      UNTIL MarksLine.NEXT=0;
+      // Stop .KATHIR
+    END;
+
+    PROCEDURE UpdateNoofSubjectsFailed@1102159001(StudentNo@1102159002 : Code[20];ExamCode@1102159001 : Code[20];ClassCode@1102159000 : Code[20]);
+    VAR
+      MarksLine@1102159007 : Record 71053;
+      StudMarkHead@1102159006 : Record 71055;
+      Student@1102159005 : Record 71046;
+      Total@1102159004 : Decimal;
+      FailCnt@1102159003 : Integer;
+      SubjCnt@1102159009 : Integer;
+      AbsSubjCnt@1102159008 : Integer;
+    BEGIN
+      // Start .KATHIR
+      CLEAR(FailCnt);
+      CLEAR(SubjCnt);
+      CLEAR(AbsSubjCnt);
+      Student.GET(StudentNo);
+
+      MarksLine.RESET;
+      MarksLine.SETRANGE(MarksLine."Student No.",StudentNo);
+      MarksLine.SETRANGE(MarksLine."Exam Type",ExamCode);
+      MarksLine.SETRANGE(MarksLine."Class Code",ClassCode);
+      IF MarksLine.FINDSET THEN
+      REPEAT
+        Total += MarksLine."Marks Obtained";
+        IF MarksLine.Result = MarksLine.Result::Fail THEN
+          FailCnt+= 1;
+        IF MarksLine.Result = MarksLine.Result::Absent THEN
+        BEGIN
+          AbsSubjCnt+=1;
+          FailCnt+= 1;
+        END;
+        SubjCnt+=1;
+      UNTIL MarksLine.NEXT=0;
+
+      StudMarkHead.RESET;
+      StudMarkHead.SETRANGE(StudMarkHead."Student No.",StudentNo);
+      StudMarkHead.SETRANGE(StudMarkHead."Class Code",Student."Class Code");
+      StudMarkHead.SETRANGE(StudMarkHead."Exam Type",ExamCode);
+      IF StudMarkHead.FINDFIRST THEN
+      BEGIN
+        StudMarkHead."Total No of Subject Failed":= FailCnt;
+        IF FailCnt>0 THEN BEGIN
+          StudMarkHead.Failed:=TRUE;
+          StudMarkHead.Rank := 0;
+        END
+        ELSE
+          StudMarkHead.Failed:=FALSE;
+        StudMarkHead.MODIFY;
+      END;
+      // Stop .KATHIR
+    END;
+
+    PROCEDURE UpdateAcademicPts@1000000000(StudNo@1000000000 : Code[20];AcademicYear@1000000003 : Code[20];ExamType@1000000004 : Code[20]);
+    VAR
+      StuMarkHead@1000000005 : Record 71055;
+      AcadmicPts@1000000001 : Record 71945;
+      Grade@1000000002 : Record 71889;
+    BEGIN
+      StuMarkHead.GET(StudNo,AcademicYear,ExamType);
+      Grade.RESET;
+      Grade.SETFILTER("Min Percentage",'<=%1',StuMarkHead.Average);
+      Grade.SETFILTER("Max Percentage",'>=%1',StuMarkHead.Average);
+      IF Grade.FINDLAST THEN BEGIN
+        AcadmicPts.INIT;
+        AcadmicPts."Student No." := StuMarkHead."Student No.";
+        AcadmicPts."Academic Year" := StuMarkHead."Academic Year";
+        AcadmicPts."Exam Code" := StuMarkHead."Exam Type";
+        AcadmicPts."Class Code" := StuMarkHead."Class Code";
+        AcadmicPts.Points := Grade.Points;
+        IF NOT AcadmicPts.INSERT THEN
+          AcadmicPts.MODIFY;
+      END;
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  01/10/09   KATHIR   Get Students()              Code added to Get students for Mark Processing
+        02  14/10/09   KATHIR   Marks Entry Completed()     Function added to Compelete the mark entry process
+        03  09/12/09   VIGNESH  Get Students()              Code added to get the studant name
+        04  07/07/10   Ankesh   Marks Entry Completed()     Code added to update Exam schedule line with the mark no.
+    }
+    END.
+  }
+}
+

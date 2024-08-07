@@ -1,0 +1,38 @@
+OBJECT Table 71945 Academic Points
+{
+  OBJECT-PROPERTIES
+  {
+    Date=02-03-18;
+    Time=19:39:10;
+    Modified=Yes;
+    Version List=SJ6.01;
+  }
+  PROPERTIES
+  {
+    DrillDownPageID=Page91914;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Student No.         ;Code20        ;CaptionML=ENU=Student No.;
+                                                   Editable=Yes }
+    { 2   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 3   ;   ;Exam Code           ;Code20         }
+    { 4   ;   ;Class Code          ;Code20         }
+    { 5   ;   ;Points              ;Decimal        }
+  }
+  KEYS
+  {
+    {    ;Student No.,Academic Year,Exam Code     ;SumIndexFields=Points;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,135 @@
+OBJECT Table 71061 Withdrawal
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.KATHIR
+               Academics.GET;
+               IF "No. Series" = '' THEN BEGIN
+                 Academics.TESTFIELD("Withdrawl No.");
+                 NoSeriesMgt.InitSeries(Academics."Withdrawl No.",xRec."No. Series",0D,"No.","No. Series");
+               END;
+               // Stop 01.KATHIR
+               // Start 02.KATHIR
+               "Academic Year" := EduVert.GetAdmissionYear;
+               "Withdrawal date" := WORKDATE;
+               // Stop 02.KATHIR
+               // Start 06. VANDHANA
+               "User ID" := USERID;
+               // Stop 06. VANDHANA
+             END;
+
+    CaptionML=ENU=Withdrawal;
+    LookupPageID=Page71069;
+    DrillDownPageID=Page71069;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;CaptionML=ENU=No. }
+    { 2   ;   ;Student No.         ;Code20        ;TableRelation=Student WHERE (Student Status=FILTER(Student));
+                                                   OnValidate=BEGIN
+                                                                // Start 03.KATHIR
+                                                                IF Student.GET("Student No.") THEN BEGIN
+                                                                  Class := Student.Class;
+                                                                  Section := Student.Section;
+                                                                  Curriculum := Student.Curriculum;
+                                                                END;
+                                                                // Stop 03.KATHIR
+
+                                                                // Start 04.KATHIR
+                                                                Withdrawl.SETRANGE("Student No.","Student No.");
+                                                                IF Withdrawl.FINDFIRST THEN
+                                                                  ERROR(Text000);
+                                                                // Stop 04.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Student No. }
+    { 3   ;   ;Class               ;Code10        ;CaptionML=ENU=Class;
+                                                   Editable=No }
+    { 4   ;   ;Section             ;Code10        ;CaptionML=ENU=Section;
+                                                   Editable=No }
+    { 5   ;   ;Curriculum          ;Code20        ;CaptionML=ENU=Curriculum;
+                                                   Editable=No }
+    { 6   ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year;
+                                                   Editable=No }
+    { 7   ;   ;Withdrawal date     ;Date          ;CaptionML=ENU=Withdrawal date }
+    { 8   ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 9   ;   ;TC Issued           ;Boolean       ;CaptionML=ENU=TC Issued }
+    { 10  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 26  ;   ;Reason for Leaving  ;Code20        ;TableRelation="Reason Code";
+                                                   CaptionML=ENU=Reason for Leaving }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Academics@1102155000 : Record 71040;
+      NoSeriesMgt@1102155001 : Codeunit 396;
+      EduVert@1102155002 : Codeunit 71880;
+      Student@1102155003 : Record 71046;
+      Withdrawl@1102155004 : Record 71061;
+      ClassSection@1102155005 : Record 71015;
+      Text000@1102155006 : TextConst 'ENU=Record already exists.';
+
+    PROCEDURE Assistedit@1102155000(OldWithdrawl@1102155000 : Record 71061) : Boolean;
+    BEGIN
+      // Start 05.KATHIR
+      WITH OldWithdrawl DO BEGIN
+        OldWithdrawl := Rec;
+        Academics.GET;
+        Academics.TESTFIELD("Withdrawl No.");
+        IF NoSeriesMgt.SelectSeries(Academics."Withdrawl No.",OldWithdrawl."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := OldWithdrawl;
+          EXIT(TRUE);
+        END;
+      END;
+      // stop 05.KATHIR
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+       01   12/10/09   KATHIR   OnInsert()                  Code added to generate Number series
+       02   12/10/09   KATHIR   OnInsert()                  Code added to get current academic year and withdrawl date
+       03   12/10/09   KATHIR   Student No. - OnValidate()  Code added to get student class,section and Curriculum
+       04   12/10/09   KATHIR   Student No. - OnValidate()  Code added to check duplicate students
+       05   12/10/09   KATHIR   Assistedit()                Code added to generate number series
+       06   19/10/09   VANDHANA OnInsert                    Code to assign User ID.
+       07  23/11/09   VIGNESH  Class - OnValidate()         Code added to get the Class Section & Curriculum
+       08  23/11/09   VIGNESH  Class - OnLookup()           Code added to get the Class Section & Curriculum
+       09  23/11/09   VIGNESH  Curriculum - OnValidate()    Code added to get the Class Section & Curriculum
+       10  23/11/09   VIGNESH  Curriculum - OnLookup()      Code added to get the Class Section & Curriculum
+       11  23/11/09   VIGNESH  Section - OnValidate()       Code added to get the Class Section & Curriculum
+       12  23/11/09   VIGNESH  Section - OnLookup()         Code added to get the Class Section & Curriculum
+    }
+    END.
+  }
+}
+

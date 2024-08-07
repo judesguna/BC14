@@ -1,0 +1,61 @@
+OBJECT Table 72073 Medical Reimbu. Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Medical Reimbu. Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Employee No.        ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No. }
+    { 4   ;   ;Pay Element Code    ;Code20        ;CaptionML=ENU=Pay Element Code }
+    { 5   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 6   ;   ;Reimburesment Date  ;Date          ;CaptionML=ENU=Reimburesment Date;
+                                                   NotBlank=Yes }
+    { 7   ;   ;Bill No.            ;Text30        ;CaptionML=ENU=Bill No.;
+                                                   NotBlank=Yes }
+    { 8   ;   ;Bill Date           ;Date          ;CaptionML=ENU=Bill Date }
+    { 9   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 10  ;   ;Bill Amount         ;Decimal       ;CaptionML=ENU=Bill Amount;
+                                                   MinValue=0;
+                                                   BlankZero=Yes;
+                                                   AutoFormatType=1 }
+    { 11  ;   ;Blocked             ;Boolean       ;CaptionML=ENU=Blocked }
+  }
+  KEYS
+  {
+    {    ;Employee No.,Pay Element Code,Location Code,Salary Plan Code,Line No.;
+                                                   Clustered=Yes }
+    {    ;Blocked                                 ;SumIndexFields=Bill Amount }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,98 @@
+OBJECT Table 72015 Selection Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=16:59:53;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Selection Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No                  ;Code20        ;CaptionML=ENU=No }
+    { 2   ;   ;Indenting No.       ;Code20        ;CaptionML=ENU=Indenting No. }
+    { 3   ;   ;Indenting Dept Code ;Code10        ;CaptionML=ENU=Indenting DeptCode }
+    { 4   ;   ;Indenting Desig Code;Code10        ;CaptionML=ENU=Indenting Desig Code }
+    { 5   ;   ;Resume No           ;Code20        ;CaptionML=ENU=Resume No }
+    { 6   ;   ;Line No             ;Integer       ;CaptionML=ENU=Line No }
+    { 7   ;   ;First Name          ;Text30        ;CaptionML=ENU=First Name }
+    { 8   ;   ;Middle Name         ;Text30        ;CaptionML=ENU=Middle Name }
+    { 9   ;   ;Last Name           ;Text30        ;CaptionML=ENU=Last Name }
+    { 10  ;   ;Address 1           ;Text30        ;CaptionML=ENU=Address 1 }
+    { 11  ;   ;Address 2           ;Text30        ;CaptionML=ENU=Address 2 }
+    { 12  ;   ;Post Code           ;Code10        ;TableRelation="Post Code";
+                                                   CaptionML=ENU=Post Code }
+    { 13  ;   ;City                ;Text30        ;CaptionML=ENU=City }
+    { 14  ;   ;State               ;Code10        ;CaptionML=ENU=State }
+    { 15  ;   ;Country             ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country }
+    { 16  ;   ;Nationality         ;Text30        ;CaptionML=ENU=Nationality }
+    { 17  ;   ;Religion            ;Text30        ;CaptionML=ENU=Religion }
+    { 18  ;   ;Father Name         ;Text30        ;CaptionML=ENU=Father Name }
+    { 19  ;   ;Date of Birth       ;Date          ;CaptionML=ENU=Date of Birth }
+    { 20  ;   ;Age                 ;Integer       ;CaptionML=ENU=Age }
+    { 21  ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Female,Male";
+                                                   OptionString=[ ,Female,Male] }
+    { 22  ;   ;Marital Status      ;Option        ;CaptionML=ENU=Marital Status;
+                                                   OptionCaptionML=ENU=" ,Married,UnMarried";
+                                                   OptionString=[ ,Married,UnMarried] }
+    { 23  ;   ;Phone No            ;Text30        ;CaptionML=ENU=Phone No }
+    { 24  ;   ;Mobile No           ;Text30        ;CaptionML=ENU=Mobile No }
+    { 25  ;   ;E-Mail              ;Text50        ;CaptionML=ENU=E-Mail }
+    { 26  ;   ;Previous Working Company;Text250   ;CaptionML=ENU=Previous Working Company }
+    { 27  ;   ;Designation         ;Text250       ;TableRelation=Designation;
+                                                   CaptionML=ENU=Designation }
+    { 28  ;   ;Experience(In Yrs)  ;Text50        ;CaptionML=ENU=Experience(In Yrs) }
+    { 29  ;   ;From Date           ;Date          ;CaptionML=ENU=From Date }
+    { 30  ;   ;To Date             ;Date          ;CaptionML=ENU=To Date }
+    { 31  ;   ;Description         ;Text250       ;CaptionML=ENU=Description }
+    { 32  ;   ;Current CTC         ;Decimal       ;CaptionML=ENU=Current CTC }
+    { 33  ;   ;Expected CTC        ;Decimal       ;CaptionML=ENU=Expected CTC }
+    { 34  ;   ;Qualification       ;Text200       ;TableRelation=Qualification;
+                                                   CaptionML=ENU=Qualification }
+    { 35  ;   ;University          ;Text200       ;CaptionML=ENU=University }
+    { 36  ;   ;From Year on Date   ;Text200       ;CaptionML=ENU=From Year on Date }
+    { 37  ;   ;To Year on Date     ;Text200       ;CaptionML=ENU=To Year on Date }
+    { 38  ;   ;Reference           ;Text100       ;CaptionML=ENU=Reference }
+    { 39  ;   ;No. Series          ;Code10        ;CaptionML=ENU=No. Series }
+    { 40  ;   ;Attachment 1        ;Text100       ;CaptionML=ENU=Attachment 1 }
+    { 41  ;   ;Attachment 2        ;Text100       ;CaptionML=ENU=Attachment 2 }
+    { 42  ;   ;Date of Entry       ;Date          ;CaptionML=ENU=Date of Entry;
+                                                   Editable=No }
+    { 43  ;   ;Tot_Experience(In Yrs);Decimal     ;CaptionML=ENU=Tot_Experience(In Yrs) }
+    { 44  ;   ;Skills              ;Text250       ;CaptionML=ENU=Skills }
+    { 45  ;   ;Certifications      ;Text250       ;CaptionML=ENU=Certifications }
+    { 46  ;   ;Qualification Description;Text250  ;CaptionML=ENU=Qualification Description }
+    { 47  ;   ;Qualification Course;Text250       ;CaptionML=ENU=Qualification Course }
+    { 48  ;   ;Selected Candidate  ;Boolean       ;CaptionML=ENU=Selected Candidate }
+    { 49  ;   ;Notice Period       ;Code10        ;CaptionML=ENU=Notice Period }
+  }
+  KEYS
+  {
+    {    ;No,Indenting No.,Indenting Dept Code,Indenting Desig Code,Resume No;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

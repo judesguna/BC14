@@ -1,0 +1,148 @@
+OBJECT Table 71088 Competition Res Team Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22-02-18;
+    Time=11:45:03;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Competition Res Team Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 6   ;   ;House               ;Code20        ;TableRelation=House;
+                                                   CaptionML=ENU=House;
+                                                   Editable=No }
+    { 8   ;   ;Competition Type    ;Code20        ;TableRelation="Competition Type";
+                                                   CaptionML=ENU=Competition Type;
+                                                   Editable=No }
+    { 9   ;   ;Competition Name    ;Text50        ;CaptionML=ENU=Competition Name;
+                                                   Editable=No }
+    { 10  ;   ;Student Division    ;Code20        ;TableRelation="Student Division";
+                                                   CaptionML=ENU=Student Division;
+                                                   Editable=No }
+    { 11  ;   ;Position            ;Option        ;OnValidate=BEGIN
+                                                                //DS01 Added on 260712 -Begin
+                                                                IF CompetitionResultTeam1.GET("Document No.") THEN;
+
+                                                                IF CompetitionResultTeam.GET("Document No.") AND CompetitionResultTeam."Update Results" THEN
+                                                                  ERROR(Text000);
+                                                                IF CompetitionResultTeam1."Event Type" = CompetitionResultTeam1."Event Type"::Relay THEN
+                                                                BEGIN
+                                                                IF CoCurricularPointsSetup.GET("Competition Type") THEN BEGIN
+                                                                  CASE Position OF
+                                                                    Position::"1st Place":
+                                                                      //Points := CoCurricularPointsSetup."1st Place";
+                                                                      Points := (CoCurricularPointsSetup."1st Place"*2.0)/CompetitionResultTeam1."Team Size";
+                                                                    Position::"2nd Place":
+                                                                      //Points := CoCurricularPointsSetup."2nd Place";
+                                                                      Points := (CoCurricularPointsSetup."2nd Place"*2.0)/CompetitionResultTeam1."Team Size";
+                                                                    Position::"3rd Place":
+                                                                      //Points := CoCurricularPointsSetup."3rd Place";
+                                                                      Points := (CoCurricularPointsSetup."3rd Place"*2.0)/CompetitionResultTeam1."Team Size";
+                                                                    Position::"4th place":
+                                                                      //Points := CoCurricularPointsSetup."4th Place";
+                                                                      Points := (CoCurricularPointsSetup."4th Place"*2.0)/CompetitionResultTeam1."Team Size";
+                                                                    Position::"5th place":
+                                                                      //5th place and 6th place added by Sameer
+                                                                      //Points := CoCurricularPointsSetup."4th Place";
+                                                                      Points := (CoCurricularPointsSetup."5th Place"*2.0)/CompetitionResultTeam1."Team Size";
+                                                                    Position::"6th place":
+                                                                      //Points := CoCurricularPointsSetup."4th Place";
+                                                                      Points := (CoCurricularPointsSetup."6th Place"*2.0)/CompetitionResultTeam1."Team Size";
+
+                                                                    Position::Participation:
+                                                                      //Points := CoCurricularPointsSetup.Participation;
+                                                                      Points := (CoCurricularPointsSetup.Participation*2.0)/CompetitionResultTeam1."Team Size";
+                                                                  END;
+                                                                  END;
+                                                                  END;
+                                                                  IF CompetitionResultTeam1."Event Type" = CompetitionResultTeam1."Event Type"::Team THEN
+                                                                  BEGIN
+                                                                  IF CoCurricularPointsSetup.GET("Competition Type") THEN BEGIN
+                                                                  CASE Position OF
+                                                                    Position::"1st Place":
+                                                                      //Points := CoCurricularPointsSetup."1st Place";
+                                                                      Points := (CoCurricularPointsSetup."1st Place");
+                                                                    Position::"2nd Place":
+                                                                      //Points := CoCurricularPointsSetup."2nd Place";
+                                                                      Points := (CoCurricularPointsSetup."2nd Place");
+                                                                    Position::"3rd Place":
+                                                                      //Points := CoCurricularPointsSetup."3rd Place";
+                                                                      Points := (CoCurricularPointsSetup."3rd Place");
+                                                                    Position::"4th place":
+                                                                      //Points := CoCurricularPointsSetup."4th Place";
+                                                                      Points := (CoCurricularPointsSetup."4th Place");
+                                                                    Position::"5th place":
+                                                                    //5th place and 6th place added by Sameer
+                                                                      //Points := CoCurricularPointsSetup."4th Place";
+                                                                      Points := (CoCurricularPointsSetup."5th Place");
+                                                                    Position::"6th place":
+                                                                      //Points := CoCurricularPointsSetup."4th Place";
+                                                                      Points := (CoCurricularPointsSetup."6th Place");
+                                                                    Position::Participation:
+                                                                      //Points := CoCurricularPointsSetup.Participation;
+                                                                      Points := (CoCurricularPointsSetup.Participation);
+                                                                  END;
+                                                                  END;
+                                                                  END;
+
+                                                                  IF Points = 0 THEN
+                                                                    ERROR(Text001,"Competition Type");
+
+
+                                                                //DS01 Added on 260712 -End
+                                                              END;
+
+                                                   CaptionML=ENU=Position;
+                                                   OptionCaptionML=ENU=,1st Place,2nd Place,3rd Place,4th place,5th place,6th place,Participation;
+                                                   OptionString=,1st Place,2nd Place,3rd Place,4th place,5th place,6th place,Participation }
+    { 12  ;   ;Points              ;Decimal       ;CaptionML=ENU=Points;
+                                                   Editable=Yes }
+    { 13  ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 14  ;   ;Competition Entry No.;Code20       ;CaptionML=ENU=Competition Entry No. }
+    { 18  ;   ;Team No.            ;Code20        ;TableRelation="Participant Entry Line" WHERE (Team No.=FIELD(Team No.));
+                                                   CaptionML=ENU=Team No.;
+                                                   Editable=Yes }
+    { 19  ;   ;Team Total Points   ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Participant Entry Line".Points WHERE (Team No.=FIELD(Team No.),
+                                                                                                          Participant Type=FILTER(Main),
+                                                                                                          Competition Entry No.=FIELD(Competition Entry No.)));
+                                                   CaptionML=ENU=Team Total Points;
+                                                   Editable=No }
+    { 50000;  ;Details NUM         ;Decimal        }
+    { 50001;  ;Details TXT         ;Text30         }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Document No.,Team No.                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      CoCurricularPointsSetup@1102155000 : Record 71077;
+      CompetitionResultTeam@1102155001 : Record 71087;
+      Text000@1102155002 : TextConst 'ENU=Result has been updated, you cannot modify it.';
+      Text001@1102155003 : TextConst 'ENU=Please enter the point for competition  type, %1.';
+      CompetitionResultTeam1@1102155004 : Record 71087;
+
+    BEGIN
+    {
+      DS01, Cetas1.0 Added in 260712 Begin for Point not needed for substitude
+        1.Code Added
+          -Position - OnValidate()
+      DS01, Cetas1.0 Added in 260712 End for Point not needed for substitude.
+    }
+    END.
+  }
+}
+

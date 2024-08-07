@@ -1,0 +1,58 @@
+OBJECT Table 72103 Income Tax Exemptions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Employee No.        ;Code20        ;TableRelation=Employee.No.;
+                                                   OnValidate=BEGIN
+                                                                IF EmplR.GET("Employee No.") THEN
+                                                                  Name := EmplR."First Name";
+                                                              END;
+                                                               }
+    { 2   ;   ;Name                ;Text50         }
+    { 3   ;   ;Excemption Type     ;Option        ;OptionCaptionML=ENU=" ,Rent Paid,Insurance,Medical Bill,Loan Principle,Loan Interest,Donation,Rent Received,Transport Conveyance";
+                                                   OptionString=[ ,Rent Paid,Insurance,Medical Bill,Loan Principle,Loan Interest,Donation,Rent Received,Transport Conveyance] }
+    { 4   ;   ;Line No.            ;Integer        }
+    { 5   ;   ;Exemption No.       ;Code20         }
+    { 6   ;   ;Details             ;Text250        }
+    { 7   ;   ;Amount              ;Decimal        }
+    { 8   ;   ;Metro/Non Metro     ;Option        ;OptionCaptionML=ENU=Metro,Non Metro;
+                                                   OptionString=Metro,Non Metro }
+    { 9   ;   ;Location Code       ;Code20         }
+    { 10  ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan" }
+    { 11  ;   ;Salary Year Code    ;Code20         }
+    { 12  ;   ;Payroll Start Date  ;Date           }
+    { 13  ;   ;Payroll End Date    ;Date           }
+    { 14  ;   ;Year                ;Integer        }
+    { 15  ;   ;Month               ;Integer        }
+    { 16  ;   ;Created Date        ;Date           }
+    { 17  ;   ;User ID             ;Code20         }
+    { 18  ;   ;Effective Date      ;Date           }
+  }
+  KEYS
+  {
+    {    ;Employee No.,Location Code,Salary Plan Code,Salary Year Code,Effective Date,Line No.;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EmplR@1102159000 : Record 5200;
+
+    BEGIN
+    END.
+  }
+}
+

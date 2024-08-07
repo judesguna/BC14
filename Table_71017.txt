@@ -1,0 +1,47 @@
+OBJECT Table 71017 Admission Grade
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               "Academic Year" := Eduvertical.GetAdmissionYear;
+
+               "User ID" := USERID;
+             END;
+
+    LookupPageID=Page71114;
+    DrillDownPageID=Page71114;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code10         }
+    { 2   ;   ;Description         ;Text30         }
+    { 3   ;   ;Obtained Mark       ;Decimal        }
+    { 4   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year" }
+    { 5   ;   ;Maximum Mark        ;Decimal        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code,Academic Year                      ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Eduvertical@1102159000 : Codeunit 71880;
+
+    BEGIN
+    END.
+  }
+}
+

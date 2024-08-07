@@ -1,0 +1,204 @@
+OBJECT Table 71006 Class Card
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:33:58;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Class Card;
+    LookupPageID=Page71011;
+    DrillDownPageID=Page71011;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class               ;Code10        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class Code;
+                                                   SQL Data Type=Integer }
+    { 3   ;   ;Curriculum          ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 4   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year;
+                                                   Editable=Yes }
+    { 5   ;   ;Application Cost    ;Decimal       ;CaptionML=ENU=Application Cost;
+                                                   BlankZero=Yes }
+    { 6   ;   ;Registration Cost   ;Decimal       ;CaptionML=ENU=Registration Cost;
+                                                   BlankZero=Yes }
+    { 15  ;   ;Miniimum Age Limit  ;Integer       ;CaptionML=ENU=Miniimum Age Limit;
+                                                   BlankZero=Yes }
+    { 16  ;   ;Maximum Age Limit   ;Integer       ;CaptionML=ENU=Maximum Age Limit;
+                                                   BlankZero=Yes }
+    { 18  ;   ;Application Sale From;Date         ;CaptionML=ENU=Application Sale From }
+    { 19  ;   ;Application Sale Till;Date         ;CaptionML=ENU=Application Sale Till }
+    { 20  ;   ;Application Receive From;Date      ;CaptionML=ENU=Application Receive From }
+    { 21  ;   ;Application Receive Till;Date      ;CaptionML=ENU=Application Receive Till }
+    { 22  ;   ;Capacity            ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Class Section".Capacity WHERE (Class=FIELD(Class),
+                                                                                                   Curriculum=FIELD(Curriculum),
+                                                                                                   Academic Year=FIELD(FILTER(Academic Year))));
+                                                   CaptionML=ENU=Capacity;
+                                                   DecimalPlaces=0:0;
+                                                   Editable=No }
+    { 23  ;   ;Present Strength    ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count(Student WHERE (Class=FIELD(Class),
+                                                                                    Curriculum=FIELD(Curriculum),
+                                                                                    Academic Year=FIELD(FILTER(Academic Year))));
+                                                   CaptionML=ENU=Present Strength;
+                                                   Editable=No }
+    { 24  ;   ;Marks System        ;Option        ;CaptionML=ENU=Marks System;
+                                                   OptionCaptionML=ENU=Marks,Grade;
+                                                   OptionString=Marks,Grade }
+    { 25  ;   ;Promotion Percentage;Decimal       ;CaptionML=ENU=Promotion Percentage }
+    { 26  ;   ;Promoted            ;Boolean       ;CaptionML=ENU=Promoted }
+    { 27  ;   ;Closed              ;Boolean       ;CaptionML=ENU=Closed }
+    { 28  ;   ;Cut Off Age as on   ;Date          ;CaptionML=ENU=Cut Off Age as on }
+    { 29  ;   ;Consolidated Grades ;Option        ;CaptionML=ENU=Consolidated Grades;
+                                                   OptionCaptionML=ENU=" ,Points,Marks";
+                                                   OptionString=[ ,Points,Marks] }
+    { 30  ;   ;Sequence            ;Integer       ;CaptionML=ENU=Sequence }
+    { 31  ;   ;Withdrawal          ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count(Withdrawal WHERE (Class=FIELD(Class),
+                                                                                       Curriculum=FIELD(Curriculum),
+                                                                                       Academic Year=FIELD(FILTER(Academic Year))));
+                                                   CaptionML=ENU=Withdrawal;
+                                                   Editable=No }
+    { 32  ;   ;Edu. Calendar Code  ;Code20        ;TableRelation=Table71921 }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class,Curriculum,Academic Year          ;Clustered=Yes }
+    {    ;Curriculum,Class                         }
+    {    ;Sequence                                 }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ClassCard@1102155000 : Record 71006;
+      EducationSetup@1102155001 : Record 71884;
+
+    PROCEDURE LookUpClass@1102155000(VAR getClass@1102155000 : Code[10];VAR getCurriculum@1102155001 : Code[20];VAR getAcademic@1102159000 : Code[20]);
+    VAR
+      ClassCardRec@1102155002 : Record 71006;
+    BEGIN
+      // Start 03.VIGNESH
+      IF NOT GUIALLOWED THEN
+        EXIT;
+      ClassCardRec.Class := getClass;
+      ClassCardRec.Curriculum := getCurriculum;
+      ClassCardRec."Academic Year" := getAcademic;
+      ClassCardRec.SETRANGE(ClassCardRec."Academic Year",getAcademic);
+      ClassCardRec.Closed := FALSE;
+      IF PAGE.RUNMODAL(71011,ClassCardRec,ClassCardRec.Class) = ACTION::LookupOK THEN BEGIN
+        getClass := ClassCardRec.Class;
+        getCurriculum := ClassCardRec.Curriculum;
+        getAcademic := ClassCardRec."Academic Year";
+      END;
+      // Stop 04.VIGNESH
+    END;
+
+    PROCEDURE LookUpCurriculum@1102155002(VAR getClass@1102155000 : Code[10];VAR getCurriculum@1102155001 : Code[20];VAR getAcademic@1102159000 : Code[20]);
+    VAR
+      ClassCardRec@1102155002 : Record 71006;
+    BEGIN
+      // Start 04.VIGNESH
+      IF NOT GUIALLOWED THEN
+        EXIT;
+      ClassCardRec.SETCURRENTKEY(Curriculum,Class,"Academic Year");
+      ClassCardRec.Class := getClass;
+      ClassCardRec.Curriculum := getCurriculum;
+      ClassCardRec."Academic Year" := getAcademic;
+      ClassCardRec.Closed := FALSE;
+      ClassCardRec.SETRANGE(ClassCardRec."Academic Year",getAcademic);
+      IF PAGE.RUNMODAL(71011,ClassCardRec,ClassCardRec.Curriculum) = ACTION::LookupOK THEN BEGIN
+        getClass := ClassCardRec.Class;
+        getCurriculum := ClassCardRec.Curriculum;
+        getAcademic := ClassCardRec."Academic Year";
+      END;
+      // Stop 04.VIGNESH
+    END;
+
+    PROCEDURE ValidateClass@1102155001(VAR getClass@1102155001 : Code[10];VAR getCurriculum@1102155000 : Code[20];VAR getAcademic@1102159000 : Code[20]);
+    VAR
+      ClassCardRec@1102155002 : Record 71006;
+      ClassCardRec1@1102155003 : Record 71006;
+    BEGIN
+      // Start 05.VIGNESH
+      IF NOT GUIALLOWED THEN
+        EXIT;
+      IF getClass <> '' THEN BEGIN
+        IF STRPOS(getClass,'*') = STRLEN(getClass) THEN
+          ClassCardRec.SETFILTER(Class,getClass)
+        ELSE
+          ClassCardRec.SETRANGE(Class,getClass);
+
+        IF ClassCardRec.ISEMPTY THEN
+          EXIT;
+        ClassCardRec1.COPY(ClassCardRec);
+        IF (ClassCardRec1.NEXT = 1) AND GUIALLOWED THEN
+          IF PAGE.RUNMODAL(71011,ClassCardRec,ClassCardRec.Class) <> ACTION::LookupOK THEN
+            EXIT;
+        getClass := ClassCardRec.Class;
+        getCurriculum := ClassCardRec.Curriculum;
+        getAcademic := ClassCardRec."Academic Year";
+      END;
+      // Stop 05.VIGNESH
+    END;
+
+    PROCEDURE ValidateCurriculum@1102155003(VAR getClass@1102155001 : Code[10];VAR getCurriculum@1102155000 : Code[20];VAR getAcademic@1102159000 : Code[20]);
+    VAR
+      ClassCardRec@1102155003 : Record 71006;
+      ClassCardRec1@1102155002 : Record 71006;
+    BEGIN
+      // Start 06.VIGNESH
+      IF NOT GUIALLOWED THEN
+        EXIT;
+      IF getCurriculum <> '' THEN BEGIN
+        IF STRPOS(getCurriculum,'*') = STRLEN(getCurriculum) THEN
+          ClassCardRec.SETFILTER(Curriculum,getCurriculum)
+        ELSE
+          ClassCardRec.SETRANGE(Curriculum,getCurriculum);
+
+        IF ClassCardRec.ISEMPTY THEN
+          EXIT;
+
+        ClassCardRec1.COPY(ClassCardRec);
+        IF (ClassCardRec1.NEXT = 1) AND GUIALLOWED THEN
+          IF PAGE.RUNMODAL(71011,ClassCardRec,ClassCardRec.Class) <> ACTION::LookupOK THEN
+            EXIT;
+        getClass := ClassCardRec.Class;
+        getCurriculum := ClassCardRec.Curriculum;
+        getAcademic := ClassCardRec."Academic Year";
+
+      END;
+      // Stop 06.VIGNESH
+    END;
+
+    BEGIN
+    {
+       No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA OnInsert             Code to assign User ID.
+        02  17/10/09  VIGNESH                       new filed Cut Off Age and Consolidated Consolidated Grades added
+        03  23/11/09  VIGNESH  LookUpClass()        Function Created to get the Class & Curiculum value
+        04  23/11/09  VIGNESH  LookUpCurriculum()   Function Created to get the Class & Curiculum value
+        05  23/11/09  VIGNESH  ValidateClass()      Function Created to get the Class & Curiculum value
+        06  23/11/09  VIGNESH  ValidateCurriculum() Function Created to get the Class & Curiculum value
+    }
+    END.
+  }
+}
+

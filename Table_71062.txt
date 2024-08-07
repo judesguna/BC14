@@ -1,0 +1,161 @@
+OBJECT Table 71062 Transfer Certificate
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.KATHIR
+               Academics.GET;
+               IF "No. Series" = '' THEN BEGIN
+                 Academics.TESTFIELD("TC No.");
+                 NoSeriesMgt.InitSeries(Academics."TC No.",xRec."No. Series",0D,"TC No.","No. Series");
+               END;
+               // Stop 01.KATHIR
+               // Start 05. VANDHANA
+               "User ID" := USERID;
+               // Stop 05. VANDHANA
+             END;
+
+    CaptionML=ENU=Transfer Certificate;
+    LookupPageID=Page71071;
+  }
+  FIELDS
+  {
+    { 1   ;   ;TC No.              ;Code20        ;CaptionML=ENU=TC No. }
+    { 2   ;   ;Student No.         ;Code20        ;TableRelation=Student;
+                                                   CaptionML=ENU=Student No. }
+    { 3   ;   ;Class               ;Code10        ;CaptionML=ENU=Class;
+                                                   Editable=No }
+    { 4   ;   ;Section             ;Code10        ;CaptionML=ENU=Section;
+                                                   Editable=No }
+    { 5   ;   ;Curriculum          ;Code20        ;CaptionML=ENU=Curriculum;
+                                                   Editable=No }
+    { 6   ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year;
+                                                   Editable=No }
+    { 7   ;   ;Withdrawl date      ;Date          ;CaptionML=ENU=Withdrawl date }
+    { 9   ;   ;TC Issued           ;Boolean       ;CaptionML=ENU=TC Issued }
+    { 20  ;   ;Date of Birth       ;Date          ;OnValidate=BEGIN
+                                                                // Start 04.KATHIR
+                                                                IF "Date of Birth" <> 0D THEN BEGIN
+                                                                  Age := TODAY - "Date of Birth";
+                                                                  TempAge := ROUND(Age / 365,1,'=');
+                                                                  Age2 := Age MOD 365;
+                                                                  Months := ROUND(Age2 / 30,1,'=');
+                                                                  Age := TempAge - 1;
+                                                                END ELSE BEGIN
+                                                                  CLEAR(Age);
+                                                                  CLEAR(Months);
+                                                                END;
+                                                                // Stop 04.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Date of Birth }
+    { 21  ;   ;Age                 ;Integer       ;CaptionML=ENU=Age;
+                                                   BlankZero=Yes }
+    { 22  ;   ;Date of Issue       ;Date          ;CaptionML=ENU=Date of Issue }
+    { 23  ;   ;Conduct             ;Text100       ;CaptionML=ENU=Conduct }
+    { 24  ;   ;Withdrawl No.       ;Code20        ;TableRelation=Withdrawal WHERE (TC Issued=FILTER(No));
+                                                   OnValidate=BEGIN
+                                                                // Start 02.KATHIR
+                                                                IF Withdrawl.GET("Withdrawl No.") THEN BEGIN
+                                                                  TRANSFERFIELDS(Withdrawl);
+                                                                  // Start 06.VIGNESH
+                                                                  IF Student.GET(Withdrawl."Student No.") THEN BEGIN
+                                                                    "Date of Birth" := Student."Date Of Birth";
+                                                                    VALIDATE("Date of Birth");
+                                                                  END;
+                                                                  // Stop 06.VIGNESH
+                                                                  "TC No." := xRec."TC No.";
+                                                                END;
+
+                                                                TransferCertificate.RESET;
+                                                                TransferCertificate.SETRANGE("Withdrawl No.","Withdrawl No.");
+                                                                IF TransferCertificate.FINDFIRST THEN
+                                                                  ERROR(Text000);
+                                                                // Stop 02.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Withdrawl No. }
+    { 25  ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 26  ;   ;Reason for Leaving  ;Code20        ;TableRelation="Reason Code";
+                                                   CaptionML=ENU=Reason for Leaving }
+    { 27  ;   ;Months              ;Integer       ;CaptionML=ENU=Months;
+                                                   BlankZero=Yes }
+    { 28  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;TC No.                                  ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Academics@1102155000 : Record 71040;
+      NoSeriesMgt@1102155001 : Codeunit 396;
+      Withdrawl@1102155002 : Record 71061;
+      TransferCertificate@1102155003 : Record 71062;
+      Age2@1102155005 : Decimal;
+      TempAge@1102155004 : Decimal;
+      Student@1102155006 : Record 71046;
+      ClassSection@1102155007 : Record 71015;
+      Text000@1102155008 : TextConst 'ENU=Record already exists.';
+
+    PROCEDURE Assistedit@1102155000(OldTC@1102155000 : Record 71062) : Boolean;
+    BEGIN
+      // Start 03.KATHIR
+      WITH OldTC DO BEGIN
+        OldTC := Rec;
+        Academics.GET;
+        Academics.TESTFIELD("TC No.");
+        IF NoSeriesMgt.SelectSeries(Academics."TC No.",OldTC."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("TC No.");
+          Rec := OldTC;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 03.KATHIR
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  12/10/09   KATHIR   OnInsert()                   Code added for number series
+        02  12/10/09   KATHIR   Withdrawl No. - OnValidate() Code added to Transfer fields from Withdrawl to TC
+                                                             Code added to Check whether same Withdrawl no exits in TC
+        03  12/10/09   KATHIR   Assistedit()                 Code added for number series
+        04  12/10/09   KATHIR   Date of Birth - OnValidate() Code added to Get Age
+        05  19/10/09   VANDHANA  OnInsert                     Code to assign User ID.
+        06  17/11/09   VIGNESH  Withdrawl No. - OnValidate() Code added to get the data of birth from the Student table and VALIDATE
+        07  23/11/09   VIGNESH  Class - OnValidate()         Code added to get the Class Section & Curriculum
+        08  23/11/09   VIGNESH  Class - OnLookup()           Code added to get the Class Section & Curriculum
+        09  23/11/09   VIGNESH  Curriculum - OnValidate()    Code added to get the Class Section & Curriculum
+        10  23/11/09   VIGNESH  Curriculum - OnLookup()      Code added to get the Class Section & Curriculum
+        11  23/11/09   VIGNESH  Section - OnValidate()       Code added to get the Class Section & Curriculum
+        12  23/11/09   VIGNESH  Section - OnLookup()         Code added to get the Class Section & Curriculum
+    }
+    END.
+  }
+}
+

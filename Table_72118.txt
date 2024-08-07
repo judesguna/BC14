@@ -1,0 +1,74 @@
+OBJECT Table 72118 Bonus Detailed Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Bonus Detailed Line;
+    LookupPageID=Page72161;
+    DrillDownPageID=Page72161;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Bonus Id.           ;Code20        ;CaptionML=ENU=Bonus Id. }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Bonus Year          ;Code20        ;CaptionML=ENU=Bonus Year }
+    { 5   ;   ;Salary Cycle Code   ;Code20        ;TableRelation="Payroll Month & Year" WHERE (Location Code=FIELD(Location Code),
+                                                                                               Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Salary Cycle Code }
+    { 6   ;   ;Employee No         ;Code20        ;OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                                  "Employee Category" := Employee."Employee Category";
+                                                                END
+                                                                ELSE BEGIN
+                                                                  Name := '';
+                                                                  "Employee Category" := "Employee Category"::" ";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No }
+    { 7   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 8   ;   ;Days Worked         ;Decimal       ;CaptionML=ENU=Days Worked }
+    { 9   ;   ;Bonusable Earnings  ;Decimal       ;CaptionML=ENU=Bonusable Earnings }
+    { 10  ;   ;Projection Not Required;Boolean    ;CaptionML=ENU=Projection Not Required }
+    { 11  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary] }
+  }
+  KEYS
+  {
+    {    ;Employee No,Bonus Id.,Location Code,Salary Plan Code,Bonus Year,Salary Cycle Code;
+                                                   SumIndexFields=Days Worked,Bonusable Earnings;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1102159000 : Record 5200;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

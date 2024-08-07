@@ -1,0 +1,87 @@
+OBJECT Table 72102 Income Tax Challan Details
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup" }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan" }
+    { 3   ;   ;Assessment Year     ;Code20        ;TableRelation="Payroll Year"."Year Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Year Type=CONST(Income Tax Year)) }
+    { 4   ;   ;Salary Year         ;Code20        ;TableRelation="Payroll Year"."Year Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Year Type=CONST(Salary Year)) }
+    { 5   ;   ;Salary Cyclic Code  ;Code20        ;TableRelation="Payroll Month & Year"."Salary Cyclic Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                    Salary Plan Code=FIELD(Salary Plan Code)) }
+    { 6   ;   ;Challan Process Year;Integer        }
+    { 7   ;   ;Challan Process Month;Integer       }
+    { 8   ;   ;Employe No          ;Code20        ;TableRelation=Employee }
+    { 9   ;   ;Taxable Gross Salary;Decimal        }
+    { 10  ;   ;Section Code        ;Code20         }
+    { 11  ;   ;Voucher / Challan No;Code20         }
+    { 12  ;   ;Voucher / Challan Date;Date         }
+    { 13  ;   ;Bank Code           ;Code20         }
+    { 14  ;   ;Challan Income Tax  ;Decimal        }
+    { 15  ;   ;Challan Surcharge   ;Decimal        }
+    { 16  ;   ;Challan ECess       ;Decimal        }
+    { 17  ;   ;Challan Interest Amount;Decimal     }
+    { 18  ;   ;Challan Other Amount;Decimal        }
+    { 19  ;   ;Total Deposit Amount as Vouche;Decimal;
+                                                   OnValidate=BEGIN
+                                                                "Total Deposit Amount as Vouche" := "Challan Income Tax" + "Challan Surcharge" + "Challan ECess";
+                                                              END;
+                                                               }
+    { 20  ;   ;Total Deposit as Deductee;Decimal   }
+    { 21  ;   ;TDS/TCS Income Tax  ;Decimal        }
+    { 22  ;   ;TDS/TCS Surcharge   ;Decimal        }
+    { 23  ;   ;TDS/TCS Cess        ;Decimal        }
+    { 24  ;   ;Total Income Tax    ;Decimal        }
+    { 25  ;   ;TDS/TCS Interest Amount;Decimal     }
+    { 26  ;   ;TDS/TCS Others      ;Decimal        }
+    { 27  ;   ;Cheque / DD No.     ;Code20         }
+    { 28  ;   ;Bank/Cash           ;Option        ;OptionString=[ ,Cheque,Cash] }
+    { 29  ;   ;Post                ;Boolean        }
+    { 30  ;   ;Salary Paid Date    ;Date           }
+    { 31  ;   ;Select              ;Boolean        }
+    { 32  ;   ;Pay Element Code    ;Code20         }
+    { 33  ;   ;Total Challan Amount;Decimal        }
+    { 34  ;   ;Quarterly Code      ;Option        ;OptionString=Q1,Q2,Q3,Q4 }
+    { 35  ;   ;Employee Code       ;Code20         }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Assessment Year,Salary Cyclic Code,Employe No;
+                                                   Clustered=Yes }
+    {    ;Employe No,Quarterly Code,Location Code,Salary Plan Code,Assessment Year,Salary Cyclic Code }
+    {    ;Employe No,Salary Cyclic Code            }
+    {    ;Employee Code,Quarterly Code             }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

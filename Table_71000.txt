@@ -1,0 +1,96 @@
+OBJECT Table 71000 Admission Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VANDHANA
+               "User ID" := USERID;
+               // Stop 01.VANDHANA
+             END;
+
+    CaptionML=ENU=Admission Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Enquiry No.         ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Enquiry No. }
+    { 3   ;   ;Application No.     ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Application No. }
+    { 4   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 5   ;   ;Appl Cost Method    ;Option        ;CaptionML=ENU=Appl Cost Method;
+                                                   OptionCaptionML=ENU=" ,Common,Classwise";
+                                                   OptionString=[ ,Common,Classwise] }
+    { 6   ;   ;Application Cost    ;Decimal       ;CaptionML=ENU=Application Cost;
+                                                   BlankZero=Yes }
+    { 7   ;   ;Registration Cost   ;Decimal       ;CaptionML=ENU=Registration Cost;
+                                                   BlankZero=Yes }
+    { 8   ;   ;Journal Template Name;Code20       ;TableRelation="Gen. Journal Template";
+                                                   CaptionML=ENU=Journal Template Name }
+    { 9   ;   ;Application Sales Batch Name;Code20;TableRelation="Gen. Journal Batch".Name WHERE (Journal Template Name=FIELD(Journal Template Name));
+                                                   CaptionML=ENU=Application Sales Batch Name }
+    { 10  ;   ;Application Cost Account No.;Code20;TableRelation="G/L Account";
+                                                   CaptionML=ENU=Application Cost Account No. }
+    { 11  ;   ;Registration Cost Account No.;Code20;
+                                                   TableRelation="G/L Account";
+                                                   CaptionML=ENU=Registration Cost Account No. }
+    { 12  ;   ;Application Cost Needed;Boolean    ;CaptionML=ENU=Application Cost Needed }
+    { 13  ;   ;Registration Cost Needed;Boolean   ;CaptionML=ENU=Registration Cost Needed }
+    { 14  ;   ;Admission Year      ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Admission Year }
+    { 15  ;   ;Gen. Bus. Posting Group;Code10     ;TableRelation="Gen. Business Posting Group";
+                                                   CaptionML=ENU=Gen. Bus. Posting Group }
+    { 16  ;   ;Customer Posting Group;Code10      ;TableRelation="Customer Posting Group";
+                                                   CaptionML=ENU=Customer Posting Group }
+    { 17  ;   ;Student No.         ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Student No. }
+    { 21  ;   ;Registration Batch Name;Code20     ;TableRelation="Gen. Journal Batch".Name WHERE (Journal Template Name=FIELD(Journal Template Name));
+                                                   CaptionML=ENU=Registration Batch Name }
+    { 22  ;   ;Application Sales Posting No.;Code20;
+                                                   TableRelation="No. Series";
+                                                   CaptionML=ENU=Application Sales Posting No. }
+    { 23  ;   ;Registration Posting No.;Code20    ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Registration Posting No. }
+    { 24  ;   ;Evaluation No.      ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Evaluation No. }
+    { 25  ;   ;Selection No.       ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Selection No. }
+    { 26  ;   ;Application Sale Method;Option     ;CaptionML=ENU=Application Sale Method;
+                                                   OptionCaptionML=ENU=" ,Common,Classwise";
+                                                   OptionString=[ ,Common,Classwise] }
+    { 27  ;   ;Application Sales From;Date        ;CaptionML=ENU=Application Sales From }
+    { 28  ;   ;Application Sales To;Date          ;CaptionML=ENU=Application Sales To }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+
+      No   Date        Sign       Trigger          Description
+      -----------------------------------------------------------------------------------------------
+      01   17/09/09    Kathir                      Table Created by Kathir
+      02   19/10/09    VANDHANA   OnInsert()       Code to assign the User ID.
+      03   16.11.09    VIGNESH                     New Fields Application Sale Method, Application Sales from, Application Sales To added
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,77 @@
+OBJECT Table 72099 Posted Misc Add/Deductions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Misc Add/Deductions;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cycle Code   ;Code20        ;TableRelation="Payroll Month & Year" WHERE (Location Code=FIELD(Location Code),
+                                                                                               Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Salary Cycle Code }
+    { 4   ;   ;Payroll Start Date  ;Date          ;CaptionML=ENU=Payroll Start Date }
+    { 5   ;   ;Payroll End Date    ;Date          ;CaptionML=ENU=Payroll End Date }
+    { 6   ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+    { 7   ;   ;Month               ;Integer       ;CaptionML=ENU=Month }
+    { 8   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No }
+    { 9   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements" WHERE (Location Code=FIELD(Location Code),
+                                                                                       Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Pay Element Code }
+    { 10  ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 11  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=Monthly,Yearly;
+                                                   OptionString=Monthly,Yearly;
+                                                   Editable=No }
+    { 12  ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement;
+                                                   Editable=No }
+    { 13  ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount }
+    { 14  ;   ;Created Date        ;Date          ;CaptionML=ENU=Created Date;
+                                                   Editable=No }
+    { 15  ;   ;User Id             ;Code20        ;CaptionML=ENU=User Id }
+    { 16  ;   ;Element Type        ;Option        ;CaptionML=ENU=Element Type;
+                                                   OptionCaptionML=ENU=" ,OT Calculation";
+                                                   OptionString=[ ,OT Calculation] }
+    { 17  ;   ;Total OT Hours      ;Decimal       ;CaptionML=ENU=Total OT Hours }
+    { 18  ;   ;OT Type             ;Option        ;CaptionML=ENU=OT Type;
+                                                   OptionCaptionML=ENU=" ,Fixed Amount,Hourly Based";
+                                                   OptionString=[ ,Fixed Amount,Hourly Based] }
+    { 19  ;   ;OT Fixed Amount     ;Decimal       ;CaptionML=ENU=OT Fixed Amount }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Salary Cycle Code,Employee No,Pay Element Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

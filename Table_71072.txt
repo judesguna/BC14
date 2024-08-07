@@ -1,0 +1,61 @@
+OBJECT Table 71072 Fee Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=02-02-18;
+    Time=18:15:01;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Fee Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Class Fee No.       ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Class Fee No. }
+    { 3   ;   ;Journal Template Name;Code20       ;TableRelation="Gen. Journal Template";
+                                                   CaptionML=ENU=Journal Template Name }
+    { 4   ;   ;Journal Batch Name  ;Code20        ;TableRelation="Gen. Journal Batch".Name WHERE (Journal Template Name=FIELD(Journal Template Name));
+                                                   CaptionML=ENU=Journal Batch Name }
+    { 5   ;   ;Fee Number          ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Fee Number }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Caution Deposit Template;Code20    ;TableRelation="Gen. Journal Template" }
+    { 70123;  ;Caution Deposit Batch;Code20       ;TableRelation="Gen. Journal Batch".Name WHERE (Journal Template Name=FIELD(Caution Deposit Template)) }
+    { 70124;  ;Caution Deposit Number;Code20      ;TableRelation="No. Series" }
+    { 70125;  ;Fee Receipt Template;Code20        ;TableRelation="Gen. Journal Template" }
+    { 70126;  ;Fee Receipt Batch   ;Code20        ;TableRelation="Gen. Journal Batch".Name WHERE (Journal Template Name=FIELD(Fee Receipt Template)) }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

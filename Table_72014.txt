@@ -1,0 +1,191 @@
+OBJECT Table 72014 Selection Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=16:58:58;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=No.;
+    OnInsert=BEGIN
+               IF "No." = '' THEN BEGIN
+                 HRSetup.GET;
+                 HRSetup.TESTFIELD("Selection SNo");
+                 NoSeriesMgt.InitSeries(HRSetup."Selection SNo",xRec."No. Series",0D,"No.","No. Series");
+               END;
+             END;
+
+    CaptionML=ENU=Selection Header;
+    LookupPageID=Page72022;
+    DrillDownPageID=Page72022;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  HRSetup.GET;
+                                                                  NoSeriesMgt.TestManual(HRSetup."Selection SNo");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Indenting No        ;Code20        ;TableRelation=Indenting;
+                                                   OnLookup=BEGIN
+                                                              Indenting.RESET;
+                                                              Indenting.SETFILTER(Approve,'%1',TRUE);
+                                                              Indenting.SETFILTER("Vacancy Status",'<>%1',Indenting."Vacancy Status"::Close);
+                                                              IF Indenting.FINDFIRST THEN;
+                                                              IF PAGE.RUNMODAL(72012,Indenting) = ACTION::LookupOK THEN BEGIN
+                                                                "Indenting No" := Indenting.No;
+                                                                "Employee No." := Indenting."Employee No.";
+                                                                "Employee Name" := Indenting."Employee Name";
+                                                                "Department Code" := Indenting."Department Code";
+                                                                "Advertisement Type" := Indenting."Advertisement Type";
+                                                                "Required Position" := Indenting."Designation Code";
+                                                                "No Of Vacancy" := Indenting."No Of Vacancy";
+                                                                "Age From" := Indenting."Age From";
+                                                                "Age To" := Indenting."Age To";
+                                                                "Qualification Code" := Indenting."Qualification Code";
+                                                                "Experience(in Yrs)" := Indenting."Experience(in Yrs)";
+                                                                Gender := Indenting.Gender;
+                                                                "Post Code" := Indenting."Post Code";
+                                                                City := Indenting.City;
+                                                                Skills := Indenting.Skills;
+                                                                Certifications := Indenting.Certifications;
+                                                              END;
+                                                            END;
+
+                                                   CaptionML=ENU=Indenting No }
+    { 3   ;   ;Indenting Date      ;Date          ;CaptionML=ENU=Indenting Date;
+                                                   Editable=No }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 5   ;Yes;Employee No.        ;Code30        ;CaptionML=ENU=Employee No.;
+                                                   Editable=No }
+    { 6   ;Yes;Employee Name       ;Text30        ;CaptionML=ENU=Employee Name;
+                                                   Editable=No }
+    { 7   ;Yes;Department Code     ;Code20        ;CaptionML=ENU=Department Code;
+                                                   Editable=No }
+    { 8   ;No ;Remarks             ;Text50        ;CaptionML=ENU=Remarks }
+    { 9   ;   ;Vacancy Status      ;Option        ;CaptionML=ENU=Vacancy Status;
+                                                   OptionCaptionML=ENU=Open,In Process,Hold,Close;
+                                                   OptionString=Open,In Process,Hold,Close }
+    { 10  ;   ;Recruitment Status  ;Option        ;CaptionML=ENU=Recruitment Status;
+                                                   OptionCaptionML=ENU=Open,Close;
+                                                   OptionString=Open,Close }
+    { 11  ;   ;Advertisement Type  ;Option        ;CaptionML=ENU=Advertisement Type;
+                                                   OptionCaptionML=ENU=" ,News Paper,Agency";
+                                                   OptionString=[ ,News Paper,Agency] }
+    { 12  ;   ;Agency Mail         ;Boolean       ;CaptionML=ENU=Agency Mail;
+                                                   Editable=No }
+    { 13  ;Yes;Required Position   ;Code30        ;CaptionML=ENU=Required Position;
+                                                   Editable=No }
+    { 14  ;   ;No Of Vacancy       ;Integer       ;CaptionML=ENU=No Of Vacancy;
+                                                   Editable=No }
+    { 15  ;   ;Age From            ;Integer       ;CaptionML=ENU=Age From;
+                                                   Editable=No }
+    { 16  ;   ;Age To              ;Integer       ;CaptionML=ENU=Age To;
+                                                   Editable=No }
+    { 17  ;   ;Qualification Code  ;Code20        ;CaptionML=ENU=Qualification Code;
+                                                   Editable=No }
+    { 18  ;   ;Experience(in Yrs)  ;Decimal       ;CaptionML=ENU=Experience(in Yrs);
+                                                   Editable=No }
+    { 19  ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female];
+                                                   Editable=No }
+    { 20  ;   ;Preference          ;Text40        ;CaptionML=ENU=Preference;
+                                                   Editable=No }
+    { 21  ;   ;Willing to Work     ;Option        ;CaptionML=ENU=Willing to Work;
+                                                   OptionCaptionML=ENU=" ,General,Day,Night";
+                                                   OptionString=[ ,General,Day,Night];
+                                                   Editable=No }
+    { 22  ;   ;Date of Required    ;Date          ;CaptionML=ENU=Date of Required }
+    { 23  ;   ;No. Series          ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=No. Series }
+    { 24  ;   ;Approve             ;Boolean       ;CaptionML=ENU=Approve;
+                                                   Editable=No }
+    { 25  ;   ;Skills              ;Text250       ;CaptionML=ENU=Skills;
+                                                   Editable=No }
+    { 26  ;   ;Certifications      ;Text250       ;CaptionML=ENU=Certifications;
+                                                   Editable=No }
+    { 27  ;   ;Location            ;Boolean       ;CaptionML=ENU=Location }
+    { 28  ;   ;Qualification       ;Boolean       ;CaptionML=ENU=Qualification }
+    { 29  ;   ;Skill               ;Boolean       ;CaptionML=ENU=Skill }
+    { 30  ;   ;Certification       ;Boolean       ;CaptionML=ENU=Certification }
+    { 31  ;   ;Age                 ;Boolean       ;CaptionML=ENU=Age }
+    { 32  ;   ;Experience          ;Boolean       ;CaptionML=ENU=Experience }
+    { 33  ;   ;Post Code           ;Code10        ;TableRelation="Post Code";
+                                                   OnValidate=BEGIN
+                                                                //PostCode.ValidatePostCode(City,"Post Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpPostCode(City,"Post Code",TRUE);
+                                                            END;
+
+                                                   CaptionML=ENU=Post Code;
+                                                   Editable=No }
+    { 34  ;   ;City                ;Text30        ;OnValidate=BEGIN
+                                                                //PostCode.ValidateCity(City,"Post Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpCity(City,"Post Code",TRUE);
+                                                            END;
+
+                                                   CaptionML=ENU=City;
+                                                   Editable=No }
+    { 35  ;   ;Comment             ;Boolean       ;FieldClass=FlowField;
+                                                   CalcFormula=Exist("Human Resource Comment Line" WHERE (Table Name=CONST(11),
+                                                                                                          No.=FIELD(No.)));
+                                                   CaptionML=ENU=Comment;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRSetup@1000000000 : Record 72000;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      Indenting@1000000002 : Record 72009;
+      PostCode@1000000004 : Record 225;
+
+    PROCEDURE AssistEdit@1000000005(SelectionHeader@1000000000 : Record 72014) : Boolean;
+    BEGIN
+      WITH SelectionHeader DO BEGIN
+        SelectionHeader := Rec;
+        HRSetup.GET;
+        HRSetup.TESTFIELD("Selection SNo");
+        IF NoSeriesMgt.SelectSeries(HRSetup."Selection SNo","No. Series","No. Series") THEN BEGIN
+          HRSetup.GET;
+          HRSetup.TESTFIELD("Selection SNo");
+          NoSeriesMgt.SetSeries("No.");
+          Rec := SelectionHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

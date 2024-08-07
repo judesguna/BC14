@@ -1,0 +1,76 @@
+OBJECT Table 72065 Professional Tax Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Effective Date,Location Code,Salary Plan Code,Branch Code;
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 ProfessionalTaxLine.RESET;
+                 ProfessionalTaxLine.SETRANGE("Effective Date", "Effective Date");
+                 ProfessionalTaxLine.SETRANGE("Location Code", "Location Code");
+                 ProfessionalTaxLine.SETRANGE("Salary Plan Code", "Salary Plan Code");
+                 ProfessionalTaxLine.SETRANGE("Branch Code", "Branch Code");
+                 IF ProfessionalTaxLine.FINDFIRST THEN BEGIN
+                   ProfessionalTaxLine.LOCKTABLE;
+                   ProfessionalTaxLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Professional Tax Header;
+    LookupPageID=Page72086;
+    DrillDownPageID=Page72086;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Effective Date      ;Date          ;CaptionML=ENU=Effective Date }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Branch Code         ;Code20        ;CaptionML=ENU=Branch Code }
+    { 5   ;   ;Branch Name         ;Text50        ;CaptionML=ENU=Branch Name }
+    { 6   ;   ;Calculation Type    ;Option        ;CaptionML=ENU=Calculation Type;
+                                                   OptionCaptionML=ENU=1M,6M;
+                                                   OptionString=1M,6M }
+    { 7   ;   ;Salary Starting Date;Date          ;OnValidate=BEGIN
+                                                                "Salary Ending Date" := CALCDATE(FORMAT("Calculation Type") + '-1D',"Salary Starting Date");
+                                                              END;
+
+                                                   CaptionML=ENU=Salary Starting Date }
+    { 8   ;   ;Salary Ending Date  ;Date          ;CaptionML=ENU=Salary Ending Date }
+  }
+  KEYS
+  {
+    {    ;Branch Code,Effective Date,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ProfessionalTaxLine@1000000000 : Record 72066;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

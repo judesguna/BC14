@@ -1,0 +1,119 @@
+OBJECT Table 72091 Revision Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF "Pay Revision Id" = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Pay Revision No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Pay Revision No.",xRec."No. Series",0D,"Pay Revision Id","No. Series");
+               END;
+
+               IF HRPayrollSetup.GET(USERID) THEN BEGIN
+                 "Location Code" := HRPayrollSetup."Location Code";
+                 "Salary Plan Code" := HRPayrollSetup."Salary Plan Code";
+               END;
+
+               "Pay Revision Processing Date" := TODAY;
+             END;
+
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 RevisionLine.RESET;
+                 RevisionLine.SETRANGE("Pay Revision Id", "Pay Revision Id");
+                 IF RevisionLine.FINDFIRST THEN BEGIN
+                   RevisionLine.LOCKTABLE;
+                   RevisionLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Revision Header;
+    LookupPageID=Page72129;
+    DrillDownPageID=Page72129;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Pay Revision Id     ;Code20        ;OnValidate=BEGIN
+                                                                IF "Pay Revision Id" <> xRec."Pay Revision Id" THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Pay Revision No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Pay Revision Id }
+    { 2   ;   ;Pay Revision Processing Date;Date  ;CaptionML=ENU=Pay Revision Processing Date }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 5   ;   ;New Effective Date  ;Date          ;CaptionML=ENU=New Effective Date }
+    { 6   ;   ;Revision Amount     ;Decimal       ;CaptionML=ENU=Revision Amount }
+    { 7   ;   ;Revision Percent    ;Decimal       ;CaptionML=ENU=Revision Percent }
+    { 8   ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 9   ;   ;Based on            ;Option        ;CaptionML=ENU=Based on;
+                                                   OptionCaptionML=ENU=Amount,Percent;
+                                                   OptionString=Amount,Percent }
+    { 10  ;   ;Arrears Starting Date;Date         ;CaptionML=ENU=Arrears Starting Date }
+    { 11  ;   ;Arrears Ending Date ;Date          ;CaptionML=ENU=Arrears Ending Date }
+    { 12  ;   ;Arrears Generated   ;Boolean       ;CaptionML=ENU=Arrears Generated }
+    { 13  ;   ;VDA Increase Amount ;Decimal       ;CaptionML=ENU=VDA Increase Amount }
+    { 14  ;   ;VDA Eligible Max Amount;Decimal    ;CaptionML=ENU=VDA Eligible Max Amount }
+  }
+  KEYS
+  {
+    {    ;Pay Revision Id                         ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+      LocationHRPayrollSetup@1000000004 : Record 72052;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      RevisionLine@1000000002 : Record 72092;
+      PayElements@1000000003 : Record 72060;
+
+    PROCEDURE AssistEdit@2(OldRevisionHeader@1000 : Record 72091) : Boolean;
+    VAR
+      RevisionHeader@1001 : Record 72091;
+    BEGIN
+      WITH RevisionHeader DO BEGIN
+        RevisionHeader := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Pay Revision No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Pay Revision No.",OldRevisionHeader."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Pay Revision Id");
+          Rec := RevisionHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

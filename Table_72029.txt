@@ -1,0 +1,50 @@
+OBJECT Table 72029 Divisions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=17:05:29;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    LookupPageID=Page72039;
+    DrillDownPageID=Page72039;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code10        ;NotBlank=Yes }
+    { 2   ;   ;Description         ;Text50        ;NotBlank=Yes }
+    { 3   ;   ;Active Employees    ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count(Employee WHERE (Division Code=FIELD(Code),
+                                                                                     Status=FILTER(Active)));
+                                                   Editable=No }
+    { 4   ;   ;Inactive Employees  ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count(Employee WHERE (Division Code=FIELD(Code),
+                                                                                     Status=FILTER(Inactive)));
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

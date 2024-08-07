@@ -1,0 +1,160 @@
+OBJECT Table 71155 Time Table Ledger
+{
+  OBJECT-PROPERTIES
+  {
+    Date=02-02-18;
+    Time=09:14:01;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Time Table Ledger;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No.           ;Integer       ;AutoIncrement=Yes;
+                                                   CaptionML=ENU=Entry No. }
+    { 2   ;   ;Class               ;Code10        ;OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Class;
+                                                   Editable=No }
+    { 3   ;   ;Section             ;Code10        ;CaptionML=ENU=Section;
+                                                   Editable=No }
+    { 4   ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculum;
+                                                   Editable=No }
+    { 5   ;   ;Day No              ;Integer       ;CaptionML=ENU=Day No }
+    { 6   ;   ;Hour No             ;Text30        ;CaptionML=ENU=Hour No }
+    { 7   ;   ;Subject             ;Code20        ;TableRelation=Subject;
+                                                   OnValidate=BEGIN
+
+                                                                IF RecSubject.GET(Subject) THEN
+                                                                  "Subject Description" := RecSubject.Description
+                                                                ELSE
+                                                                  "Subject Description" := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Subject }
+    { 8   ;   ;Employee Code       ;Code20        ;TableRelation="Employee Alll";
+                                                   OnValidate=VAR
+                                                                PeriodTime@1102155001 : Record 71152;
+                                                                PeriodHead@1102155000 : Record 71151;
+                                                              BEGIN
+                                                                // Start 05.VIGNESH
+                                                                IF Employee.GET ("Employee Code") THEN
+                                                                  "Faculty Name" := Employee."First Name"
+                                                                ELSE
+                                                                  "Faculty Name" := '';
+                                                                // Stop 05.VIGNESH
+                                                                // Start 03.GUNA
+                                                                PeriodTime.RESET;
+                                                                PeriodTime.SETRANGE(Period,"Hour No");
+                                                                IF PeriodTime.FINDFIRST THEN BEGIN
+                                                                  "Start Time" := CREATEDATETIME("Time Table Date",PeriodTime."Period Time");
+                                                                  PeriodHead.GET(PeriodTime.Code);
+                                                                  "End Time" := CREATEDATETIME("Time Table Date",(PeriodTime."Period Time" + (60 * 1000 * PeriodHead."Minutes/Period")));
+                                                                END;
+                                                                // Stop 03.GUNA
+                                                              END;
+
+                                                   CaptionML=ENU=Employee Code }
+    { 9   ;   ;Time Table Date     ;Date          ;CaptionML=ENU=Time Table Date }
+    { 10  ;   ;Alternate Employee  ;Code10        ;CaptionML=ENU=Alternate Employee }
+    { 11  ;   ;Alternate Subject   ;Code10        ;CaptionML=ENU=Alternate Subject }
+    { 12  ;   ;Attendance Code     ;Code10        ;OnValidate=BEGIN
+                                                                TimeTableLedger.RESET;
+                                                                TimeTableLedger.SETRANGE(TimeTableLedger."Time Table Date","Time Table Date");
+                                                                TimeTableLedger.SETRANGE(TimeTableLedger."Class Code","Class Code");
+                                                                IF "Hour No"='1' THEN BEGIN
+                                                                  TimeTableLedger.SETFILTER(TimeTableLedger."Entry No.",'<>%1',"Entry No.");
+                                                                  TimeTableLedger.SETFILTER(TimeTableLedger."Hour No",'%1|%2|%3|%4|%5','2','3','4','5','6');
+                                                                  IF TimeTableLedger.FINDSET THEN
+                                                                    TimeTableLedger.MODIFYALL(TimeTableLedger."Attendance Code","Attendance Code");
+                                                                END ELSE BEGIN
+                                                                  TimeTableLedger.SETFILTER(TimeTableLedger."Entry No.",'<>%1',"Entry No.");
+                                                                  TimeTableLedger.SETFILTER(TimeTableLedger."Hour No",'%1|%2','7','8');
+                                                                  IF TimeTableLedger.FINDSET THEN
+                                                                    TimeTableLedger.MODIFYALL(TimeTableLedger."Attendance Code","Attendance Code");
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Attendance Code }
+    { 13  ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year;
+                                                   Editable=No }
+    { 14  ;   ;Subject Description ;Text30        ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(Subject.Description WHERE (Code=FIELD(Subject)));
+                                                   CaptionML=ENU=Subject Description;
+                                                   Editable=No }
+    { 15  ;   ;Start Time          ;DateTime      ;CaptionML=ENU=Start Time }
+    { 16  ;   ;End Time            ;DateTime      ;CaptionML=ENU=End Time }
+    { 17  ;   ;Faculty Name        ;Text30        ;CaptionML=ENU=Faculty Name }
+    { 18  ;   ;Reason              ;Text50        ;CaptionML=ENU=Reason }
+    { 19  ;   ;Exam Status         ;Option        ;CaptionML=ENU=Exam Status;
+                                                   OptionCaptionML=ENU=" ,Deffered,Closed";
+                                                   OptionString=[ ,Deffered,Closed] }
+    { 20  ;   ;Exam Code           ;Code20        ;OnValidate=BEGIN
+                                                                // Start 06.VIGNESH
+                                                                IF "Exam Code" <> '' THEN
+                                                                  "Period Type" := "Period Type"::Exam;
+                                                              END;
+
+                                                   CaptionML=ENU=Exam Code }
+    { 21  ;   ;Exam Description    ;Text50        ;CaptionML=ENU=Exam Description }
+    { 25  ;   ;Period Type         ;Option        ;CaptionML=ENU=Period Type;
+                                                   OptionCaptionML=ENU=Normal,Exam;
+                                                   OptionString=Normal,Exam }
+    { 26  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Entry No.                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ClassSection@1102155000 : Record 71015;
+      Employee@1102155001 : Record 5200;
+      Text000@1102155002 : TextConst 'ENU=Internal exam %1 is not allottted for this subject.';
+      TimeTableLedger@1102155003 : Record 71155;
+      RecSubject@1000000000 : Record 71004;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        02  23/11/09   VIGNESH  Class - OnValidate()                Code added to get the Class Section & Curriculum
+        03  23/11/09   VIGNESH  Class - OnLookup()                  Code added to get the Class Section & Curriculum
+        04  23/11/09   VIGNESH  Curriculum - OnValidate()           Code added to get the Class Section & Curriculum
+        05  23/11/09   VIGNESH  Curriculum - OnLookup()             Code added to get the Class Section & Curriculum
+        06  23/11/09   VIGNESH  Section - OnValidate()              Code added to get the Class Section & Curriculum
+        07  23/11/09   VIGNESH  Section - OnLookup()                Code added to get the Class Section & Curriculum
+    }
+    END.
+  }
+}
+

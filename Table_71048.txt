@@ -1,0 +1,81 @@
+OBJECT Table 71048 Class Subjects
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27-01-18;
+    Time=14:13:50;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Class Subjects;
+    LookupPageID=Page71062;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class               ;Code10        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class Code }
+    { 3   ;   ;Curriculum          ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 4   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 5   ;   ;Subject             ;Code10        ;TableRelation=Subject;
+                                                   OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                IF RecSubject.GET(Subject) THEN BEGIN
+                                                                  Description := RecSubject.Description;
+                                                                  Type := RecSubject.Type;
+                                                                  "Subject Group" := RecSubject."Subject Group";
+                                                                END ELSE BEGIN
+                                                                  Description := '';
+                                                                  "Subject Group" := '';
+                                                                END;
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Subject }
+    { 6   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 7   ;   ;Type                ;Option        ;CaptionML=ENU=Type;
+                                                   OptionCaptionML=ENU=Scholastic,Non-Scholastic;
+                                                   OptionString=Scholastic,Non-Scholastic }
+    { 8   ;   ;Subject Group       ;Code20        ;TableRelation="Subject Group";
+                                                   CaptionML=ENU=Subject Group }
+    { 9   ;   ;Maximum Mark        ;Decimal       ;CaptionML=ENU=Maximum Mark;
+                                                   BlankZero=Yes }
+    { 10  ;   ;Pass Mark           ;Decimal       ;CaptionML=ENU=Pass Mark;
+                                                   BlankZero=Yes }
+    { 11  ;   ;Group Code          ;Code10        ;CaptionML=ENU=Group Code }
+    { 12  ;   ;Subject Order       ;Decimal        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class,Curriculum,Academic Year,Subject  ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecSubject@1102155000 : Record 71004;
+
+    BEGIN
+    {
+       No   Date      Sign     Trigger                         Description
+      -----------------------------------------------------------------------------------------------
+       01  28/09/09  KATHIR    Subject Code - OnValidate()     Code added to Get the subject description and Subject Type
+       02  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,67 @@
+OBJECT Table 72093 Arrears Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 ArrearsLine.RESET;
+                 ArrearsLine.SETRANGE("Arrears Id", "Arrears Id");
+                 IF ArrearsLine.FINDFIRST THEN BEGIN
+                   ArrearsLine.LOCKTABLE;
+                   ArrearsLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Arrears Header;
+    LookupPageID=Page72141;
+    DrillDownPageID=Page72141;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Arrears Id          ;Code20        ;CaptionML=ENU=Arrears Id }
+    { 2   ;   ;Arrears Process Date;Date          ;CaptionML=ENU=Arrears Process Date;
+                                                   Editable=No }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code;
+                                                   Editable=No }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code;
+                                                   Editable=No }
+    { 5   ;   ;Pay Revision Id     ;Code20        ;CaptionML=ENU=Pay Revision Id;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Arrears Id,Arrears Process Date,Location Code,Salary Plan Code,Pay Revision Id;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ArrearsLine@1000000000 : Record 72094;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

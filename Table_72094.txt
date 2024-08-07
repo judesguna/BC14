@@ -1,0 +1,80 @@
+OBJECT Table 72094 Arrears Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Arrears Line;
+    LookupPageID=Page72136;
+    DrillDownPageID=Page72136;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Arrears Id          ;Code20        ;CaptionML=ENU=Arrears Id }
+    { 2   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 5   ;   ;Salary Cycle Code   ;Code20        ;CaptionML=ENU=Salary Cycle Code }
+    { 6   ;   ;Payroll Start Date  ;Date          ;CaptionML=ENU=Payroll Start Date }
+    { 7   ;   ;Payroll End Date    ;Date          ;CaptionML=ENU=Payroll End Date }
+    { 8   ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+    { 9   ;   ;Month               ;Integer       ;CaptionML=ENU=Month }
+    { 10  ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No;
+                                                   NotBlank=Yes }
+    { 11  ;   ;Pay Element Code    ;Code20        ;TableRelation="Professional Tax Line";
+                                                   CaptionML=ENU=Pay Element Code;
+                                                   NotBlank=Yes }
+    { 12  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order }
+    { 13  ;   ;Total Days in a Month;Integer      ;CaptionML=ENU=Total Days in a Month }
+    { 14  ;   ;Paid Days           ;Decimal       ;CaptionML=ENU=Paid Days }
+    { 15  ;   ;Actual Amount       ;Decimal       ;CaptionML=ENU=Actual Amount }
+    { 16  ;   ;Payable Amount      ;Decimal       ;CaptionML=ENU=Payable Amount }
+    { 17  ;   ;Difference Amount / Percent(%);Decimal;
+                                                   CaptionML=ENU=Difference Amount / Percent(%) }
+    { 18  ;   ;Arrear Amount       ;Decimal       ;CaptionML=ENU=Arrear Amount }
+    { 19  ;   ;PF Gross Earnings   ;Decimal       ;CaptionML=ENU=PF Gross Earnings }
+    { 20  ;   ;Employee PF Amount  ;Decimal       ;CaptionML=ENU=Employee PF Amount }
+    { 21  ;   ;Employer PF Amount  ;Decimal       ;CaptionML=ENU=Employer PF Amount }
+    { 22  ;   ;Employer EPS Amount ;Decimal       ;CaptionML=ENU=Employer EPS Amount }
+    { 23  ;   ;PF Admin Charges Amount;Decimal    ;CaptionML=ENU=PF Admin Charges Amount }
+    { 24  ;   ;PF EDLI Amount      ;Decimal       ;CaptionML=ENU=PF EDLI Amount }
+    { 25  ;   ;PF RIFA Amount      ;Decimal       ;CaptionML=ENU=PF RIFA Amount }
+    { 26  ;   ;Fixed/Percent       ;Option        ;CaptionML=ENU=Fixed/Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Arrears Id,Line No.                     ;Clustered=Yes }
+    {    ;Employee No                             ;SumIndexFields=Arrear Amount }
+    {    ;Salary Cycle Code,Employee No,Sorting Order }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

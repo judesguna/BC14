@@ -1,0 +1,69 @@
+OBJECT Table 72022 Appraisal Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Appraisal Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;App No.             ;Code20        ;CaptionML=ENU=App No.;
+                                                   Editable=No }
+    { 2   ;   ;Employee No         ;Code20        ;CaptionML=ENU=Employee No }
+    { 3   ;   ;Objectives Code     ;Code10        ;TableRelation="Performance Appraisal";
+                                                   OnValidate=BEGIN
+                                                                IF PerformanceAppraisal.GET("Objectives Code") THEN
+                                                                  "Objectives Description" := PerformanceAppraisal.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Objectives Code }
+    { 4   ;   ;Objectives Description;Text30      ;CaptionML=ENU=Objectives Description;
+                                                   Editable=No }
+    { 5   ;   ;Self Rating %       ;Decimal       ;CaptionML=ENU=Self Rating % }
+    { 6   ;   ;Performance         ;Option        ;CaptionML=ENU=Performance;
+                                                   OptionCaptionML=ENU=" ,Bad,Average,Good,V.Good,Excellent";
+                                                   OptionString=[ ,Bad,Average,Good,V.Good,Excellent] }
+    { 7   ;   ;Positive Attitude   ;Text30        ;CaptionML=ENU=Positive Attitude }
+    { 8   ;   ;Future Responsibility;Text30       ;CaptionML=ENU=Future Responsibility }
+    { 9   ;   ;Training Code       ;Code10        ;TableRelation=Training;
+                                                   OnValidate=BEGIN
+                                                                IF Training.GET("Training Code") THEN
+                                                                  "Training Description" := Training.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Training Code }
+    { 10  ;   ;Training Description;Text30        ;CaptionML=ENU=Training Description;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;App No.,Employee No,Objectives Code     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Training@1000000000 : Record 72008;
+      PerformanceAppraisal@1000000002 : Record 72006;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

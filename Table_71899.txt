@@ -1,0 +1,57 @@
+OBJECT Table 71899 Report Selections1
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Report Selections;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Usage               ;Option        ;CaptionML=ENU=Usage;
+                                                   OptionCaptionML=ENU=Application fee Receipt,Application,Receipt of Application,Call Letter,Transfer Certificatte,BankChallan,Admission Form;
+                                                   OptionString=Application fee Receipt,Application,Receipt of Application,Call Letter,Transfer Certificatte,BankChallan,Admission Form }
+    { 2   ;   ;Sequence            ;Code20        ;CaptionML=ENU=Sequence }
+    { 3   ;   ;Report ID           ;Integer       ;TableRelation=Object.ID WHERE (Type=CONST(Report));
+                                                   OnValidate=BEGIN
+                                                                CALCFIELDS("Report Name");
+                                                              END;
+
+                                                   CaptionML=ENU=Report ID }
+    { 4   ;   ;Report Name         ;Text80        ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(AllObjWithCaption."Object Caption" WHERE (Object Type=CONST(Report),
+                                                                                                                Object ID=FIELD(Report ID)));
+                                                   CaptionML=ENU=Report Name;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Usage                                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ReportSelection2@1000 : Record 77;
+
+    PROCEDURE NewRecord@1();
+    BEGIN
+      ReportSelection2.SETRANGE(Usage,Usage);
+      IF ReportSelection2.FINDLAST AND (ReportSelection2.Sequence <> '') THEN
+        Sequence := INCSTR(ReportSelection2.Sequence)
+      ELSE
+        Sequence := '1';
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

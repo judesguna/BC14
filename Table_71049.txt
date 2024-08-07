@@ -1,0 +1,127 @@
+OBJECT Table 71049 Student Subjects
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+
+               Edusetup.GET;
+               "Academic Year" := Edusetup."Academic Year";
+             END;
+
+    CaptionML=ENU=Student Subjects;
+    LookupPageID=Page71059;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Student No.         ;Code20        ;TableRelation=Student;
+                                                   CaptionML=ENU=Student No.;
+                                                   Editable=No }
+    { 2   ;   ;Academic Year       ;Code20        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 3   ;   ;Subject             ;Code20        ;TableRelation=Subject;
+                                                   OnValidate=BEGIN
+                                                                IF RecSubject.GET(Subject) THEN BEGIN
+                                                                  Description := RecSubject.Description;
+                                                                 "Subject Type" :=  RecSubject.Type;
+                                                                  "Subject Group" := RecSubject."Subject Group";
+                                                                  Stud.GET("Student No.");
+                                                                  "Class Code" := Stud."Class Code";
+                                                                 IF ClassSection1.GET(Stud."Class Code") THEN BEGIN
+                                                                    Class := ClassSection1.Class;
+                                                                    Section := ClassSection1.Section;
+                                                                    Curriculum := ClassSection1.Curriculum;
+                                                                  END;
+                                                                //END ELSE BEGIN
+                                                                 // Description := '';
+                                                                 // "Subject Group" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Subject }
+    { 4   ;   ;Subject Type        ;Option        ;CaptionML=ENU=Subject Type;
+                                                   OptionCaptionML=ENU=Scholastic,Non-Scholastic;
+                                                   OptionString=Scholastic,Non-Scholastic }
+    { 5   ;   ;Subject Group       ;Code20        ;TableRelation="Subject Group";
+                                                   CaptionML=ENU=Subject Group }
+    { 6   ;   ;Class               ;Code10        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class }
+    { 7   ;   ;Section             ;Code10        ;TableRelation=Section;
+                                                   CaptionML=ENU=Section }
+    { 8   ;   ;Curriculum          ;Code20        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 9   ;   ;Description         ;Text50        ;OnValidate=BEGIN
+                                                                {
+                                                                IF RecSubject.GET(Subject) THEN
+                                                                BEGIN
+                                                                    Description := RecSubject.Description;
+                                                                END;
+                                                                }
+                                                                {
+                                                                IF RecSubject.GET(Subject) THEN BEGIN
+                                                                  Class := ClassSection1.Class;
+                                                                  Section := ClassSection1.Section;
+                                                                   Curriculum := ClassSection1.Curriculum;
+                                                                  "Academic Year" := ClassSection1."Academic Year";
+                                                                   Description := RecSubject.Description;
+                                                                END;
+                                                                 }
+                                                              END;
+
+                                                   CaptionML=ENU=Description }
+    { 10  ;   ;Student Status      ;Option        ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(Student."Student Status" WHERE (No.=FIELD(Student No.)));
+                                                   CaptionML=ENU=Student Status;
+                                                   OptionCaptionML=ENU=" ,Student,Inactive,Alumni";
+                                                   OptionString=[ ,Student,Inactive,Alumni];
+                                                   Editable=No }
+    { 11  ;   ;Mark                ;Decimal       ;CaptionML=ENU=Mark }
+    { 12  ;   ;Grade               ;Code10        ;CaptionML=ENU=Grade }
+    { 13  ;   ;Attendance Percentage;Decimal      ;CaptionML=ENU=Attendance Percentage }
+    { 14  ;   ;Student Name        ;Text50        ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(Student.Name WHERE (No.=FIELD(Student No.)));
+                                                   CaptionML=ENU=Student Name;
+                                                   Editable=No }
+    { 15  ;   ;Attendance % as on Date;Date       ;CaptionML=ENU=Attendance % as on Date }
+    { 16  ;   ;Class Code          ;Code20        ;CaptionML=ENU=Class Code }
+    { 20  ;   ;Student Gender      ;Option        ;OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Student No.,Academic Year,Subject       ;Clustered=Yes }
+    {    ;Class,Section,Curriculum,Academic Year   }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecSubject@1102159000 : Record 71004;
+      Edusetup@1102159001 : Record 71884;
+      ClassSection1@1102159002 : Record 71015;
+      Stud@1102159003 : Record 71046;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

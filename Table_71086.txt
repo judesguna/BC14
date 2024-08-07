@@ -1,0 +1,116 @@
+OBJECT Table 71086 Competition Res Indvu Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=25-05-18;
+    Time=11:39:25;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Competition Res Indvu Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 3   ;   ;Student No.         ;Code20        ;CaptionML=ENU=Student No.;
+                                                   Editable=Yes }
+    { 4   ;   ;Student Name        ;Text50        ;CaptionML=ENU=Student Name;
+                                                   Editable=Yes }
+    { 5   ;   ;Age                 ;Decimal       ;CaptionML=ENU=Age;
+                                                   DecimalPlaces=0:0;
+                                                   Editable=Yes }
+    { 6   ;   ;House               ;Code20        ;TableRelation=House;
+                                                   CaptionML=ENU=House;
+                                                   Editable=Yes }
+    { 7   ;   ;Participant Type    ;Option        ;CaptionML=ENU=Participant Type;
+                                                   OptionCaptionML=ENU=" ,Main,Substitute";
+                                                   OptionString=[ ,Main,Substitute] }
+    { 8   ;   ;Competition Type    ;Code20        ;TableRelation="Competition Type";
+                                                   CaptionML=ENU=Competition Type;
+                                                   Editable=Yes }
+    { 9   ;   ;Competition Name    ;Text50        ;CaptionML=ENU=Competition Name;
+                                                   Editable=Yes }
+    { 10  ;   ;Student Division    ;Code20        ;TableRelation="Student Division";
+                                                   CaptionML=ENU=Student Division;
+                                                   Editable=Yes }
+    { 11  ;   ;Position            ;Option        ;OnValidate=BEGIN
+                                                                // Start 04.VIGNESH
+
+                                                                IF CompetitionResultIndividual.GET("Document No.") AND CompetitionResultIndividual."Update Results" THEN
+                                                                  ERROR(Text000);
+
+
+
+                                                                IF CoCurricularPointsSetup.GET("Competition Type") THEN BEGIN
+                                                                  CASE Position OF
+                                                                    Position::"1st Place":
+                                                                    BEGIN
+                                                                      IF xRec.Position = Position::"1st Place" THEN BEGIN
+                                                                        Points := (CoCurricularPointsSetup."1st Place" + CoCurricularPointsSetup."2nd Place")/2;
+                                                                        xRec.Points := Points
+                                                                      END ELSE
+                                                                        Points := CoCurricularPointsSetup."1st Place";
+                                                                    END;
+                                                                    Position::"2nd Place":
+                                                                      Points := CoCurricularPointsSetup."2nd Place";
+                                                                    Position::"3rd Place":
+                                                                      Points := CoCurricularPointsSetup."3rd Place";
+                                                                    Position::"4th place":
+                                                                      Points := CoCurricularPointsSetup."4th Place";
+                                                                    Position::"5th place":
+                                                                      Points := CoCurricularPointsSetup."5th Place";
+                                                                    Position::"6th place":
+                                                                      Points := CoCurricularPointsSetup."6th Place";
+                                                                    Position::Participation:
+                                                                      Points := CoCurricularPointsSetup.Participation;
+                                                                  END;
+                                                                  IF Points = 0 THEN
+                                                                    ERROR(Text001,"Competition Type");
+                                                                END;
+
+                                                                // Stop 04.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Position;
+                                                   OptionCaptionML=ENU=,1st Place,2nd Place,3rd Place,4th place,5th place,6th place,Participation;
+                                                   OptionString=,1st Place,2nd Place,3rd Place,4th place,5th place,6th place,Participation }
+    { 12  ;   ;Points              ;Decimal       ;CaptionML=ENU=Points;
+                                                   Editable=Yes }
+    { 13  ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 14  ;   ;Competition Entry No.;Code20       ;CaptionML=ENU=Competition Entry No. }
+    { 15  ;   ;Months              ;Decimal       ;CaptionML=ENU=Months;
+                                                   DecimalPlaces=0:0;
+                                                   Editable=No }
+    { 17  ;   ;Event Type          ;Option        ;CaptionML=ENU=Event Type;
+                                                   OptionCaptionML=ENU=" ,Individual,Team";
+                                                   OptionString=[ ,Individual,Team];
+                                                   Editable=Yes }
+    { 20  ;   ;Class               ;Code10         }
+    { 50000;  ;Details NUM         ;Decimal        }
+    { 50001;  ;Details TXT         ;Text140        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70123;  ;Section             ;Code10         }
+  }
+  KEYS
+  {
+    {    ;Document No.,Student No.                ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      CoCurricularPointsSetup@1102155000 : Record 71077;
+      CompetitionResultIndividual@1102155001 : Record 71085;
+      Text000@1102155002 : TextConst 'ENU=Result has been updated, you cannot modify it.';
+      Text001@1102155003 : TextConst 'ENU=Please enter the Point for Competition type %1.';
+
+    BEGIN
+    END.
+  }
+}
+

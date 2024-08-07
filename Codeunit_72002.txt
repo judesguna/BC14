@@ -1,0 +1,1712 @@
+OBJECT Codeunit 72002 Salary Process
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            IF NOT CONFIRM('Do U Want (Payroll for the Year)',FALSE) THEN
+              EXIT;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000009 : Record 5200;
+      CUGeneralFunctions@1102159000 : Codeunit 72008;
+      LocationCode@1000000000 : Code[20];
+      SalaryPlanCode@1000000013 : Code[20];
+      SalaryCyclicCode@1000000012 : Code[20];
+      PayStartDate@1000000011 : Date;
+      PayEndDate@1000000010 : Date;
+      TotalDaysinAMonth@1000000014 : Decimal;
+      BaseTotalAmount@1102159001 : Decimal;
+      ActualBaseTotalAmount@1000000001 : Decimal;
+      PayableBaseTotalAmount@1000000002 : Decimal;
+      TotalPayableDays@1102159002 : Decimal;
+      TotalLOPDays@1102155001 : Decimal;
+      FalseLastEffectiveDate@1102159003 : Date;
+      NegativePay@1102155000 : Boolean;
+
+    PROCEDURE "Process Monthly Salary"@1000000000(LLocationCode@1000000014 : Code[20];LSalaryPlanCode@1000000013 : Code[20];LSalaryCyclicCode@1000000012 : Code[20];LPayStartDate@1000000011 : Date;LPayEndDate@1000000010 : Date;LEmployeeNo@1000000000 : Code[20];LEmployeeType@1102159000 : ' ,Staff Permanent,Staff Temporary,Worker Permanent,Worker Temporary') LVStatus : Boolean;
+    VAR
+      DialogWindow@1000000004 : Dialog;
+      CurrentRecord@1000000003 : Integer;
+      RecordCount@1000000002 : Integer;
+      RecordCnt@1000000007 : Integer;
+    BEGIN
+      CUGeneralFunctions.OpenWindow('Salary Process..\\','Progress');
+
+      LocationCode := LLocationCode;
+      SalaryPlanCode := LSalaryPlanCode;
+      SalaryCyclicCode := LSalaryCyclicCode;
+      PayStartDate := LPayStartDate;
+      PayEndDate := LPayEndDate;
+      TotalDaysinAMonth := (PayEndDate - PayStartDate) + 1;
+
+      Employee.RESET;
+      IF LEmployeeNo = 'ALL' THEN BEGIN
+        Employee.SETRANGE("Location Code",LocationCode);
+        Employee.SETRANGE("Salary Plan Code",SalaryPlanCode);
+        IF LEmployeeType <> LEmployeeType::" " THEN
+          Employee.SETRANGE("Employee Category",LEmployeeType);
+      END ELSE
+        BEGIN
+          Employee.SETRANGE("Location Code",LocationCode);
+          Employee.SETRANGE("Salary Plan Code",SalaryPlanCode);
+          Employee.SETRANGE("No.",LEmployeeNo);
+        END;
+
+      IF Employee.FINDFIRST THEN BEGIN
+        RecordCnt := Employee.COUNT;
+        REPEAT
+
+          IF NOT "Checking for Posted Employee" (Employee."No.") THEN
+            IF Employee.Status = Employee.Status::Inactive THEN
+              "Delete Current Employee"(Employee."No.")
+            ELSE BEGIN
+              "Delete Current Employee"(Employee."No.");
+              "Weekly Off Creation"(Employee."No.");
+              "Weekly Off / Holiday Cut"(Employee."No.");
+              "Get Total Payable Days"(Employee."No.");
+              "Get Last Effective Date"(Employee."No.");
+      //      "Read Gross/Daily Pay Elements"(Employee."No.");
+              "Read Employee Pay Elements"(Employee."No.");
+              "Read Pay Loan Details"(Employee."No.");
+              "Read Pay Emp Misc Deductions"(Employee."No.");
+              "Update Pay Elements"(Employee."No.");
+              "Layoff Calculation"(Employee."No.");
+              "Credit Days Calculation"(Employee."No.");
+              "Attendance Bonus Calculation" (Employee."No.");
+              "Extra Wages Calculation"(Employee."No.");
+              "OT Calculation"(Employee."No.");
+              "PF Calculation"(Employee."No.");
+              "ESI Calculation"(Employee."No.");
+              "PT Calculation"(Employee."No.");
+              "LIC Calculation"(Employee."No.");
+              "Medical Reimbu Calculation"(Employee."No.");
+              "Net Amount Calculation"(Employee."No.");
+              IF NegativePay THEN
+                "Net Amount Calculation"(Employee."No.");
+              "First Second Amt Calculation"(Employee."No.");
+              "Update Processed Flag"(Employee."No.");
+              CUGeneralFunctions.UpdateWindow(Employee."No.",RecordCnt);
+            END;
+        UNTIL Employee.NEXT = 0;
+      END;
+      CUGeneralFunctions.CloseWindow;
+    END;
+
+    PROCEDURE "Read Employee Pay Elements"@1000000002(LEmployeeNo@1000000001 : Code[20]);
+    VAR
+      EmployeePayElements@1000000000 : Record 72078;
+      ProcessedSalary@1000000004 : Record 72090;
+    BEGIN
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code",LocationCode);
+      EmployeePayElements.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      EmployeePayElements.SETRANGE("Employee No",LEmployeeNo);
+      EmployeePayElements.SETRANGE("Effective Date",FalseLastEffectiveDate);
+      EmployeePayElements.SETRANGE("Excluded In Pay Slip", FALSE);
+      IF EmployeePayElements.FINDFIRST THEN
+        REPEAT
+          CLEAR(ProcessedSalary);
+          ProcessedSalary."Employee No" := LEmployeeNo;
+          ProcessedSalary."Pay Element Code" := EmployeePayElements."Pay Element Code";
+          ProcessedSalary."Paid Category" := 0;
+          ProcessedSalary."Pay Type" := EmployeePayElements."Pay Type";
+          ProcessedSalary."Fixed / Percent" := EmployeePayElements."Fixed/Percent";
+          ProcessedSalary."Percentage (%)" := EmployeePayElements."Percent (%)";
+          ProcessedSalary."Actual Amount" := EmployeePayElements.Amount;
+          IF ProcessedSalary."Percentage (%)" > 0 THEN
+            ProcessedSalary."Actual Amount" := ProcessedSalary."Percentage (%)";
+          "Insert Pay Processed Salary"(ProcessedSalary);
+        UNTIL EmployeePayElements.NEXT = 0;
+    END;
+
+    PROCEDURE "Read Pay Loan Details"@1000000003(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      ProcessedSalary@1000000002 : Record 72090;
+      EmployeeLoan@1000000003 : Record 72087;
+      EmployeeLoanDetails@1000000004 : Record 72088;
+      EmployeeLoans@1102155000 : Record 72120;
+    BEGIN
+      EmployeeLoan.RESET;
+      EmployeeLoan.SETRANGE("Location Code",LocationCode);
+      EmployeeLoan.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      EmployeeLoan.SETRANGE("Employee No",LEmployeeNo);
+      EmployeeLoan.SETRANGE("No Deduction Request", FALSE);
+      IF EmployeeLoan.FINDFIRST THEN BEGIN
+        EmployeeLoanDetails.RESET;
+        EmployeeLoanDetails.SETRANGE("Location Code",LocationCode);
+        EmployeeLoanDetails.SETRANGE("Salary Plan Code",SalaryPlanCode);
+        EmployeeLoanDetails.SETRANGE("Employee No",LEmployeeNo);
+        EmployeeLoanDetails.SETRANGE("Salary Process Date",PayEndDate);
+        IF EmployeeLoanDetails.FINDFIRST THEN
+          REPEAT
+            CLEAR(ProcessedSalary);
+            ProcessedSalary."Employee No" := LEmployeeNo;
+            ProcessedSalary."Pay Element Code" := EmployeeLoanDetails."Loan Code";
+            ProcessedSalary."Paid Category" := 0;
+            ProcessedSalary."Pay Type" := 1;
+            ProcessedSalary."Actual Amount" := EmployeeLoanDetails."EMI Amount";
+            "Insert Pay Processed Salary"(ProcessedSalary);
+          UNTIL EmployeeLoanDetails.NEXT = 0;
+      END;
+      {
+      EmployeeLoans.RESET;
+      EmployeeLoans.SETRANGE("Location Code",LocationCode);
+      EmployeeLoans.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      EmployeeLoans.SETRANGE("Employee No",LEmployeeNo);
+      EmployeeLoans.SETRANGE("No Deduction Request",FALSE);
+      EmployeeLoans.SETRANGE(Completed,FALSE);
+      IF EmployeeLoans.FINDFIRST THEN
+        REPEAT
+          EmployeeLoans.ValidateBalanceAmount;
+          IF EmployeeLoans."Loan Balance Amount" > 0 THEN BEGIN
+            IF EmployeeLoans."Deduction Amount" > EmployeeLoans."Loan Balance Amount" THEN
+              EmployeeLoans."Deduction Amount" := EmployeeLoans."Loan Balance Amount";
+            ProcessedSalary."Employee No" := LEmployeeNo;
+            ProcessedSalary."Pay Element Code" := EmployeeLoans."Loan Code";
+            ProcessedSalary."Paid Category" := 0;
+            ProcessedSalary."Pay Type" := 1;
+            ProcessedSalary."Actual Amount" += EmployeeLoans."Deduction Amount";
+            ProcessedSalary."Loan Id" := EmployeeLoans."Loan Id";
+            IF ProcessedSalary."Actual Amount" > 0 THEN
+              "Insert Pay Processed Salary"(ProcessedSalary);
+          END;
+
+          IF EmployeeLoans."Loan Balance Amount" <= 0 THEN BEGIN
+            EmployeeLoans.Completed := TRUE;
+            EmployeeLoans.MODIFY;
+          END;
+        UNTIL EmployeeLoans.NEXT = 0;
+      }
+    END;
+
+    PROCEDURE "Read Pay Emp Misc Deductions"@1000000004(LEmployeeNo@1000000004 : Code[20]);
+    VAR
+      MiscAddDeductions@1000000002 : Record 72089;
+      ProcessedSalary@1000000003 : Record 72090;
+    BEGIN
+      MiscAddDeductions.RESET;
+      MiscAddDeductions.SETRANGE("Location Code",LocationCode);
+      MiscAddDeductions.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      MiscAddDeductions.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MiscAddDeductions.SETRANGE("Employee No",LEmployeeNo);
+      IF MiscAddDeductions.FINDFIRST THEN
+        REPEAT
+          CLEAR(ProcessedSalary);
+          ProcessedSalary."Employee No" := LEmployeeNo;
+          ProcessedSalary."Pay Element Code" := MiscAddDeductions."Pay Element Code";
+          ProcessedSalary."Paid Category" := MiscAddDeductions."Paid Category";
+          ProcessedSalary."Pay Type" := MiscAddDeductions."Pay Type";
+          ProcessedSalary."Actual Amount" := MiscAddDeductions.Amount;
+          "Insert Pay Processed Salary"(ProcessedSalary);
+        UNTIL MiscAddDeductions.NEXT = 0;
+    END;
+
+    PROCEDURE "Insert Pay Processed Salary"@1000000001(ProcessedSalary@1000000005 : Record 72090);
+    VAR
+      LProcessedSalary@1000000004 : Record 72090;
+    BEGIN
+      ProcessedSalary."Location Code" := LocationCode;
+      ProcessedSalary."Salary Plan Code" := SalaryPlanCode;
+      ProcessedSalary."Salary Cycle Code" := SalaryCyclicCode;
+      ProcessedSalary."Payroll Start Date" := PayStartDate;
+      ProcessedSalary."Payroll End Date" := PayEndDate;
+      ProcessedSalary.Year := DATE2DMY(PayEndDate,3);
+      ProcessedSalary.Month := DATE2DMY(PayEndDate,2);
+      ProcessedSalary."Total Days in a Month" := TotalDaysinAMonth;
+      ProcessedSalary."Employee Category" := Employee."Employee Category";
+      ProcessedSalary."Salary Processed" := TRUE;
+
+      IF ProcessedSalary."Pay Element Code" <> '' THEN
+        IF ProcessedSalary."Actual Amount" > 0 THEN BEGIN
+          LProcessedSalary.INIT;
+          ProcessedSalary."Actual Amount" := "General Rounding Off"(ProcessedSalary."Actual Amount");
+          ProcessedSalary."Payable Amount" := "General Rounding Off"(ProcessedSalary."Payable Amount");
+          LProcessedSalary := ProcessedSalary;
+          IF LProcessedSalary.INSERT THEN;
+        END;
+    END;
+
+    PROCEDURE "Update Pay Elements"@1000000005(LEmployeeNo@1000000005 : Code[20]);
+    VAR
+      HRPayrollSetup@1000000001 : Record 72051;
+      LocationHRPayrollSetup@1000000002 : Record 72052;
+      ProcessedSalary@1000000000 : Record 72090;
+      PayElements@1000000003 : Record 72060;
+      MonthlyAttendance@1000000004 : Record 72082;
+      TempNoDays@1102155000 : Decimal;
+    BEGIN
+      HRPayrollSetup.GET(USERID);
+      LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",LEmployeeNo);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+      //-- Updating of Pay Elements.
+
+          PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+            ProcessedSalary."Paid Category" := PayElements."Paid Category";
+            ProcessedSalary."Pay Type" := PayElements."Pay Type";
+            ProcessedSalary."Fixed / Percent" := PayElements."Fixed/Percent";
+            ProcessedSalary."Amount Calculation Type" := PayElements."Amount Calculation Type";
+            ProcessedSalary."Base Pay Elements" := PayElements."Base Pay Elements";
+            ProcessedSalary."Included In Pay Slip" := PayElements."Included In Pay Slip";
+            ProcessedSalary."Sorting Order" := PayElements."Sorting Order";
+            ProcessedSalary."Payment Type" := PayElements."Payment Type";
+      //      ProcessedSalary."Paid Days" := TotalPayableDays;
+
+      // - Judes Manual Lop Days Calculation.
+            ProcessedSalary."Paid Days" := (TotalPayableDays - TotalLOPDays);
+
+            IF ProcessedSalary."Total Days in a Month" = ProcessedSalary."Paid Days" THEN
+              ProcessedSalary."Payable Amount" := ProcessedSalary."Actual Amount";
+
+            IF ProcessedSalary."Total Days in a Month" <> ProcessedSalary."Paid Days" THEN BEGIN
+              ProcessedSalary."Payable Amount" :=
+              ((ProcessedSalary."Actual Amount" /
+              ProcessedSalary."Total Days in a Month") *
+              ProcessedSalary."Paid Days");
+
+              IF ProcessedSalary."Amount Calculation Type" = ProcessedSalary."Amount Calculation Type"::"Full Amount" THEN
+                ProcessedSalary."Payable Amount" := ProcessedSalary."Actual Amount";
+
+             ProcessedSalary."Actual Amount" := "General Rounding Off"(ProcessedSalary."Actual Amount");
+             ProcessedSalary."Payable Amount" := "General Rounding Off"(ProcessedSalary."Payable Amount");
+            END;
+            ProcessedSalary.MODIFY;
+
+        UNTIL ProcessedSalary.NEXT = 0;
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",LEmployeeNo);
+      ProcessedSalary.SETFILTER("Fixed / Percent", '%1', ProcessedSalary."Fixed / Percent"::Percent);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+          "Calculate Percentage"(LEmployeeNo,ProcessedSalary."Base Pay Elements");
+          ProcessedSalary."Actual Amount" := ActualBaseTotalAmount * ProcessedSalary."Percentage (%)" / 100;
+          ProcessedSalary."Actual Amount" := "General Rounding Off"(ProcessedSalary."Actual Amount");
+          ProcessedSalary."Payable Amount" := PayableBaseTotalAmount * ProcessedSalary."Percentage (%)" / 100;
+          ProcessedSalary."Payable Amount" := "General Rounding Off"(ProcessedSalary."Payable Amount");
+          ProcessedSalary.MODIFY;
+        UNTIL ProcessedSalary.NEXT = 0;
+    END;
+
+    PROCEDURE "Calculate Percentage"@1000000011(LEmployeeNo@1000000003 : Code[20];LBasePayElement@1000000000 : Text[250]);
+    VAR
+      ProcessedSalary@1000000002 : Record 72090;
+      PayElements@1000000001 : Record 72060;
+    BEGIN
+      CLEAR(ActualBaseTotalAmount);
+      CLEAR(PayableBaseTotalAmount);
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",LEmployeeNo);
+      ProcessedSalary.SETFILTER("Pay Element Code", LBasePayElement);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+          ActualBaseTotalAmount += ProcessedSalary."Actual Amount";
+          PayableBaseTotalAmount += ProcessedSalary."Payable Amount";
+        UNTIL ProcessedSalary.NEXT = 0;
+    END;
+
+    PROCEDURE "Net Amount Calculation"@1000000006(LEmployeeNo@1000000005 : Code[20]);
+    VAR
+      MonthlyAttendance@1000000000 : Record 72082;
+      HRPayrollSetup@1000000004 : Record 72051;
+      LocationHRPayrollSetup@1000000002 : Record 72052;
+      RoundingType@1000000001 : Code[1];
+    BEGIN
+      HRPayrollSetup.GET(USERID);
+      LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Employee No",LEmployeeNo);
+      MonthlyAttendance.SETRANGE("Payroll End Date",PayEndDate);
+      IF MonthlyAttendance.FINDFIRST THEN BEGIN
+        IF Employee.GET(MonthlyAttendance."Employee No") THEN BEGIN
+          MonthlyAttendance."Pay Method" := Employee."Payment Method";
+          MonthlyAttendance.Blocked := Employee.Blocked;
+          MonthlyAttendance."Stop Payment" := Employee."Stop Payment";
+
+          IF Employee."Payment Method" = Employee."Payment Method"::Cash THEN BEGIN
+            MonthlyAttendance."Account Type" := MonthlyAttendance."Account Type"::"G/L Account";
+            MonthlyAttendance."Account No." := LocationHRPayrollSetup."Cash Account GL Code";
+            MonthlyAttendance."Pay Method" := Employee."Payment Method"::Cash;
+          END;
+
+          IF Employee."Payment Method" IN [Employee."Payment Method"::Cheque,
+             Employee."Payment Method"::"Bank Transfer"]
+          THEN BEGIN
+            MonthlyAttendance."Account Type" := MonthlyAttendance."Account Type"::"Bank Account";
+            MonthlyAttendance."Account No." := LocationHRPayrollSetup."Bank Account GL Code";
+            MonthlyAttendance."Pay Method" := Employee."Payment Method"::"Bank Transfer";
+          END;
+        END;
+
+        MonthlyAttendance.CALCFIELDS("Actual Gross Amount");
+        MonthlyAttendance.CALCFIELDS("Actual Reimburesment Amount");
+        MonthlyAttendance.CALCFIELDS("Actual Deduction Amount");
+        MonthlyAttendance.CALCFIELDS("Payable Gross Amount");
+        MonthlyAttendance.CALCFIELDS("Payable Reimburesment Amount");
+        MonthlyAttendance.CALCFIELDS("Payable Deduction Amount");
+
+        MonthlyAttendance."Actual Net Amount" :=
+          (MonthlyAttendance."Actual Gross Amount" +
+           MonthlyAttendance."Actual Reimburesment Amount" -
+           MonthlyAttendance."Actual Deduction Amount");
+
+        MonthlyAttendance."Payable Net Amount" :=
+        (MonthlyAttendance."Payable Gross Amount" +
+           MonthlyAttendance."Payable Reimburesment Amount" -
+           MonthlyAttendance."Payable Deduction Amount");
+
+        NegativePay := FALSE;
+        IF MonthlyAttendance."Payable Net Amount" < 0 THEN BEGIN
+          MonthlyAttendance."Payable Net Amount" := 0;
+          MonthlyAttendance."Negative Pay" := TRUE;
+          "Negative Pay Checking"(LEmployeeNo);
+          NegativePay := TRUE;
+        END;
+      //--------------- HR Setup Rounding Off ------------------
+        IF LocationHRPayrollSetup."Net Salary Rounding Type" = LocationHRPayrollSetup."Net Salary Rounding Type"::Nearest THEN
+          RoundingType := '=';
+        IF LocationHRPayrollSetup."Net Salary Rounding Type" = LocationHRPayrollSetup."Net Salary Rounding Type"::Up THEN
+          RoundingType := '>';
+        IF LocationHRPayrollSetup."Net Salary Rounding Type" = LocationHRPayrollSetup."Net Salary Rounding Type"::Down THEN
+          RoundingType := '<';
+
+        MonthlyAttendance."Payable Net Amount" :=
+          "Rounding Off"(MonthlyAttendance."Payable Net Amount",
+          LocationHRPayrollSetup."Net Salary Rounding Amount",RoundingType);
+        MonthlyAttendance.MODIFY;
+      END;
+    END;
+
+    PROCEDURE "Layoff Calculation"@1102159001(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      LocationHRPayrollSetup@1000000006 : Record 72052;
+      PayElements@1000000002 : Record 72060;
+      ProcessedSalary@1000000001 : Record 72090;
+      MonthlyAttendance@1000000007 : Record 72082;
+      LayoffDaysGrossEarnings@1102159002 : Decimal;
+      LayoffDaysAmount@1102159001 : Decimal;
+      TotalLayoffDays@1102159000 : Decimal;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+        IF NOT Employee."Layoff Applicable" THEN
+          EXIT;
+
+      IF NOT PayElements.GET('LAYOFF',LocationCode,SalaryPlanCode) THEN
+        ERROR('%1','LAYOFF Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(LayoffDaysAmount);
+      CLEAR(LayoffDaysGrossEarnings);
+      CLEAR(TotalLayoffDays);
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",LEmployeeNo);
+      IF MonthlyAttendance.FINDFIRST THEN BEGIN
+        MonthlyAttendance.CALCFIELDS("Lay Off");
+        IF MonthlyAttendance."Lay Off" <> 0 THEN
+          TotalLayoffDays := MonthlyAttendance."Lay Off" / 2;
+      END;
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+          PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+          IF PayElements."Eligible for Layoff" THEN
+            LayoffDaysGrossEarnings += ProcessedSalary."Actual Amount";
+        UNTIL ProcessedSalary.NEXT = 0;
+      IF LayoffDaysGrossEarnings > 0 THEN BEGIN
+        LayoffDaysAmount := ((LayoffDaysGrossEarnings / TotalDaysinAMonth) *
+            TotalLayoffDays);
+        LayoffDaysAmount := ROUND(LayoffDaysAmount,1,'=');
+        LayoffDaysGrossEarnings := "General Rounding Off"(LayoffDaysGrossEarnings);
+      END;
+
+      PayElements.GET('LAYOFF',LocationCode,SalaryPlanCode);
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No" := LEmployeeNo;
+      ProcessedSalary."Pay Element Code" := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category" := PayElements."Paid Category";
+      ProcessedSalary."Pay Type" := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent" := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order" := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements" := '';
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := LayoffDaysGrossEarnings;
+      ProcessedSalary."Paid Days" := MonthlyAttendance."Lay Off";
+      ProcessedSalary."Actual Amount" := LayoffDaysAmount;
+      ProcessedSalary."Payable Amount" := LayoffDaysAmount;
+      ProcessedSalary."Payment Type" := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "Credit Days Calculation"@1000000017(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      LocationHRPayrollSetup@1000000006 : Record 72052;
+      PayElements@1000000002 : Record 72060;
+      ProcessedSalary@1000000001 : Record 72090;
+      CreditDaysGrossEarnings@1102159002 : Decimal;
+      CreditDaysAmount@1102159001 : Decimal;
+      CreditDays@1102159000 : Decimal;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+        IF NOT Employee."Credit Days Applicable" THEN
+          EXIT;
+
+      IF NOT PayElements.GET('CREDIT DAYS',LocationCode,SalaryPlanCode) THEN
+        ERROR('%1','CREDIT DAYS Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(CreditDaysAmount);
+      CLEAR(CreditDaysGrossEarnings);
+      CLEAR(CreditDays);
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+          PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+          IF PayElements."Eligible for Credit Days" THEN
+            CreditDaysGrossEarnings += ProcessedSalary."Actual Amount";
+        UNTIL ProcessedSalary.NEXT = 0;
+
+      LocationHRPayrollSetup.GET(LocationCode);
+
+      IF ProcessedSalary."Paid Days" > LocationHRPayrollSetup."Minimum Attendance Credit Days" THEN BEGIN
+        CreditDays := LocationHRPayrollSetup."Eligible Days for Credit Days";
+        CreditDaysAmount := ((CreditDaysGrossEarnings / ProcessedSalary."Total Days in a Month") *
+          LocationHRPayrollSetup."Eligible Days for Credit Days");
+
+        CreditDaysAmount := ROUND(CreditDaysAmount,1,'=');
+      END;
+
+      CreditDaysGrossEarnings := "General Rounding Off"(CreditDaysGrossEarnings);
+
+      PayElements.GET('CREDIT DAYS',LocationCode,SalaryPlanCode);
+
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No" := LEmployeeNo;
+      ProcessedSalary."Pay Element Code" := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category" := PayElements."Paid Category";
+      ProcessedSalary."Pay Type" := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent" := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order" := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements" := '';
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := CreditDaysGrossEarnings;
+      ProcessedSalary."Paid Days" := CreditDays;
+      ProcessedSalary."Actual Amount" := CreditDaysAmount;
+      ProcessedSalary."Payable Amount" := CreditDaysAmount;
+      ProcessedSalary."Payment Type" := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "Attendance Bonus Calculation"@1000000018(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      HRPayrollSetup@1000000005 : Record 72051;
+      LocationHRPayrollSetup@1000000003 : Record 72052;
+      PayElements@1000000002 : Record 72060;
+      ProcessedSalary@1000000001 : Record 72090;
+      AttendanceBonusAmount@1000000008 : Decimal;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+        IF NOT Employee."Attendance Bonus Applicable" THEN
+          EXIT;
+
+      IF NOT PayElements.GET('ATTE BONUS',LocationCode,SalaryPlanCode) THEN
+        ERROR('%1','ATTE BONUS Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(AttendanceBonusAmount);
+
+      IF TotalDaysinAMonth = TotalPayableDays THEN
+        AttendanceBonusAmount := Employee."Attendance Bonus Amount";
+
+      PayElements.GET('ATTE BONUS',LocationCode,SalaryPlanCode);
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No" := LEmployeeNo;
+      ProcessedSalary."Pay Element Code" := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category" := PayElements."Paid Category";
+      ProcessedSalary."Pay Type" := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent" := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order" := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements" := '';
+      ProcessedSalary."Paid Days" := TotalPayableDays;
+      ProcessedSalary."Actual Amount" := AttendanceBonusAmount;
+      ProcessedSalary."Payable Amount" := AttendanceBonusAmount;
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := 0;
+      ProcessedSalary."Payment Type" := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "PF Calculation"@1000000007(LEmployeeNo@1000000018 : Code[20]);
+    VAR
+      PayElements@1000000003 : Record 72060;
+      PFSetup@1000000004 : Record 72064;
+      ProcessedSalary@1000000006 : Record 72090;
+      HRPayrollSetup@1000000017 : Record 72051;
+      MonthlyAttendance@1102159000 : Record 72082;
+      LastEffectiveDate@1000000005 : Date;
+      PFGrossEarnings@1000000008 : Decimal;
+      EPSGrossEarnings@1000000009 : Decimal;
+      EmployeeVPFAmount@1000000010 : Decimal;
+      EmployeePFAmount@1000000011 : Decimal;
+      EmployerPFAmount@1000000012 : Decimal;
+      EmployerEPSAmount@1000000013 : Decimal;
+      PFAdminChargesAmount@1000000014 : Decimal;
+      PFEDLIAmount@1000000015 : Decimal;
+      PFRIFAAmount@1000000016 : Decimal;
+      RoundingType@1000000007 : Text[2];
+      EPFAmount@1102159001 : Decimal;
+    BEGIN
+      //------ PF Calculation
+      //------ Effective Date / PF Gross Salary Limit / EPS Gross Salary Limit
+      //------ Employee PF % / Employee VPF % / Employer PF % Employer EPS %
+      //------ PF Admin Charges % / PF EDLI % / PF RIFA % / PF Rounding Amount
+
+      IF NOT Employee."PF Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('PF',LocationCode,SalaryPlanCode) THEN
+        ERROR('%1','PF Pay Element not Defined in the Pay Element Card');
+
+      IF Employee."VPF Applicable" THEN
+        IF NOT PayElements.GET('VPF',LocationCode,SalaryPlanCode) THEN
+          ERROR('%1','VPF Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(PFGrossEarnings);
+      CLEAR(EPSGrossEarnings);
+      PFSetup.RESET;
+      PFSetup.SETRANGE("Location Code", LocationCode);
+      PFSetup.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      PFSetup.SETFILTER("Effective Date", '<=%1', PayEndDate);
+      IF NOT PFSetup.FINDLAST THEN
+        MESSAGE('%1','PF Setup Records not found');
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code", LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No", LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type", ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FINDFIRST THEN
+        REPEAT
+          PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+          IF PayElements."Eligible for PF" THEN
+            PFGrossEarnings += ProcessedSalary."Payable Amount";
+        UNTIL ProcessedSalary.NEXT = 0;
+
+      PFGrossEarnings := "General Rounding Off"(PFGrossEarnings);
+      EPSGrossEarnings := "General Rounding Off"(PFGrossEarnings);
+
+      IF PFSetup."PF Rounding Type" = PFSetup."PF Rounding Type"::Nearest THEN
+        RoundingType := '=';
+      IF PFSetup."PF Rounding Type" = PFSetup."PF Rounding Type"::Up THEN
+        RoundingType := '>';
+      IF PFSetup."PF Rounding Type" = PFSetup."PF Rounding Type"::Down THEN
+        RoundingType := '<';
+
+      //---------------------------------------------------------------------------------------------------//
+
+      //----- PF Employee Contribution /  PF Employer Contribution / Pension Amount -----///
+
+      IF Employee."VPF Applicable" THEN
+        PFSetup."Employee VPF ( Employee) %" := Employee."Employee VPF ( Employee) %";
+
+      IF PFGrossEarnings <= PFSetup."PF Gross Salary Limit" THEN BEGIN
+        EmployeeVPFAmount := (PFGrossEarnings * PFSetup."Employee VPF ( Employee) %") / 100;
+        EmployeePFAmount := (PFGrossEarnings * PFSetup."Employee PF (Employee) %") / 100;
+      END
+      ELSE BEGIN
+        EmployeeVPFAmount := (PFGrossEarnings * PFSetup."Employee VPF ( Employee) %") / 100;
+        EmployeePFAmount := (PFGrossEarnings * PFSetup."Employee PF (Employee) %") / 100;
+      END;
+
+      IF EPSGrossEarnings <= PFSetup."EPS Gross Salary Limit" THEN BEGIN
+        EPFAmount := ((EPSGrossEarnings * PFSetup."Employee PF (Employee) %") / 100);
+        EPFAmount := "Rounding Off"(EPFAmount, PFSetup."PF Rounding Amount",RoundingType);
+        EmployerPFAmount := EPSGrossEarnings * (PFSetup."Employer PF (Company) %" / 100);
+        EmployerPFAmount := "Rounding Off"(EmployerPFAmount, PFSetup."PF Rounding Amount",RoundingType);
+        EmployerEPSAmount := EPFAmount - EmployerPFAmount;
+      END
+      ELSE BEGIN
+        EPSGrossEarnings := PFSetup."EPS Gross Salary Limit";
+        EPFAmount := ((EPSGrossEarnings * PFSetup."Employee PF (Employee) %") / 100);
+        EPFAmount := "Rounding Off"(EPFAmount, PFSetup."PF Rounding Amount",RoundingType);
+        EmployerPFAmount := (EPSGrossEarnings * ( PFSetup."Employer PF (Company) %" / 100));
+        EmployerPFAmount := "Rounding Off"(EmployerPFAmount, PFSetup."PF Rounding Amount",RoundingType);
+        EmployerEPSAmount := (EPFAmount - EmployerPFAmount);
+      END;
+
+      //- New Modification on /14/07/11
+
+      EmployerPFAmount := (EmployeePFAmount - EmployerEPSAmount);
+
+      //--------------------------PF Admin Charges-----------------------------------------//
+      PFAdminChargesAmount := (PFGrossEarnings * PFSetup."PF Admin Charges %") / 100;
+      //--------------------------EDLI Charges---------------------------------------------//
+      PFEDLIAmount := (PFGrossEarnings * PFSetup."PF EDLI %") / 100;
+      //--------------------------RIFA Charges---------------------------------------------//
+      PFRIFAAmount := (PFGrossEarnings * PFSetup."PF RIFA %") / 100;
+      //-----------------------------------------------------------------------------------//
+
+      EmployeeVPFAmount := "Rounding Off"(EmployeeVPFAmount,PFSetup."PF Rounding Amount",RoundingType);
+      EmployeePFAmount := "Rounding Off"(EmployeePFAmount, PFSetup."PF Rounding Amount",RoundingType);
+      EmployerEPSAmount := "Rounding Off"(EmployerEPSAmount,PFSetup."PF Rounding Amount",RoundingType);
+      EmployerPFAmount := "Rounding Off"(EmployerPFAmount, PFSetup."PF Rounding Amount",RoundingType);
+
+      PFAdminChargesAmount := "Rounding Off"(PFAdminChargesAmount,PFSetup."PF Rounding Amount",RoundingType);
+      PFEDLIAmount := "Rounding Off"(PFEDLIAmount, PFSetup."PF Rounding Amount",RoundingType);
+      PFRIFAAmount := "Rounding Off"(PFRIFAAmount, PFSetup."PF Rounding Amount",RoundingType);
+
+      PayElements.GET('PF',LocationCode,SalaryPlanCode);
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No"        := LEmployeeNo;
+      ProcessedSalary."Pay Element Code"   := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category"      := PayElements."Paid Category";
+      ProcessedSalary."Pay Type"           := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent"    := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order"      := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements"  := '';
+      ProcessedSalary."Paid Days"          := TotalPayableDays;
+      ProcessedSalary."Actual Amount"      := EmployeePFAmount;
+      ProcessedSalary."Payable Amount"     := EmployeePFAmount;
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := PFGrossEarnings;
+      ProcessedSalary."EPS Gross Earnings" := EPSGrossEarnings;
+      ProcessedSalary."Employee VPF Amount" := EmployeeVPFAmount;
+      ProcessedSalary."Employee PF / ESI Amount" := EmployeePFAmount;
+      ProcessedSalary."Employer PF / ESI Amount" := EmployerPFAmount;
+      ProcessedSalary."Employer EPS Amount"      := EmployerEPSAmount;
+      ProcessedSalary."PF Admin Charges Amount"  := PFAdminChargesAmount;
+      ProcessedSalary."PF EDLI Amount" := PFEDLIAmount;
+      ProcessedSalary."PF RIFA Amount" := PFRIFAAmount;
+      ProcessedSalary."Payment Type"   := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+
+      PayElements.GET('VPF',LocationCode,SalaryPlanCode);
+
+      CLEAR(ProcessedSalary);
+
+      ProcessedSalary."Employee No" := LEmployeeNo;
+      ProcessedSalary."Pay Element Code" := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category" := PayElements."Paid Category";
+      ProcessedSalary."Pay Type" := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent" := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order" := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements" := '';
+      ProcessedSalary."Paid Days" := TotalPayableDays;
+      ProcessedSalary."Actual Amount" := EmployeeVPFAmount;
+      ProcessedSalary."Payable Amount" := EmployeeVPFAmount;;
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := PFGrossEarnings;
+      ProcessedSalary."EPS Gross Earnings" := PFGrossEarnings;
+      ProcessedSalary."Employee VPF Amount" := EmployeeVPFAmount;
+      ProcessedSalary."Payment Type" := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "ESI Calculation"@1000000008(LEmployeeNo@1000000003 : Code[20]);
+    VAR
+      HRPayrollSetup@1102159004 : Record 72051;
+      PayElements@1102159003 : Record 72060;
+      ESISetup@1102159002 : Record 72063;
+      Employee@1102159001 : Record 5200;
+      ProcessedSalary@1102159000 : Record 72090;
+      LastEffectiveDate@1000000012 : Date;
+      ESIGrossEarnings@1000000011 : Decimal;
+      ESIEarningsLimits@1000000000 : Decimal;
+      EmployeeESIAmount@1000000008 : Decimal;
+      EmployerESIAmount@1000000007 : Decimal;
+      RoundingType@1000000002 : Text[2];
+      FixedESIGrossEarnings@1102159005 : Decimal;
+      NonFixedESIGrossEarnings@1102159006 : Decimal;
+      FEmployeeESIAmount@1102159009 : Decimal;
+      FEmployerESIAmount@1102159008 : Decimal;
+      NFEmployeeESIAmount@1102159010 : Decimal;
+      NFEmployerESIAmount@1102159007 : Decimal;
+    BEGIN
+      //------ ESI Calculation
+      //------ Effective Date / ESI Gross Salary Limit
+      //------ Employee ESI % / Employer ESI %
+
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."ESI Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('ESI',LocationCode,SalaryPlanCode) THEN
+         ERROR('%1', 'ESI Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(ESIGrossEarnings); CLEAR(ESIEarningsLimits); CLEAR(FixedESIGrossEarnings);
+      CLEAR(NonFixedESIGrossEarnings);
+
+      ESISetup.RESET;
+      ESISetup.SETRANGE("Location Code",    LocationCode);
+      ESISetup.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      ESISetup.SETFILTER("Effective Date", '<=%1',PayEndDate);
+      IF NOT ESISetup.FIND('+') THEN
+         MESSAGE('%1', 'ESI Setup Records not found');
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",     LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",       LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",          ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+      REPEAT
+           PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+
+           IF PayElements."Eligible for ESI Earnings" THEN
+              ESIGrossEarnings += ProcessedSalary."Payable Amount";
+
+      //-- New Modification For Ramjee - On - 11/07/2009.
+
+           IF PayElements."Eligible for ESI Limit Amount" THEN
+              ESIEarningsLimits += ProcessedSalary."Actual Amount";
+
+      //-- New Modification for HTC- on - 25/12/2009.
+
+           IF PayElements."Eligible for ESI Earnings" THEN BEGIN
+              IF PayElements."Fixed Pay Element" THEN
+                 FixedESIGrossEarnings += ProcessedSalary."Payable Amount";
+           END;
+
+           IF PayElements."Eligible for ESI Earnings" THEN BEGIN
+              IF PayElements."Fixed Pay Element" = FALSE THEN
+                 NonFixedESIGrossEarnings += ProcessedSalary."Payable Amount";
+           END;
+
+      UNTIL ProcessedSalary.NEXT = 0;
+      END;
+
+      ESIGrossEarnings := "General Rounding Off"(ESIGrossEarnings);
+
+      IF ESISetup."ESI Rounding Type" = ESISetup."ESI Rounding Type"::Nearest THEN
+         RoundingType := '=';
+      IF ESISetup."ESI Rounding Type" = ESISetup."ESI Rounding Type"::Up THEN
+         RoundingType := '>';
+      IF ESISetup."ESI Rounding Type" = ESISetup."ESI Rounding Type"::Down THEN
+         RoundingType := '<';
+
+      FixedESIGrossEarnings := "General Rounding Off"(FixedESIGrossEarnings);
+      NonFixedESIGrossEarnings := "General Rounding Off"(NonFixedESIGrossEarnings);
+
+      IF ESIEarningsLimits <= ESISetup."ESI Gross Salary Amount" THEN BEGIN
+           FEmployeeESIAmount := (FixedESIGrossEarnings * ESISetup."ESI % ( Employee )" / 100);
+           FEmployerESIAmount := (FixedESIGrossEarnings * ESISetup."ESI % ( Company )"  / 100);
+           FEmployeeESIAmount := "Rounding Off"(FEmployeeESIAmount, ESISetup."ESI Rounding Amount",RoundingType);
+           FEmployerESIAmount := "Rounding Off"(FEmployerESIAmount, ESISetup."ESI Rounding Amount",RoundingType);
+           NFEmployeeESIAmount := (NonFixedESIGrossEarnings * ESISetup."ESI % ( Employee )" / 100);
+           NFEmployerESIAmount := (NonFixedESIGrossEarnings * ESISetup."ESI % ( Company )"  / 100);
+           NFEmployeeESIAmount := "Rounding Off"(NFEmployeeESIAmount, ESISetup."ESI Rounding Amount",RoundingType);
+           NFEmployerESIAmount := "Rounding Off"(NFEmployerESIAmount, ESISetup."ESI Rounding Amount",RoundingType);
+
+           EmployeeESIAmount := FEmployeeESIAmount + NFEmployeeESIAmount;
+           EmployerESIAmount := FEmployerESIAmount + NFEmployerESIAmount;
+
+         END
+      ELSE BEGIN
+           EmployeeESIAmount := 0;
+           EmployerESIAmount := 0;
+      END;
+
+      PayElements.GET('ESI',LocationCode,SalaryPlanCode);
+
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No"      := LEmployeeNo;
+      ProcessedSalary."Pay Element Code" := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category"    := PayElements."Paid Category";
+      ProcessedSalary."Pay Type"         := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent"  := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order" := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements" := '';
+      ProcessedSalary."Paid Days" := TotalPayableDays;
+      ProcessedSalary."Actual Amount" := EmployeeESIAmount;
+      ProcessedSalary."Payable Amount" := EmployeeESIAmount;
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := ESIGrossEarnings;
+      ProcessedSalary."Employee PF / ESI Amount" := EmployeeESIAmount;
+      ProcessedSalary."Employer PF / ESI Amount" := EmployerESIAmount;
+      ProcessedSalary."Payment Type" := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "PT Calculation"@1000000009(LEmployeeNo@1000000003 : Code[20]);
+    VAR
+      Employee@1000000011 : Record 5200;
+      PayElements@1000000010 : Record 72060;
+      ProfessionalTaxHeader@1000000009 : Record 72065;
+      ProfessionalTaxLine@1000000000 : Record 72066;
+      ProcessedSalary@1000000008 : Record 72090;
+      HRPayrollSetup@1000000007 : Record 72051;
+      LastEffectiveDate@1000000006 : Date;
+      PTGrossEarnings@1000000005 : Decimal;
+      EmployeePTAmount@1000000004 : Decimal;
+      RoundingType@1000000002 : Text[2];
+    BEGIN
+      //------ PT Calculation
+      //------ Effective Date / PT Gross Salary Limit
+
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."PT Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('PT',LocationCode,SalaryPlanCode) THEN
+         ERROR('%1', 'PT Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(PTGrossEarnings);
+
+      ProfessionalTaxHeader.RESET;
+      ProfessionalTaxHeader.SETRANGE("Location Code",    LocationCode);
+      ProfessionalTaxHeader.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      ProfessionalTaxHeader.SETRANGE("Branch Code",      Employee."PT Branch Code");
+      ProfessionalTaxHeader.SETFILTER("Effective Date", '<=%1',PayEndDate);
+      IF NOT ProfessionalTaxHeader.FINDFIRST THEN ;
+      //   MESSAGE('%1', 'Professional Tax Header Records not found');
+
+      ProfessionalTaxLine.RESET;
+      ProfessionalTaxLine.SETRANGE("Location Code",    LocationCode);
+      ProfessionalTaxLine.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      ProfessionalTaxLine.SETRANGE("Branch Code",      Employee."PT Branch Code");
+      ProfessionalTaxLine.SETFILTER("Effective Date", '<=%1',PayEndDate);
+      IF NOT ProfessionalTaxLine.FINDFIRST THEN;
+      //   MESSAGE('%1', 'Professional Tax Line Records not found');
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",     LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",       LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",          ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+      REPEAT
+           PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+
+           IF PayElements."Eligible for PT" THEN
+              PTGrossEarnings += ProcessedSalary."Payable Amount";
+      UNTIL ProcessedSalary.NEXT = 0;
+      END;
+
+      PTGrossEarnings := "General Rounding Off"(PTGrossEarnings);
+
+      ProfessionalTaxLine.RESET;
+      ProfessionalTaxLine.SETRANGE("Location Code",    LocationCode);
+      ProfessionalTaxLine.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      ProfessionalTaxLine.SETRANGE("Branch Code",      Employee."PT Branch Code");
+      ProfessionalTaxLine.SETFILTER("Effective Date", '<=%1',PayEndDate);
+      IF ProfessionalTaxLine.FIND('-') THEN BEGIN
+        REPEAT
+          IF (ProfessionalTaxLine."Income From" <= PTGrossEarnings ) AND
+             (ProfessionalTaxLine."Income To"   >= PTGrossEarnings ) THEN BEGIN
+              EmployeePTAmount  := ProfessionalTaxLine."Tax Amount";
+          END;
+
+        UNTIL ProfessionalTaxLine.NEXT = 0;
+      END;
+
+      PayElements.GET('PT',LocationCode,SalaryPlanCode);
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No"        := LEmployeeNo;
+      ProcessedSalary."Pay Element Code"   := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category"      := PayElements."Paid Category";
+      ProcessedSalary."Pay Type"           := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent"    := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order"      := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements"  := '';
+      ProcessedSalary."Paid Days" := TotalPayableDays;
+      ProcessedSalary."Actual Amount"  := EmployeePTAmount;
+      ProcessedSalary."Payable Amount" := EmployeePTAmount;
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := PTGrossEarnings;
+      ProcessedSalary."Payment Type"       := PayElements."Payment Type";
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "LIC Calculation"@1000000015(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      PayElements@1000000009 : Record 72060;
+      LICHeader@1000000008 : Record 72070;
+      ProcessedSalary@1000000006 : Record 72090;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."Insurance Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('LIC',LocationCode,SalaryPlanCode) THEN
+         ERROR('%1', 'LIC Pay Element not Defined in the Pay Element Card');
+
+      PayElements.GET('LIC',LocationCode,SalaryPlanCode);
+
+      LICHeader.RESET;
+      LICHeader.SETRANGE("Location Code",    LocationCode);
+      LICHeader.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      LICHeader.SETRANGE("Pay Element Code", PayElements."Pay Element Code");
+      LICHeader.SETRANGE("Employee No.",     LEmployeeNo);
+      LICHeader.SETRANGE(Blocked,            FALSE);
+      IF LICHeader.FIND('-') THEN BEGIN
+
+         LICHeader.CALCFIELDS("Total Premium Amount");
+
+         CLEAR(ProcessedSalary);
+         ProcessedSalary."Employee No"        := LEmployeeNo;
+         ProcessedSalary."Pay Element Code"   := PayElements."Pay Element Code";
+         ProcessedSalary."Paid Category"      := PayElements."Paid Category";
+         ProcessedSalary."Pay Type"           := PayElements."Pay Type";
+         ProcessedSalary."Fixed / Percent"    := PayElements."Fixed/Percent";
+         ProcessedSalary."Sorting Order"      := PayElements."Sorting Order";
+         ProcessedSalary."Base Pay Elements"  := '';
+         ProcessedSalary."Paid Days" := TotalPayableDays;
+         ProcessedSalary."Actual Amount"   := LICHeader."Total Premium Amount";
+         ProcessedSalary."Payable Amount"  := LICHeader."Total Premium Amount";
+         ProcessedSalary."Payment Type"       := PayElements."Payment Type";
+
+         "Insert Pay Processed Salary"(ProcessedSalary);
+      END;
+    END;
+
+    PROCEDURE "Medical Reimbu Calculation"@1000000021(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      PayElements@1000000004 : Record 72060;
+      MedicalReimbuHeader@1000000003 : Record 72072;
+      MedicalReimbuLine@1000000001 : Record 72073;
+      ProcessedSalary@1000000002 : Record 72090;
+      TotalBillAmount@1000000005 : Decimal;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."Medical Reimbu. Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('MED REIMB',LocationCode,SalaryPlanCode) THEN
+         ERROR('%1', 'MED REIMB Pay Element not Defined in the Pay Element Card');
+
+      PayElements.GET('MED REIMB',LocationCode,SalaryPlanCode);
+
+      MedicalReimbuHeader.RESET;
+      MedicalReimbuHeader.SETRANGE("Location Code",    LocationCode);
+      MedicalReimbuHeader.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MedicalReimbuHeader.SETRANGE("Pay Element Code", PayElements."Pay Element Code");
+      MedicalReimbuHeader.SETRANGE("Employee No.",     LEmployeeNo);
+      MedicalReimbuHeader.SETRANGE(Blocked,            FALSE);
+      IF NOT MedicalReimbuHeader.FIND('-') THEN
+         EXIT;
+
+      CLEAR(TotalBillAmount);
+
+      MedicalReimbuLine.RESET;
+      MedicalReimbuLine.SETRANGE("Location Code",    LocationCode);
+      MedicalReimbuLine.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MedicalReimbuLine.SETRANGE("Pay Element Code", PayElements."Pay Element Code");
+      MedicalReimbuLine.SETRANGE("Employee No.",     LEmployeeNo);
+      MedicalReimbuLine.SETRANGE("Reimburesment Date", PayStartDate,PayEndDate);
+      MedicalReimbuLine.SETRANGE(Blocked,            FALSE);
+      IF MedicalReimbuLine.FIND('-') THEN BEGIN
+         REPEAT
+            TotalBillAmount += MedicalReimbuLine."Bill Amount";
+         UNTIL MedicalReimbuLine.NEXT = 0;
+
+         CLEAR(ProcessedSalary);
+         ProcessedSalary."Employee No"       := LEmployeeNo;
+         ProcessedSalary."Pay Element Code"  := PayElements."Pay Element Code";
+         ProcessedSalary."Paid Category"     := PayElements."Paid Category";
+         ProcessedSalary."Pay Type"          := PayElements."Pay Type";
+         ProcessedSalary."Fixed / Percent"   := PayElements."Fixed/Percent";
+         ProcessedSalary."Sorting Order"     := PayElements."Sorting Order";
+         ProcessedSalary."Base Pay Elements" := '';
+         ProcessedSalary."Paid Days" := TotalPayableDays;
+         ProcessedSalary."Actual Amount"     := TotalBillAmount;
+         ProcessedSalary."Payable Amount"    := TotalBillAmount;
+         ProcessedSalary."Payment Type"      := PayElements."Payment Type";
+         "Insert Pay Processed Salary"(ProcessedSalary);
+      END;
+    END;
+
+    PROCEDURE "OT Calculation"@1000000010(LEmployeeNo@1000000013 : Code[20]);
+    VAR
+      Employee@1000000010 : Record 5200;
+      PayElements@1000000009 : Record 72060;
+      ProcessedSalary@1000000007 : Record 72090;
+      MonthlyAttendance@1000000003 : Record 72082;
+      HRPayrollSetup@1000000006 : Record 72051;
+      LocationHRPayrollSetup@1000000000 : Record 72052;
+      OTGrossEarnings@1000000004 : Decimal;
+      RoundingType@1000000002 : Text[2];
+      TotalOverTimeMins@1102155003 : Decimal;
+      AmountPerHour@1102155002 : Decimal;
+      EmployeeOTAmount@1102155001 : Decimal;
+      TotalPermissionMins@1102155000 : Decimal;
+    BEGIN
+      //------ OT Calculation / OT Gross Salary Limit
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."OT Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('OT',LocationCode,SalaryPlanCode) THEN
+         ERROR('%1', 'OT Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(OTGrossEarnings); CLEAR(TotalOverTimeMins);
+      CLEAR(AmountPerHour); CLEAR(EmployeeOTAmount); CLEAR(TotalPermissionMins);
+
+      HRPayrollSetup.GET(USERID);
+      LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",    LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      IF MonthlyAttendance.FIND('-') THEN BEGIN
+         MonthlyAttendance.CALCFIELDS("Over Time In Mins");
+         MonthlyAttendance.CALCFIELDS("Total Permission In Mins");
+         TotalOverTimeMins := MonthlyAttendance."Over Time In Mins";
+         IF TotalOverTimeMins < 0 THEN
+            TotalOverTimeMins := 0;
+
+         IF Employee."OT Type" = Employee."OT Type"::"Hourly Based" THEN
+            MonthlyAttendance."Total Over Time Hours" := "Convert Mins To Hours"(TotalOverTimeMins)
+         ELSE
+            MonthlyAttendance."Total Over Time Hours" := TotalOverTimeMins;
+
+         TotalOverTimeMins := MonthlyAttendance."Total Over Time Hours";
+
+         MonthlyAttendance.MODIFY;
+      END;
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",     LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",       LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",          ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+      REPEAT
+           PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+           IF PayElements."Eligible for OT" THEN
+              OTGrossEarnings += ProcessedSalary."Payable Amount";
+      UNTIL ProcessedSalary.NEXT = 0;
+      END;
+
+      IF Employee."OT Type" = Employee."OT Type"::"Hourly Based" THEN BEGIN
+         IF TotalOverTimeMins > 0 THEN BEGIN
+            AmountPerHour := ((OTGrossEarnings / TotalPayableDays)/ LocationHRPayrollSetup."No of Hours Per Day");
+            EmployeeOTAmount := ((TotalOverTimeMins * AmountPerHour) * Employee."Over Time Multiplier");
+            EmployeeOTAmount := "General Rounding Off"(EmployeeOTAmount);
+         END;
+      END;
+
+      IF Employee."OT Type" = Employee."OT Type"::"Per Daily Amount  " THEN BEGIN
+         IF TotalOverTimeMins > 0 THEN
+            EmployeeOTAmount := (TotalOverTimeMins * (OTGrossEarnings / TotalPayableDays));
+      END;
+
+      PayElements.GET('OT',LocationCode,SalaryPlanCode);
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No"       := LEmployeeNo;
+      ProcessedSalary."Pay Element Code"  := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category"     := PayElements."Paid Category";
+      ProcessedSalary."Pay Type"          := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent"   := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order"     := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements" := '';
+      ProcessedSalary."Paid Days"         := TotalOverTimeMins;
+      ProcessedSalary."Actual Amount"     := EmployeeOTAmount;
+      ProcessedSalary."Payable Amount"    := EmployeeOTAmount;
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := OTGrossEarnings;
+      ProcessedSalary."Payment Type"      := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "Extra Wages Calculation"@1102159002(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      LocationHRPayrollSetup@1000000006 : Record 72052;
+      PayElements@1000000002 : Record 72060;
+      ProcessedSalary@1000000001 : Record 72090;
+      MonthlyAttendance@1000000007 : Record 72082;
+      ExtraWagesDaysGrossEarnings@1102159002 : Decimal;
+      ExtraWagesDaysAmount@1102159001 : Decimal;
+      TotalExtraWagesDays@1102159000 : Decimal;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."Extra Allowance Applicable" THEN
+         EXIT;
+
+      IF NOT PayElements.GET('EXTRA ALLOW',LocationCode,SalaryPlanCode) THEN
+         ERROR('%1', 'EXTRA ALLOW Pay Element not Defined in the Pay Element Card');
+
+      CLEAR(ExtraWagesDaysAmount); CLEAR(ExtraWagesDaysGrossEarnings); CLEAR(TotalExtraWagesDays);
+
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",    LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      IF MonthlyAttendance.FIND('-') THEN BEGIN
+         MonthlyAttendance.CALCFIELDS("Over Time In Mins");
+         TotalExtraWagesDays := MonthlyAttendance."Over Time In Mins";
+      END;
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",     LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",       LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",          ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+         REPEAT
+          PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+          IF PayElements."Eligible for Extra Allowances" THEN
+             ExtraWagesDaysGrossEarnings += ProcessedSalary."Actual Amount";
+         UNTIL ProcessedSalary.NEXT = 0;
+      END;
+
+      PayElements.GET('EXTRA ALLOW',LocationCode,SalaryPlanCode);
+
+      ExtraWagesDaysAmount := ((ExtraWagesDaysGrossEarnings / TotalPayableDays ) *
+                                  TotalExtraWagesDays);
+
+      ExtraWagesDaysGrossEarnings := "General Rounding Off"(ExtraWagesDaysGrossEarnings);
+
+      CLEAR(ProcessedSalary);
+      ProcessedSalary."Employee No"        := LEmployeeNo;
+      ProcessedSalary."Pay Element Code"   := PayElements."Pay Element Code";
+      ProcessedSalary."Paid Category"      := PayElements."Paid Category";
+      ProcessedSalary."Pay Type"           := PayElements."Pay Type";
+      ProcessedSalary."Fixed / Percent"    := PayElements."Fixed/Percent";
+      ProcessedSalary."Sorting Order"      := PayElements."Sorting Order";
+      ProcessedSalary."Base Pay Elements"  := '';
+      ProcessedSalary."PF / ESI / PT Gross Earnings" := ExtraWagesDaysGrossEarnings;
+      ProcessedSalary."Total Days in a Month" := PayElements."No of Day for DA";
+      ProcessedSalary."Paid Days"          := TotalExtraWagesDays;
+      ProcessedSalary."Actual Amount"      := ExtraWagesDaysAmount;
+      ProcessedSalary."Payable Amount"     := ExtraWagesDaysAmount;
+      ProcessedSalary."Payment Type"       := PayElements."Payment Type";
+
+      "Insert Pay Processed Salary"(ProcessedSalary);
+    END;
+
+    PROCEDURE "Rounding Off"@1000000014(GrossAmount@1000000000 : Decimal;RoundingAmount@1000000001 : Decimal;RoundingType@1000000002 : Text[2]) : Decimal;
+    VAR
+      TotalAmountRounded@1000000005 : Decimal;
+    BEGIN
+
+      IF RoundingAmount > 0 THEN
+            TotalAmountRounded := ROUND(GrossAmount,RoundingAmount,RoundingType)
+      ELSE
+         TotalAmountRounded := GrossAmount;
+
+      EXIT(TotalAmountRounded);
+    END;
+
+    PROCEDURE "General Rounding Off"@1000000012(GrossAmount@1000000002 : Decimal) : Decimal;
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+      LocationHRPayrollSetup@1000000004 : Record 72052;
+      RoundingType@1000000001 : Text[2];
+      TotalAmountRounded@1000000003 : Decimal;
+    BEGIN
+      HRPayrollSetup.GET(USERID);
+
+      IF LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code") THEN;
+
+      IF LocationHRPayrollSetup."General Rounding Type" = LocationHRPayrollSetup."General Rounding Type"::Nearest THEN
+         RoundingType := '=';
+      IF LocationHRPayrollSetup."General Rounding Type" = LocationHRPayrollSetup."General Rounding Type"::Up  THEN
+         RoundingType := '>';
+      IF LocationHRPayrollSetup."General Rounding Type" = LocationHRPayrollSetup."General Rounding Type"::Down THEN
+         RoundingType := '<';
+
+      IF ( LocationHRPayrollSetup."General Rounding Amount" > 0 ) THEN
+           TotalAmountRounded := ROUND(GrossAmount,LocationHRPayrollSetup."General Rounding Amount",RoundingType)
+      ELSE
+           TotalAmountRounded := GrossAmount;
+
+      EXIT(TotalAmountRounded);
+    END;
+
+    PROCEDURE "Update Processed Flag"@1000000013(LEmployeeNo@1000000002 : Code[20]);
+    VAR
+      MonthlyAttendance@1000000009 : Record 72082;
+    BEGIN
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",    LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      IF MonthlyAttendance.FIND('-') THEN
+      BEGIN
+            MonthlyAttendance."Salary Processed" := TRUE;
+            MonthlyAttendance.MODIFY;
+      END;
+    END;
+
+    PROCEDURE "Checking for Posted Employee"@1000000020(LEmployeeNo@1000000003 : Code[20]) : Boolean;
+    VAR
+      MonthlyAttendance@1000000002 : Record 72082;
+    BEGIN
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",    LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      MonthlyAttendance.SETRANGE(Posted, TRUE);
+      IF MonthlyAttendance.FIND('-') THEN
+         EXIT(TRUE)
+      ELSE
+         EXIT(FALSE);
+    END;
+
+    PROCEDURE "Delete Current Employee"@1000000016(LEmployeeNo@1000000004 : Code[20]);
+    VAR
+      ProcessedSalary@1000000001 : Record 72090;
+      MonthlyAttendance@1000000000 : Record 72082;
+    BEGIN
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Employee No",      LEmployeeNo);
+      ProcessedSalary.SETRANGE("Payroll End Date", PayEndDate);
+      IF ProcessedSalary.FIND('-') THEN
+         ProcessedSalary.DELETEALL;
+
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",    LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      IF MonthlyAttendance.FIND('-') THEN BEGIN
+          MonthlyAttendance.MODIFYALL("Actual Net Amount",0);
+          MonthlyAttendance.MODIFYALL("Payable Net Amount",0);
+          MonthlyAttendance.MODIFYALL("First Net Amount",0);
+          MonthlyAttendance.MODIFYALL("Second Net Amount",0);
+          MonthlyAttendance.MODIFYALL("Over Time In Mins",0);
+          MonthlyAttendance.MODIFYALL("Total Permission In Mins",0);
+          MonthlyAttendance.MODIFYALL("Negative Pay", FALSE);
+         END
+    END;
+
+    PROCEDURE "First Second Amt Calculation"@1102155001(LEmployeeNo@1000000004 : Code[20]);
+    VAR
+      ProcessedSalary@1000000001 : Record 72090;
+      MonthlyAttendance@1000000000 : Record 72082;
+      PayElements@1102155000 : Record 72060;
+      FirstPaymentAmount@1102155001 : Decimal;
+      SecondPaymentAmount@1102155002 : Decimal;
+    BEGIN
+      CLEAR(FirstPaymentAmount); CLEAR(SecondPaymentAmount);
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",     LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",       LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",          ProcessedSalary."Pay Type"::Addition);
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+         REPEAT
+            PayElements.GET(ProcessedSalary."Pay Element Code",LocationCode,SalaryPlanCode);
+            IF ProcessedSalary."Payment Type" = ProcessedSalary."Payment Type"::"First Payment" THEN
+               FirstPaymentAmount += ProcessedSalary."Payable Amount";
+         UNTIL ProcessedSalary.NEXT = 0;
+      END;
+
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code",    LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      IF MonthlyAttendance.FIND('-') THEN BEGIN
+         MonthlyAttendance.CALCFIELDS("Payable Deduction Amount");
+         MonthlyAttendance."First Net Amount" := (FirstPaymentAmount - MonthlyAttendance."Payable Deduction Amount");
+         MonthlyAttendance."Second Net Amount" := (MonthlyAttendance."Payable Net Amount" - MonthlyAttendance."First Net Amount");
+         IF MonthlyAttendance."First Net Amount" < 0 THEN
+            MonthlyAttendance."First Net Amount" := 0;
+
+         IF MonthlyAttendance."Second Net Amount" < 0 THEN
+            MonthlyAttendance."Second Net Amount" := 0;
+
+         MonthlyAttendance.MODIFY;
+      END
+    END;
+
+    PROCEDURE "Read Gross/Daily Pay Elements"@1000000019(LEmployeeNo@1000000001 : Code[20]);
+    VAR
+      HRPayrollSetup@1102159001 : Record 72051;
+      LocationHRPayrollSetup@1102159000 : Record 72052;
+      PayrollMonthYear@1000000009 : Record 72055;
+      PayElements@1000000003 : Record 72060;
+      EmployeePayElements@1000000000 : Record 72078;
+      MonthlyAttendance@1000000008 : Record 72082;
+      ProcessedSalary@1000000004 : Record 72090;
+      LastEffectiveDate@1000000002 : Date;
+      TotalMonthlySalary@1000000005 : Decimal;
+      TotalPayableDays@1000000007 : Decimal;
+      PerDaySalary@1000000010 : Decimal;
+      TotalGrossAmount@1000000011 : Decimal;
+      VDAAmount@1000000012 : Decimal;
+      BasicAmount@1000000013 : Decimal;
+    BEGIN
+      HRPayrollSetup.GET(USERID);
+      LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+
+      CLEAR(TotalMonthlySalary); CLEAR(PerDaySalary);
+      CLEAR(TotalGrossAmount);   CLEAR(BasicAmount);        CLEAR(VDAAmount);
+
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code",    LocationCode);
+      EmployeePayElements.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      EmployeePayElements.SETRANGE("Employee No",      LEmployeeNo);
+      EmployeePayElements.SETFILTER("Effective Date", '<=%1', PayEndDate);
+      EmployeePayElements.SETRANGE("Excluded In Pay Slip", TRUE);
+      IF EmployeePayElements.FIND('+') THEN
+         LastEffectiveDate := EmployeePayElements."Effective Date";
+
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code",    LocationCode);
+      EmployeePayElements.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      EmployeePayElements.SETRANGE("Employee No",      LEmployeeNo);
+      EmployeePayElements.SETRANGE("Effective Date",   LastEffectiveDate);
+      EmployeePayElements.SETRANGE("Excluded In Pay Slip", TRUE);
+      IF EmployeePayElements.FIND('-') THEN
+      REPEAT
+
+           PayElements.GET(EmployeePayElements."Pay Element Code",LocationCode,SalaryPlanCode);
+
+           PayrollMonthYear.RESET;
+           PayrollMonthYear.SETRANGE("Location Code",      LocationCode);
+           PayrollMonthYear.SETRANGE("Salary Plan Code",   SalaryPlanCode);
+           PayrollMonthYear.SETRANGE("Salary Cyclic Code", SalaryCyclicCode);
+           IF PayrollMonthYear.FIND('-') THEN;
+
+           IF PayElements."Gross Amount Pay Elements" THEN BEGIN
+              TotalMonthlySalary := EmployeePayElements.Amount;
+              PerDaySalary     := ROUND((TotalMonthlySalary / TotalDaysinAMonth),0.01,'=');
+              VDAAmount   := (TotalDaysinAMonth * PayrollMonthYear."Staff VDA Amount");
+              BasicAmount := (TotalMonthlySalary - VDAAmount);
+           END;
+
+           IF PayElements."Daily Wages Pay Elements" THEN BEGIN
+              PerDaySalary     := EmployeePayElements.Amount;
+              TotalGrossAmount := (TotalDaysinAMonth * PerDaySalary);
+              VDAAmount   := (TotalDaysinAMonth * PayrollMonthYear."Workmen VDA Amount");
+              BasicAmount := (TotalGrossAmount - VDAAmount);
+           END;
+
+           Employee.GET(LEmployeeNo);
+
+           IF Employee."Employee Category" IN [Employee."Employee Category"::"Staff Temporary",
+                                           Employee."Employee Category"::"Class IV Temporary"] THEN BEGIN
+              BasicAmount := ( TotalDaysinAMonth * PerDaySalary);
+              VDAAmount := 0;
+           END;
+
+           CLEAR(ProcessedSalary);
+           ProcessedSalary."Employee No"      := LEmployeeNo;
+           ProcessedSalary."Pay Element Code" := 'BASIC';
+           ProcessedSalary."Paid Category"    := PayElements."Paid Category";
+           ProcessedSalary."Pay Type"         := EmployeePayElements."Pay Type";
+           ProcessedSalary."Fixed / Percent"  := EmployeePayElements."Fixed/Percent";
+           ProcessedSalary."Percentage (%)"   := EmployeePayElements."Percent (%)";
+           ProcessedSalary."Actual Amount"    := BasicAmount;
+           ProcessedSalary."Payable Amount"   := BasicAmount;
+           "Insert Pay Processed Salary"(ProcessedSalary);
+
+           CLEAR(ProcessedSalary);
+           ProcessedSalary."Employee No"      := LEmployeeNo;
+           ProcessedSalary."Pay Element Code" := 'DA';
+           ProcessedSalary."Paid Category"    := PayElements."Paid Category";
+           ProcessedSalary."Pay Type"         := EmployeePayElements."Pay Type";
+           ProcessedSalary."Fixed / Percent"  := EmployeePayElements."Fixed/Percent";
+           ProcessedSalary."Percentage (%)"   := EmployeePayElements."Percent (%)";
+           ProcessedSalary."Actual Amount"    := VDAAmount;
+           ProcessedSalary."Payable Amount"   := VDAAmount;
+           "Insert Pay Processed Salary"(ProcessedSalary);
+
+      UNTIL EmployeePayElements.NEXT = 0;
+    END;
+
+    PROCEDURE "Weekly Off Creation"@1000000024(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      HRPayrollSetup@1000000008 : Record 72051;
+      LocationHRPayrollSetup@1000000009 : Record 72052;
+      DailyAttendance@1000000004 : Record 72080;
+      MonthlyAttendance@1000000007 : Record 72082;
+      TotalDaysWorked@1000000005 : Decimal;
+      CheckFlag@1000000001 : Boolean;
+      StartWeek@1102155001 : Integer;
+      EndWeek@1102155000 : Integer;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."Weekly Off Cut" THEN
+         EXIT;
+
+      HRPayrollSetup.GET(USERID);
+      IF LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code") THEN;
+
+      CLEAR(TotalDaysWorked); CLEAR(CheckFlag);
+      CLEAR(StartWeek); CLEAR(EndWeek);
+
+      StartWeek := DATE2DWY(PayStartDate,2);
+      EndWeek := DATE2DWY(PayEndDate,2);
+
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",    LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      DailyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      DailyAttendance.SETRANGE("Week No",          StartWeek,EndWeek);
+      IF DailyAttendance.FIND('-') THEN BEGIN
+         REPEAT
+         IF DailyAttendance."Lay Off" = 1 THEN
+            DailyAttendance."Lay Off" := 1;
+
+         TotalDaysWorked += (DailyAttendance.Present + DailyAttendance.Holiday
+                           + DailyAttendance."Lay Off");
+
+         IF TotalDaysWorked >= LocationHRPayrollSetup."Weekly Off Full Days Limit" THEN BEGIN
+            IF DailyAttendance."Weekly Off Status" THEN BEGIN
+               DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Weekly Off";
+               DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::"Weekly Off";
+               CheckFlag := TRUE;
+             END;
+         END;
+
+         IF (TotalDaysWorked < LocationHRPayrollSetup."Weekly Off Full Days Limit") THEN BEGIN
+            IF DailyAttendance."Weekly Off Status" THEN BEGIN
+               DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::Absent;
+               DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::Absent;
+               CheckFlag := TRUE;
+             END;
+         END;
+
+        IF LocationHRPayrollSetup."Weekly Off Half Days Limit" <> 0 THEN BEGIN
+          IF ( TotalDaysWorked = LocationHRPayrollSetup."Weekly Off Half Days Limit" ) THEN BEGIN
+            IF DailyAttendance."Weekly Off Status" THEN BEGIN
+               DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::"Weekly Off";
+               DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::Absent;
+               CheckFlag := TRUE;
+             END;
+          END;
+         END;
+
+         IF CheckFlag THEN BEGIN
+            DailyAttendance.VALIDATE("First Half Attendance Type");
+            DailyAttendance.VALIDATE("Second Half Attendance Type");
+            DailyAttendance.MODIFY;
+            TotalDaysWorked := 0;
+            CheckFlag := FALSE;
+         END;
+
+         IF DailyAttendance."Weekly Off Status" THEN BEGIN
+            TotalDaysWorked := 0;
+         END;
+
+         UNTIL DailyAttendance.NEXT = 0;
+      END;
+
+        MonthlyAttendance.RESET;
+        MonthlyAttendance.SETRANGE("Location Code",     LocationCode);
+        MonthlyAttendance.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+        MonthlyAttendance.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+        MonthlyAttendance.SETRANGE("Employee No",       LEmployeeNo);
+        IF MonthlyAttendance.FIND('-') THEN BEGIN
+           MonthlyAttendance.CALCFIELDS(Present);
+           IF MonthlyAttendance.Present = 0 THEN BEGIN
+              DailyAttendance.RESET;
+              DailyAttendance.SETRANGE("Location Code",    LocationCode);
+              DailyAttendance.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+              DailyAttendance.SETRANGE("Salary Cyclic Code",SalaryCyclicCode);
+              DailyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+              DailyAttendance.SETFILTER("Payable Days",    '<>%1',0);
+              IF DailyAttendance.FIND('-') THEN BEGIN
+                 REPEAT
+                  DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::Absent;
+                  DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::Absent;
+                  DailyAttendance.VALIDATE("First Half Attendance Type");
+                  DailyAttendance.VALIDATE("Second Half Attendance Type");
+                  DailyAttendance.MODIFY;
+                 UNTIL DailyAttendance.NEXT = 0;
+              END;
+            END;
+        END;
+    END;
+
+    PROCEDURE "Weekly Off / Holiday Cut"@1102159000(LEmployeeNo@1000000000 : Code[20]);
+    VAR
+      HRPayrollSetup@1000000008 : Record 72051;
+      LocationHRPayrollSetup@1000000009 : Record 72052;
+      RVDate@1000000003 : Record 2000000007;
+      DailyAttendance@1000000004 : Record 72080;
+      MonthlyAttendance@1000000007 : Record 72082;
+      TotalDaysWorked@1000000005 : Decimal;
+      CheckFlag@1000000001 : Boolean;
+      AttendanceStartDate@1000000002 : Date;
+      AttendanceEndDate@1000000006 : Date;
+    BEGIN
+      IF Employee.GET(LEmployeeNo) THEN
+         IF NOT Employee."Weekly Off / Holiday Cut" THEN
+         EXIT;
+
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code",    LocationCode);
+      DailyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      DailyAttendance.SETRANGE("Employee No",      LEmployeeNo);
+      DailyAttendance.SETRANGE("Attendance Date",  PayStartDate,PayEndDate);
+      DailyAttendance.SETRANGE("Non Working Day",  TRUE);
+      IF DailyAttendance.FIND('-') THEN BEGIN
+         REPEAT
+            DailyAttendance."First Half Attendance Type"  := DailyAttendance."First Half Attendance Type"::Absent;
+            DailyAttendance."Second Half Attendance Type" := DailyAttendance."Second Half Attendance Type"::Absent;
+            DailyAttendance.VALIDATE("First Half Attendance Type");
+            DailyAttendance.VALIDATE("Second Half Attendance Type");
+            DailyAttendance.MODIFY;
+         UNTIL DailyAttendance.NEXT = 0;
+      END;
+    END;
+
+    PROCEDURE "Negative Pay Checking"@1102159006(LEmployeeNo@1000000004 : Code[20]);
+    VAR
+      ProcessedSalary@1000000001 : Record 72090;
+      TotalGrossAmount@1102155001 : Decimal;
+      TotalDedeAmount@1102155002 : Decimal;
+      TotalNetAmount@1102159000 : Decimal;
+    BEGIN
+      CLEAR(TotalGrossAmount); CLEAR(TotalDedeAmount); CLEAR(TotalNetAmount);
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",     LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",  SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code", SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",       LEmployeeNo);
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+         REPEAT
+          IF ProcessedSalary."Pay Type" = ProcessedSalary."Pay Type"::Addition THEN
+             TotalGrossAmount += ProcessedSalary."Payable Amount";
+
+          IF ( ProcessedSalary."Pay Type" = ProcessedSalary."Pay Type"::Deduction )     AND
+             ( ProcessedSalary."Amount Calculation Type" = ProcessedSalary."Amount Calculation Type"::"Full Amount" ) THEN
+               TotalDedeAmount += ProcessedSalary."Payable Amount";
+         UNTIL ProcessedSalary.NEXT = 0;
+         TotalNetAmount := (TotalGrossAmount - TotalDedeAmount);
+      END;
+
+      ProcessedSalary.RESET;
+      ProcessedSalary.SETRANGE("Location Code",           LocationCode);
+      ProcessedSalary.SETRANGE("Salary Plan Code",        SalaryPlanCode);
+      ProcessedSalary.SETRANGE("Salary Cycle Code",       SalaryCyclicCode);
+      ProcessedSalary.SETRANGE("Employee No",             LEmployeeNo);
+      ProcessedSalary.SETRANGE("Pay Type",                ProcessedSalary."Pay Type"::Deduction);
+      ProcessedSalary.SETRANGE("Amount Calculation Type", ProcessedSalary."Amount Calculation Type"::"Full Amount");
+      IF ProcessedSalary.FIND('-') THEN BEGIN
+         REPEAT
+           IF ProcessedSalary."Payable Amount" > TotalNetAmount THEN BEGIN
+              ProcessedSalary."Payable Amount" := 0;
+              ProcessedSalary.MODIFY;
+           END;
+         UNTIL ProcessedSalary.NEXT = 0;
+      END;
+    END;
+
+    PROCEDURE "Convert Mins To Hours"@1000000023(TotalHrsMins@1000000000 : Decimal) : Decimal;
+    VAR
+      ConvertHours@1000000001 : Decimal;
+      DecimalPart@1000000002 : Decimal;
+      IntegerPart@1000000003 : Integer;
+    BEGIN
+      CLEAR(ConvertHours); CLEAR(DecimalPart); CLEAR(IntegerPart);
+
+      DecimalPart := (TotalHrsMins MOD 60);
+      IntegerPart := (TotalHrsMins - DecimalPart);
+      IntegerPart := (IntegerPart / 60);
+      ConvertHours := (IntegerPart + (DecimalPart / 100));
+
+      EXIT(ConvertHours);
+    END;
+
+    PROCEDURE "Convert Hours To Mins"@1000000022(TotalHrsMins@1000000000 : Decimal) : Decimal;
+    VAR
+      ConvertHours@1000000001 : Decimal;
+      DecimalPart@1000000002 : Decimal;
+      IntegerPart@1000000003 : Integer;
+    BEGIN
+      CLEAR(ConvertHours); CLEAR(DecimalPart); CLEAR(IntegerPart);
+
+      ConvertHours := TotalHrsMins * 100;
+      DecimalPart  := ConvertHours MOD 100;
+      DecimalPart  := (DecimalPart / 100);
+      IntegerPart  := (TotalHrsMins - DecimalPart);
+      ConvertHours := (IntegerPart * 60) + (DecimalPart * 100);
+
+      EXIT(ConvertHours);
+    END;
+
+    PROCEDURE "Get Total Payable Days"@1102159003(LEmployeeNo@1102159000 : Code[20]);
+    VAR
+      MonthlyAttendance@1102159001 : Record 72082;
+    BEGIN
+      MonthlyAttendance.RESET;
+      MonthlyAttendance.SETRANGE("Location Code", LocationCode);
+      MonthlyAttendance.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      MonthlyAttendance.SETRANGE("Salary Cycle Code",SalaryCyclicCode);
+      MonthlyAttendance.SETRANGE("Employee No", LEmployeeNo);
+      IF MonthlyAttendance.FINDFIRST THEN BEGIN
+        MonthlyAttendance.CALCFIELDS("Total Payable Days");
+        TotalPayableDays := MonthlyAttendance."Total Payable Days";
+        TotalLOPDays := MonthlyAttendance."Manual LOP Days";
+      END;
+    END;
+
+    PROCEDURE "Get Last Effective Date"@1102159004(LEmployeeNo@1102159001 : Code[20]);
+    VAR
+      EmployeePayElements@1102159000 : Record 72078;
+    BEGIN
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Location Code", LocationCode);
+      EmployeePayElements.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      EmployeePayElements.SETRANGE("Employee No", LEmployeeNo);
+      EmployeePayElements.SETFILTER("Effective Date", '<=%1', PayEndDate);
+      EmployeePayElements.SETRANGE("Excluded In Pay Slip", FALSE);
+      IF EmployeePayElements.FINDLAST THEN
+        FalseLastEffectiveDate := EmployeePayElements."Effective Date";
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

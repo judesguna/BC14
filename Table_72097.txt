@@ -1,0 +1,734 @@
+OBJECT Table 72097 Posted Daily Attendance
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-06-18;
+    Time=11:33:39;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Salary Cyclic Code,Employee No,Name;
+    CaptionML=ENU=Daily Attendance;
+    LookupPageID=Page72112;
+    DrillDownPageID=Page72112;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cyclic Code  ;Code20        ;TableRelation="Payroll Month & Year"."Salary Cyclic Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                    Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Salary Cyclic Code }
+    { 4   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No }
+    { 5   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 6   ;   ;Attendance Date     ;Date          ;CaptionML=ENU=Attendance Date }
+    { 7   ;   ;In Time             ;Time          ;OnValidate=BEGIN
+                                                                VALIDATE("Out Time");
+                                                              END;
+
+                                                   CaptionML=ENU=In Time }
+    { 8   ;   ;Out Time            ;Time          ;OnValidate=VAR
+                                                                LateComingDuration@1102159000 : Integer;
+                                                              BEGIN
+                                                                IF "Shift Code" <> '' THEN BEGIN
+                                                                  Shift.GET("Shift Code","Location Code","Salary Plan Code");
+
+                                                                  IF ("In Time" <> 0T) OR ("Out Time" = 0T) THEN
+                                                                    IF Shift."Late Coming Applicable" THEN
+                                                                      IF "In Time" > Shift."Late Coming Time Starts From" THEN BEGIN
+                                                                        LateComingDuration := "In Time" - Shift."Late Coming Time Starts From";
+                                                                        "Late Coming Hours" := TotalHoursCalculation("In Time" - Shift."Late Coming Time Starts From");
+                                                                      END;
+                                                                END;
+
+                                                                IF ("In Time" = 0T) AND ("Out Time" = 0T) THEN BEGIN
+                                                                  "Late Coming Hours" := 0;
+                                                                  "Early Going Hours" := 0;
+                                                                  "Early OT Hours" := 0;
+
+                                                                  "Total Permission In Mins" := 0;
+                                                                  "Total OT In Mins" := 0;
+                                                                  "Hours Worked" := 0;
+                                                                  "Total Hours Worked" := 0;
+                                                                END;
+
+                                                                IF ("In Time" <> 0T) AND ("Out Time" <> 0T) THEN
+                                                                  CalculateAllHours;
+
+                                                                IF NOT "Non Working Day" THEN
+                                                                  IF ("In Time" = 0T) AND ("Out Time" = 0T) THEN BEGIN
+                                                                    "Hours Worked" := 0;
+                                                                    "Total Hours Worked" := 0;
+                                                                    "First Half Attendance Type" := "First Half Attendance Type"::Absent;
+                                                                    "Second Half Attendance Type" := "Second Half Attendance Type"::Absent;
+                                                                    VALIDATE("First Half Attendance Type");
+                                                                    VALIDATE("Second Half Attendance Type");
+                                                                  END;
+
+                                                                IF "Weekly Off Status" THEN BEGIN
+                                                                  "First Half Attendance Type" := "First Half Attendance Type"::"Weekly Off";
+                                                                  "Second Half Attendance Type" := "Second Half Attendance Type"::"Weekly Off";
+                                                                  VALIDATE("First Half Attendance Type");
+                                                                  VALIDATE("Second Half Attendance Type");
+                                                                END;
+
+                                                                IF "Holiday Status" THEN BEGIN
+                                                                  "First Half Attendance Type" := "First Half Attendance Type"::Holiday;
+                                                                  "Second Half Attendance Type" := "Second Half Attendance Type"::Holiday;
+                                                                  VALIDATE("First Half Attendance Type");
+                                                                  VALIDATE("Second Half Attendance Type");
+                                                                END;
+
+                                                                IF "Lay Off (Yes/No)" THEN
+                                                                  VALIDATE("Lay Off (Yes/No)");
+                                                              END;
+
+                                                   CaptionML=ENU=Out Time }
+    { 9   ;   ;Hours Worked        ;Decimal       ;CaptionML=ENU=Hours Worked;
+                                                   Editable=No }
+    { 10  ;   ;Actual Hrs          ;Decimal       ;CaptionML=ENU=Actual Hrs;
+                                                   Editable=No }
+    { 11  ;   ;Total OT In Mins    ;Decimal       ;CaptionML=ENU=Total OT In Mins;
+                                                   Editable=No }
+    { 12  ;   ;OT Approved Hrs     ;Decimal       ;CaptionML=ENU=OT Approved Hrs;
+                                                   Editable=No }
+    { 13  ;   ;Total Hours Worked  ;Decimal       ;CaptionML=ENU=Total Hours Worked;
+                                                   Editable=No }
+    { 14  ;   ;First Half Attendance Type;Option  ;OnValidate=BEGIN
+                                                                ValidateAttendanceType;
+                                                              END;
+
+                                                   CaptionML=ENU=First Half Attendance Type;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved,Lay Off";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved,Lay Off] }
+    { 15  ;   ;Second Half Attendance Type;Option ;OnValidate=BEGIN
+                                                                ValidateAttendanceType;
+                                                              END;
+
+                                                   CaptionML=ENU=Second Half Attendance Type;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved,Lay Off";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved,Lay Off] }
+    { 16  ;   ;Leave Code          ;Code20        ;CaptionML=ENU=Leave Code }
+    { 17  ;   ;Present             ;Decimal       ;CaptionML=ENU=Present }
+    { 18  ;   ;Absent              ;Decimal       ;CaptionML=ENU=Absent }
+    { 19  ;   ;Leave               ;Decimal       ;CaptionML=ENU=Leave }
+    { 20  ;   ;Weekly Off          ;Decimal       ;CaptionML=ENU=Weekly Off }
+    { 21  ;   ;Holiday             ;Decimal       ;CaptionML=ENU=Holiday }
+    { 22  ;   ;On-Duty             ;Decimal       ;CaptionML=ENU=On-Duty }
+    { 23  ;   ;Not Joined          ;Decimal       ;CaptionML=ENU=Not Joined }
+    { 24  ;   ;Relieved            ;Decimal       ;CaptionML=ENU=Relieved }
+    { 25  ;   ;Payable Days        ;Decimal       ;CaptionML=ENU=Payable Days }
+    { 26  ;   ;Non Payable Days    ;Decimal       ;CaptionML=ENU=Non Payable Days }
+    { 27  ;   ;Permission (Yes/No) ;Boolean       ;OnValidate=BEGIN
+                                                                IF "Permission (Yes/No)" THEN
+                                                                  Reason := 'Personal Work / Late'
+                                                                ELSE
+                                                                  Reason := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Permission (Yes/No) }
+    { 28  ;   ;Total Permission In Mins;Decimal   ;OnValidate=BEGIN
+                                                                IF "Total Permission In Mins" > 0 THEN BEGIN
+                                                                  "Permission (Yes/No)" := TRUE;
+                                                                  Reason := 'Personal Work / Late';
+                                                                END
+                                                                ELSE BEGIN
+                                                                  "Permission (Yes/No)" := FALSE;
+                                                                  Reason := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Total Permission In Mins }
+    { 29  ;   ;Reason              ;Text30        ;CaptionML=ENU=Reason }
+    { 30  ;   ;Actual Time In      ;Time          ;CaptionML=ENU=Actual Time In }
+    { 31  ;   ;Actual Time Out     ;Time          ;CaptionML=ENU=Actual Time Out }
+    { 32  ;   ;Total Break Hours   ;Decimal       ;CaptionML=ENU=Total Break Hours;
+                                                   Editable=No }
+    { 33  ;   ;Activity            ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count("Time Sheet" WHERE (Location Code=FIELD(Location Code),
+                                                                                         Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                         Employee No=FIELD(Employee No),
+                                                                                         Attend Date=FIELD(Attendance Date)));
+                                                   CaptionML=ENU=Activity;
+                                                   Editable=No }
+    { 34  ;   ;Shift Code          ;Code20        ;TableRelation=Shift;
+                                                   CaptionML=ENU=Shift Code }
+    { 35  ;   ;Day No.             ;Integer       ;CaptionML=ENU=Day No. }
+    { 36  ;   ;Week No             ;Integer       ;CaptionML=ENU=Week No }
+    { 37  ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+    { 38  ;   ;Month               ;Integer       ;CaptionML=ENU=Month;
+                                                   ValuesAllowed=[1;2;3;4;5;6;7;8;9;10;11;12] }
+    { 39  ;   ;Leave Year Code     ;Code10        ;CaptionML=ENU=Leave Year Code;
+                                                   Editable=No }
+    { 40  ;   ;Synchronize         ;Boolean       ;CaptionML=ENU=Synchronize }
+    { 41  ;   ;Late Coming Hours   ;Decimal       ;CaptionML=ENU=Late Coming Hours }
+    { 42  ;   ;Early Going Hours   ;Decimal       ;CaptionML=ENU=Early Going Hours }
+    { 43  ;   ;Early OT Hours      ;Decimal       ;CaptionML=ENU=Early OT Hours }
+    { 44  ;   ;Late OT Hours       ;Decimal       ;CaptionML=ENU=Late OT Hours }
+    { 45  ;   ;Weekly Off Status   ;Boolean       ;CaptionML=ENU=Weekly Off Status }
+    { 46  ;   ;Holiday Status      ;Boolean       ;CaptionML=ENU=Holiday Status }
+    { 47  ;   ;Non Working Day     ;Boolean       ;CaptionML=ENU=Non Working Day }
+    { 48  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary,Class III Permanent,Class III Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary,Class III Permanent,Class III Temporary] }
+    { 49  ;   ;Lay Off             ;Decimal       ;CaptionML=ENU=Lay Off }
+    { 50  ;   ;Manual Entry        ;Boolean       ;CaptionML=ENU=Manual Entry;
+                                                   Editable=No }
+    { 51  ;   ;System Entry        ;Boolean       ;CaptionML=ENU=System Entry;
+                                                   Editable=No }
+    { 52  ;   ;Attendance Verified ;Boolean       ;CaptionML=ENU=Attendance Verified;
+                                                   Editable=No }
+    { 53  ;   ;Lay Off (Yes/No)    ;Boolean       ;OnValidate=BEGIN
+                                                                IF "Lay Off (Yes/No)" THEN BEGIN
+                                                                  "First Half Attendance Type" := "First Half Attendance Type"::"Lay Off";
+                                                                  "Second Half Attendance Type" := "Second Half Attendance Type"::"Lay Off";
+                                                                  VALIDATE("First Half Attendance Type");
+                                                                  VALIDATE("Second Half Attendance Type");
+                                                                END;
+
+                                                                IF NOT "Lay Off (Yes/No)" THEN BEGIN
+                                                                  VALIDATE("In Time");
+                                                                  VALIDATE("Out Time");
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Lay Off (Yes/No) }
+    { 54  ;   ;Comp Off Date       ;Date          ;CaptionML=ENU=Comp Off Date }
+    { 55  ;   ;Punch Total Mins Worked;Decimal    ;CaptionML=ENU=Punch Total Mins Worked;
+                                                   Editable=No }
+    { 56  ;   ;Present (Yes/No)    ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Present (Yes/No) }
+    { 57  ;   ;Absent (Yes/No)     ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Absent (Yes/No) }
+    { 58  ;   ;Leave (Yes/No)      ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Leave (Yes/No) }
+    { 59  ;   ;Weekly Off (Yes/No) ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Weekly Off (Yes/No) }
+    { 60  ;   ;Holiday (Yes/No)    ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Holiday (Yes/No) }
+    { 61  ;   ;On-Duty (Yes/No)    ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=On-Duty (Yes/No) }
+    { 62  ;   ;Not Joined (Yes/No) ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Not Joined (Yes/No) }
+    { 63  ;   ;Relieved (Yes/No)   ;Boolean       ;OnValidate=BEGIN
+                                                                ValidatePunch;
+                                                              END;
+
+                                                   CaptionML=ENU=Relieved (Yes/No) }
+  }
+  KEYS
+  {
+    {    ;Employee No,Attendance Date,Salary Cyclic Code,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+    {    ;Present,Absent,Leave,Weekly Off,Holiday,On-Duty;
+                                                   SumIndexFields=Present,Absent,Leave,Weekly Off,Holiday,On-Duty }
+    {    ;Not Joined,Relieved,Payable Days,Total OT In Mins,Total Permission In Mins,Lay Off;
+                                                   SumIndexFields=Not Joined,Relieved,Payable Days,Total OT In Mins,Total Permission In Mins,Lay Off }
+    {    ;Location Code,Salary Plan Code,Leave Code,Leave Year Code;
+                                                   SumIndexFields=Leave }
+    {    ;Attendance Date,Location Code,Salary Plan Code,Salary Cyclic Code }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      CheckTime@1000000002 : Time;
+      StartDateTime@1000000001 : DateTime;
+      EndDateTime@1000000000 : DateTime;
+      Shift@1102155000 : Record 72059;
+      HRPayrollSetup@1102159001 : Record 72051;
+      LocationHRPayrollSetup@1102159000 : Record 72052;
+
+    PROCEDURE TotalHoursCalculation@1102155000(TotalDuration@1102155000 : Integer) : Decimal;
+    VAR
+      TotalMins@1102155028 : Integer;
+      TotalHrsMins@1102155027 : Decimal;
+      TotalMiliSec@1102155009 : Integer;
+      TotalRestSec@1102155008 : Integer;
+      TotalSec@1102155007 : Integer;
+      TotalRestMin@1102155006 : Integer;
+      TotalMin@1102155005 : Integer;
+      TotalRestHour@1102155004 : Integer;
+    BEGIN
+      TotalMiliSec := TotalDuration MOD 1000;
+      TotalRestSec := TotalDuration DIV 1000;
+      TotalSec := TotalRestSec MOD 60;
+      TotalRestMin := TotalRestSec DIV 60;
+      TotalMin := TotalRestMin MOD 60;
+      TotalRestHour := TotalRestMin DIV 60;
+
+      TotalHrsMins := TotalRestHour + (TotalMin / 100);
+      EXIT(TotalHrsMins);
+    END;
+
+    PROCEDURE CalculateAllHours@1102155001();
+    VAR
+      PersonInoutTotalDuration@1102155009 : Integer;
+      BreakTotalDuration@1102155008 : Integer;
+      PersonInOutDuration@1102155007 : Integer;
+      BreakInOutDuration@1102155006 : Integer;
+      LateComingDuration@1102155003 : Integer;
+      EarlyGoingDuration@1102155002 : Integer;
+      EarlyOTDuration@1102155001 : Integer;
+      LateOTDuration@1102155000 : Integer;
+      Employee@1102155004 : Record 5200;
+      TotalOTHours@1102159000 : Decimal;
+    BEGIN
+      HRPayrollSetup.GET(USERID);
+      LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+
+      Employee.GET("Employee No");
+
+      IF "Shift Code" = '' THEN
+        "Shift Code" := Employee."Working Shift Code";
+
+      Shift.GET("Shift Code","Location Code","Salary Plan Code");
+
+      CLEAR(PersonInoutTotalDuration);
+      CLEAR(BreakTotalDuration);
+      CLEAR(PersonInOutDuration);
+      CLEAR(BreakInOutDuration);
+      CLEAR(LateComingDuration);
+      CLEAR(EarlyGoingDuration);
+      CLEAR(EarlyOTDuration);
+      CLEAR(LateOTDuration);
+
+      CLEAR("Total Hours Worked");
+      CLEAR("Late Coming Hours");
+      CLEAR("Early Going Hours");
+      CLEAR("Total Permission In Mins");
+      CLEAR("Early OT Hours");
+      CLEAR("Late OT Hours");
+      CLEAR("Total Break Hours");
+      CLEAR("Total OT In Mins");
+      CLEAR(TotalOTHours);
+
+      //-- Total Hours Calculation.
+
+      PersonInOutDuration := "Out Time" - "In Time";
+      "Hours Worked" := TotalHoursCalculation(PersonInOutDuration);
+
+      //-- Break Hours Calculation.
+      IF (Shift."Break Start Time" <> 0T) AND (Shift."Break End Time" <> 0T) THEN BEGIN
+        BreakInOutDuration := Shift."Break End Time" - Shift."Break Start Time";
+        "Total Break Hours" := TotalHoursCalculation(BreakInOutDuration);
+      END;
+
+      "Total Hours Worked" := TotalHoursCalculation(PersonInOutDuration - BreakInOutDuration);
+
+      IF "Total Hours Worked" < 0 THEN
+        "Total Hours Worked" := 0;
+
+      // Permission Calculation.
+
+      IF Shift."Late Coming Applicable" THEN
+        IF "In Time" > Shift."Late Coming Time Starts From" THEN BEGIN
+          LateComingDuration := "In Time" - Shift."Late Coming Time Starts From";
+          "Late Coming Hours" := TotalHoursCalculation("In Time" - Shift."Late Coming Time Starts From");
+        END;
+
+      //MESSAGE('Allow Early => %1  PersonOuttime => %2 ',AllowableEarlyGoingTime,PersonOutTime);
+
+      IF Shift."Early Going Applicable" THEN
+        IF "Out Time" < Shift."Late Coming Time Starts From" THEN BEGIN
+          EarlyGoingDuration := Shift."Late Coming Time Starts From" - "Out Time";
+          "Early Going Hours" := TotalHoursCalculation(Shift."Late Coming Time Starts From" - "Out Time");
+        END;
+
+      "Total Permission In Mins" := (LateComingDuration + EarlyGoingDuration) / 60000;
+
+      //-- OverTime Calculation.
+
+      //MESSAGE('Time Starts Before => %1  PersonIntime => %2 ',EarlyOTTime,PersonInTime);
+
+      IF Shift."Morning OT Applicable" THEN
+        IF "In Time" < Shift."Morning OT Starts From" THEN BEGIN
+          EarlyOTDuration := Shift."Morning OT Starts From" - "In Time";
+          "Early OT Hours" := TotalHoursCalculation(Shift."Morning OT Starts From" - "In Time");
+        END;
+
+      //MESSAGE('Time Starts Before => %1  PersonOuttime => %2 ',LateOTTime,PersonOutTime);
+
+      IF Shift."Evening OT Applicable" THEN
+        IF "Out Time" > Shift."Evening OT Starts From" THEN BEGIN
+          LateOTDuration := "Out Time" - Shift."Evening OT Starts From";
+          "Late OT Hours" := TotalHoursCalculation("Out Time" - Shift."Evening OT Starts From");
+        END;
+
+      "Total OT In Mins" := (EarlyOTDuration + LateOTDuration) / 60000;
+
+      //-- New Changes for HTC Footwear Division on 29/12/2009
+
+      IF Shift."Friday Over Time" THEN BEGIN
+        CLEAR(LateOTDuration);
+        IF "Day No." = Shift."Punching Days" THEN
+          IF Shift."Friday Ending Punching Time" <> 0T THEN BEGIN
+            IF "Out Time" > Shift."Friday Time Limit Evening OT" THEN BEGIN
+              LateOTDuration := "Out Time" - Shift."Friday Ending Punching Time";
+              "Late OT Hours" := TotalHoursCalculation("Out Time" - Shift."Friday Ending Punching Time");
+            END;
+            "Total OT In Mins" := (EarlyOTDuration + LateOTDuration) / 60000;
+          END;
+      END;
+
+      IF "Total OT In Mins" <= LocationHRPayrollSetup."Over Time Min Minutes" THEN
+        "Total OT In Mins" := 0;
+
+      IF Employee."Extra Allowance Applicable" THEN
+        "Total OT In Mins" := 0;
+
+      IF "Non Working Day" THEN BEGIN
+        IF Employee."Extra Allowance Applicable" THEN BEGIN
+          IF ("Total Hours Worked" > LocationHRPayrollSetup."Extra Wages Min Hours") AND
+              ("Total Hours Worked" < LocationHRPayrollSetup."Extra Wages Max Hours")
+          THEN
+            "Total OT In Mins" := LocationHRPayrollSetup."Ex.Wages Days Min 3 To 6 Hours";
+
+          IF "Total Hours Worked" > LocationHRPayrollSetup."Extra Wages Max Hours" THEN
+            "Total OT In Mins" := LocationHRPayrollSetup."Ex.Wages Days 6 Hours Above";
+        END;
+
+        IF Employee."OT Type" = Employee."OT Type"::"Hourly Based" THEN
+          "Total OT In Mins" := "Convert Hours To Mins"("Total Hours Worked");
+
+        "Total Permission In Mins" := 0;
+        "Late Coming Hours" := 0;
+        "Early Going Hours" := 0;
+      END;
+
+      //-- New Changes for HTC Footwear Division on 30/12/2009
+      IF NOT Employee."Extra Allowance Applicable" THEN
+        IF LocationHRPayrollSetup."Over Time Hours Round Off" THEN BEGIN
+          TotalOTHours := "Convert Mins To Hours"("Total OT In Mins");
+          TotalOTHours := ROUND(TotalOTHours,1,'<');
+          "Total OT In Mins" := "Convert Hours To Mins"(TotalOTHours);
+        END;
+
+      //-- Holiday OT & Weekly off Over Time
+
+      //--------------------------------
+
+      IF "Hours Worked" < LocationHRPayrollSetup."Absent Hours Limit" THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::Absent;
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Absent;
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+
+      IF "Hours Worked" > LocationHRPayrollSetup."Absent Hours Limit" THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::Present;
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Present;
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+
+      IF ("Hours Worked" >= LocationHRPayrollSetup."Absent Hours Limit") AND
+         ("Hours Worked" <= LocationHRPayrollSetup."No of Hours in Half Day")
+      THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::Present;
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Absent;
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+
+      {
+      IF "Early Going Hours" > LocationHRPayrollSetup."Early Going Permission Limit" THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::Present;
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Absent;
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+
+      IF "Late Coming Hours" > LocationHRPayrollSetup."Late Coming Permission Limit" THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::Absent;
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Present;
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+      }
+    END;
+
+    PROCEDURE ValidateAttendanceType@1102159001();
+    BEGIN
+      Present := 0;
+      Absent := 0;
+      Leave := 0;
+      "Weekly Off" := 0;
+      Holiday := 0;
+      "On-Duty" := 0;
+      "Not Joined" := 0;
+      Relieved := 0;
+      "Lay Off" := 0;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::Present THEN BEGIN
+        Present := 0.5;
+        "Payable Days" := 0.5;
+      END;
+
+      IF "Second Half Attendance Type" = "Second Half Attendance Type"::Present THEN BEGIN
+        Present := 0.5;
+        "Payable Days" := 0.5;
+
+        IF "First Half Attendance Type" = "First Half Attendance Type"::Present THEN BEGIN
+          Present := 1;
+          "Payable Days" := 1;
+          "Non Payable Days" := 0;
+        END;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::Absent THEN BEGIN
+        Absent := 0.5;
+        "Non Payable Days" := 0.5;
+      END;
+
+      IF "Second Half Attendance Type" = "Second Half Attendance Type"::Absent THEN BEGIN
+        Absent := 0.5;
+        "Non Payable Days" := 0.5;
+        IF "First Half Attendance Type" = "First Half Attendance Type"::Absent THEN BEGIN
+          Absent := 1;
+          "Payable Days" := 0;
+          "Non Payable Days" := 1;
+        END;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::Leave THEN BEGIN
+        Leave := 0.5;
+        "Payable Days" := 0.5;
+      END;
+
+      IF "Second Half Attendance Type" = "Second Half Attendance Type"::Leave THEN BEGIN
+        IF "Payable Days" = 0.5 THEN BEGIN
+          Leave := 0.5;
+          "Payable Days" := 1;
+        END ELSE BEGIN
+          Leave := 0.5;
+          "Payable Days" := 0.5;
+          "Non Payable Days" := 0;
+        END;
+
+        IF "First Half Attendance Type" = "First Half Attendance Type"::Leave THEN BEGIN
+          Leave := 1;
+          "Payable Days" := 1;
+        END;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::"Weekly Off" THEN BEGIN
+        "Weekly Off" := 0.5;
+        "Payable Days" := 0.5;
+      END;
+
+      IF "Second Half Attendance Type" = "Second Half Attendance Type"::"Weekly Off" THEN BEGIN
+        IF "Payable Days" = 0.5 THEN BEGIN
+          "Weekly Off" := 0.5;
+          "Payable Days" := 1;
+          "Non Payable Days" := 0;
+        END ELSE BEGIN
+          "Weekly Off" := 0.5;
+          "Payable Days" := 0.5;
+        END;
+
+        IF "First Half Attendance Type" = "First Half Attendance Type"::"Weekly Off" THEN BEGIN
+          "Weekly Off" := 1;
+          "Payable Days" := 1;
+          "Non Payable Days" := 0;
+        END;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::Holiday THEN BEGIN
+        Holiday := 0.5;
+        "Payable Days" := 0.5;
+      END;
+
+      IF "Second Half Attendance Type" = "Second Half Attendance Type"::Holiday THEN BEGIN
+        IF "Payable Days" = 0.5 THEN BEGIN
+          Holiday := 0.5;
+          "Payable Days" := 1;
+          "Non Payable Days" := 0;
+        END ELSE BEGIN
+          Holiday := 0.5;
+          "Payable Days" := 0.5;
+        END;
+
+        IF "First Half Attendance Type" = "First Half Attendance Type"::Holiday THEN BEGIN
+          Holiday := 1;
+          "Payable Days" := 1;
+          "Non Payable Days" := 0;
+        END;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::"On-Duty" THEN BEGIN
+        "On-Duty" := 0.5;
+        "Payable Days" := 0.5;
+      END;
+
+      IF "Second Half Attendance Type" = "Second Half Attendance Type"::"On-Duty" THEN BEGIN
+        IF "Payable Days" = 0.5 THEN BEGIN
+          "On-Duty" := 0.5;
+          "Payable Days" := 1;
+        END ELSE BEGIN
+          "On-Duty" := 0.5;
+          "Payable Days" := 0.5;
+        END;
+
+        IF "First Half Attendance Type" = "First Half Attendance Type"::"On-Duty" THEN BEGIN
+          "On-Duty" := 1;
+          "Payable Days" := 1;
+          "Non Payable Days" := 0;
+        END;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::"Not Joined" THEN BEGIN
+        "Second Half Attendance Type" := "Second Half Attendance Type"::"Not Joined";
+        Present := 0;
+        Absent := 0;
+        Leave := 0;
+        "Weekly Off" := 0;
+        Holiday := 0;
+        "On-Duty" := 0;
+        Relieved := 0;
+        "Lay Off" := 0;
+        "Payable Days" := 0;
+        "Not Joined" := 1;
+        "Payable Days" := 0;
+        "Non Payable Days" := 1;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::Relieved THEN BEGIN
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Relieved;
+        Present := 0;
+        Absent := 0;
+        Leave := 0;
+        "Weekly Off" := 0;
+        Holiday := 0;
+        "On-Duty" := 0;
+        "Not Joined" := 0;
+        "Lay Off" := 0;
+        "Payable Days" := 0;
+        Relieved := 1;
+        "Payable Days" := 0;
+        "Non Payable Days" := 1;
+      END;
+
+      IF "First Half Attendance Type" = "First Half Attendance Type"::"Lay Off" THEN BEGIN
+        "Second Half Attendance Type" := "Second Half Attendance Type"::"Lay Off";
+        "Lay Off" := 1;
+      //   "Payable Days" := 0.5;
+        "Payable Days" := 0;
+        Present := 0;
+        Absent := 0;
+        Leave := 0;
+        "Weekly Off" := 0;
+        Holiday := 0;
+        "On-Duty" := 0;
+        "Not Joined" := 0;
+        Relieved := 0;
+        "Non Payable Days" := 0;
+      END;
+    END;
+
+    PROCEDURE "Convert Mins To Hours"@1000000023(TotalHrsMins@1000000000 : Decimal) : Decimal;
+    VAR
+      ConvertHours@1000000001 : Decimal;
+      DecimalPart@1000000002 : Decimal;
+      IntegerPart@1000000003 : Integer;
+    BEGIN
+      CLEAR(ConvertHours);
+      CLEAR(DecimalPart);
+      CLEAR(IntegerPart);
+
+      DecimalPart := TotalHrsMins MOD 60;
+      IntegerPart := TotalHrsMins - DecimalPart;
+      IntegerPart := IntegerPart / 60;
+      ConvertHours := IntegerPart + (DecimalPart / 100);
+
+      EXIT(ConvertHours);
+    END;
+
+    PROCEDURE "Convert Hours To Mins"@1102159000(TotalHrsMins@1000000000 : Decimal) : Decimal;
+    VAR
+      ConvertHours@1000000001 : Decimal;
+      DecimalPart@1000000002 : Decimal;
+      IntegerPart@1000000003 : Integer;
+    BEGIN
+      CLEAR(ConvertHours);
+      CLEAR(DecimalPart);
+      CLEAR(IntegerPart);
+
+      ConvertHours := TotalHrsMins * 100;
+      DecimalPart := ConvertHours MOD 100;
+      DecimalPart := DecimalPart / 100;
+      IntegerPart := TotalHrsMins - DecimalPart;
+      ConvertHours := (IntegerPart * 60) + (DecimalPart * 100);
+
+      EXIT(ConvertHours);
+    END;
+
+    PROCEDURE ValidatePunch@1102159002();
+    BEGIN
+      "Present (Yes/No)" := FALSE;
+      "Absent (Yes/No)" := FALSE;
+      "Leave (Yes/No)" := FALSE;
+      "Weekly Off (Yes/No)" := FALSE;
+      "Holiday (Yes/No)" := FALSE;
+      "On-Duty (Yes/No)" := FALSE;
+      "Not Joined (Yes/No)" := FALSE;
+      "Relieved (Yes/No)" := FALSE;
+
+      IF "Present (Yes/No)" THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::Present;
+        "Second Half Attendance Type" := "Second Half Attendance Type"::Present;
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+
+      IF NOT "Present (Yes/No)" THEN BEGIN
+        VALIDATE("In Time");
+        VALIDATE("Out Time");
+      END;
+
+      IF "Lay Off (Yes/No)" THEN BEGIN
+        "First Half Attendance Type" := "First Half Attendance Type"::"Lay Off";
+        "Second Half Attendance Type" := "Second Half Attendance Type"::"Lay Off";
+        VALIDATE("First Half Attendance Type");
+        VALIDATE("Second Half Attendance Type");
+      END;
+
+      IF NOT "Lay Off (Yes/No)" THEN BEGIN
+        VALIDATE("In Time");
+        VALIDATE("Out Time");
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

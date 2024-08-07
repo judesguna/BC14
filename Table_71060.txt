@@ -1,0 +1,90 @@
+OBJECT Table 71060 Promotion History
+{
+  OBJECT-PROPERTIES
+  {
+    Date=12-04-22;
+    Time=15:51:20;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Promotion History;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Student No.         ;Code20        ;CaptionML=ENU=Student No. }
+    { 2   ;   ;Class               ;Code10        ;CaptionML=ENU=Class;
+                                                   Editable=No }
+    { 3   ;   ;Section             ;Code10        ;CaptionML=ENU=Section;
+                                                   Editable=No }
+    { 4   ;   ;Curriculum          ;Code20        ;CaptionML=ENU=Curriculum;
+                                                   Editable=No }
+    { 5   ;   ;Pass %              ;Decimal       ;CaptionML=ENU=Pass %;
+                                                   BlankZero=Yes }
+    { 6   ;   ;Marks Obtained      ;Decimal       ;CaptionML=ENU=Marks Obtained;
+                                                   BlankZero=Yes }
+    { 7   ;   ;Result              ;Option        ;CaptionML=ENU=Result;
+                                                   OptionCaptionML=ENU=Promoted,Detained,Withheld;
+                                                   OptionString=Promoted,Detained,Withheld }
+    { 8   ;   ;Student Name        ;Text50        ;CaptionML=ENU=Student Name }
+    { 9   ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year;
+                                                   Editable=No }
+    { 10  ;   ;Promoted Academic Year;Code10      ;CaptionML=ENU=Promoted Academic Year }
+    { 11  ;   ;Promoted Class      ;Code10        ;CaptionML=ENU=Promoted Class }
+    { 12  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 50000;  ;Orig.Promoted Academic Year;Code10  }
+    { 50001;  ;Orig. Class Code    ;Code20         }
+    { 50002;  ;Acad. Class Code    ;Code20         }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Student No.,Class,Academic Year         ;Clustered=Yes }
+    {    ;Class,Section,Curriculum,Academic Year   }
+    {    ;Class Code                               }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ClassSection@1102155000 : Record 71015;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        02  23/11/09   VIGNESH  Class - OnValidate()                Code added to get the Class Section & Curriculum
+        03  23/11/09   VIGNESH  Class - OnLookup()                  Code added to get the Class Section & Curriculum
+        04  23/11/09   VIGNESH  Curriculum - OnValidate()           Code added to get the Class Section & Curriculum
+        05  23/11/09   VIGNESH  Curriculum - OnLookup()             Code added to get the Class Section & Curriculum
+        06  23/11/09   VIGNESH  Section - OnValidate()              Code added to get the Class Section & Curriculum
+        07  23/11/09   VIGNESH  Section - OnLookup()                Code added to get the Class Section & Curriculum
+    }
+    END.
+  }
+}
+

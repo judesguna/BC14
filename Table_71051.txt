@@ -1,0 +1,81 @@
+OBJECT Table 71051 Student Optional Subjects
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Student Optional Subjects;
+    LookupPageID=Page71052;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Student No          ;Code20        ;TableRelation=Student;
+                                                   CaptionML=ENU=Student No }
+    { 2   ;   ;Subject Group       ;Code20        ;TableRelation="Subject Group";
+                                                   CaptionML=ENU=Subject Group }
+    { 3   ;   ;Subject             ;Code20        ;TableRelation="Class Section Subjects".Subject WHERE (Subject Group=FIELD(Subject Group),
+                                                                                                         Class Code=FIELD(Class Code));
+                                                   OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                Subjectrec.RESET;
+                                                                IF Subjectrec.GET(Subject) THEN
+                                                                  Description := Subjectrec.Description
+                                                                ELSE
+                                                                  Description := '';
+
+                                                                ClassSecSub.RESET;
+                                                                ClassSecSub.SETRANGE(ClassSecSub."Class Code","Class Code");
+                                                                ClassSecSub.SETRANGE(ClassSecSub.Subject,Subject);
+                                                                IF ClassSecSub.FINDFIRST THEN
+                                                                  "Class 9 10 Group Code" := ClassSecSub."Class IX and  X Group";
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Subject }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 5   ;   ;Class Code          ;Code20        ;TableRelation="Class Section" }
+    { 6   ;   ;Group               ;Integer       ;BlankZero=Yes }
+    { 10  ;   ;Class 9 10 Group Code;Option       ;OptionCaptionML=ENU=" ,Group 2,Group 3";
+                                                   OptionString=[ ,Group 2,Group 3] }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Student No,Subject Group,Class Code,Subject;
+                                                   Clustered=Yes }
+    {    ;Group                                    }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Subjectrec@1102155000 : Record 71004;
+      ClassSecSub@1102159000 : Record 71016;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  29/09/09   KATHIR   Subject - OnValidate()       Code added to get the Subject description
+        02  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,66 @@
+OBJECT Table 72105 Increment Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Increment Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Pay Increment Id    ;Code20        ;CaptionML=ENU=Pay Increment Id }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No;
+                                                   Editable=No }
+    { 5   ;   ;Line No             ;Integer       ;CaptionML=ENU=Line No }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 7   ;   ;Increment Date      ;Date          ;CaptionML=ENU=Increment Date;
+                                                   Editable=No }
+    { 8   ;   ;Basic Pay           ;Decimal       ;CaptionML=ENU=Basic Pay;
+                                                   Editable=No }
+    { 9   ;   ;Increment Amount    ;Decimal       ;CaptionML=ENU=Increment Amount;
+                                                   Editable=No }
+    { 10  ;   ;Revised Basic Pay   ;Decimal       ;CaptionML=ENU=Revised Basic Pay;
+                                                   Editable=No }
+    { 11  ;   ;Next Increment Date ;Date          ;CaptionML=ENU=Next Increment Date;
+                                                   Editable=No }
+    { 12  ;   ;Note Order Printed  ;Boolean       ;CaptionML=ENU=Note Order Printed }
+    { 13  ;   ;Sanction Order Printed;Boolean     ;CaptionML=ENU=Sanction Order Printed }
+    { 14  ;   ;Increment Posted    ;Boolean       ;CaptionML=ENU=Increment Posted }
+    { 15  ;   ;Month               ;Integer       ;CaptionML=ENU=Month }
+    { 16  ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+  }
+  KEYS
+  {
+    {    ;Pay Increment Id,Employee No,Line No    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

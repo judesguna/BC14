@@ -1,0 +1,94 @@
+OBJECT Table 72111 Piece Rate Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Piece Rate Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Piece Rate ID No.   ;Code20        ;CaptionML=ENU=Piece Rate ID No. }
+    { 2   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 5   ;   ;Employee No.        ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No.") THEN
+                                                                  Name := Employee."First Name";
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No. }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 7   ;   ;Work Order Date     ;Date          ;CaptionML=ENU=Work Order Date;
+                                                   NotBlank=Yes }
+    { 8   ;   ;Work Order No.      ;Text30        ;CaptionML=ENU=Work Order No.;
+                                                   NotBlank=Yes }
+    { 9   ;   ;Item Code           ;Code20        ;TableRelation="Item Piece Rate Master";
+                                                   OnValidate=BEGIN
+                                                                ItemPieceRateMaster.GET("Item Code","Location Code","Salary Plan Code");
+                                                                Description := ItemPieceRateMaster.Description;
+                                                                Rate := ItemPieceRateMaster.Rate;
+                                                                Amount := "No. Of Pieces" * Rate;
+                                                              END;
+
+                                                   CaptionML=ENU=Item Code;
+                                                   NotBlank=Yes }
+    { 10  ;   ;Description         ;Text50        ;CaptionML=ENU=Description;
+                                                   Editable=No }
+    { 11  ;   ;No. Of Pieces       ;Integer       ;OnValidate=BEGIN
+                                                                Amount := "No. Of Pieces" * Rate;
+                                                              END;
+
+                                                   CaptionML=ENU=No. Of Pieces;
+                                                   MinValue=1;
+                                                   MaxValue=9999 }
+    { 12  ;   ;Rate                ;Decimal       ;OnValidate=BEGIN
+                                                                Amount := "No. Of Pieces" * Rate;
+                                                              END;
+
+                                                   CaptionML=ENU=Rate;
+                                                   MinValue=1;
+                                                   MaxValue=9,999.99 }
+    { 13  ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount;
+                                                   Editable=No }
+    { 14  ;   ;Remarks             ;Text50        ;CaptionML=ENU=Remarks }
+    { 15  ;   ;Posted              ;Boolean       ;CaptionML=ENU=Posted }
+  }
+  KEYS
+  {
+    {    ;Piece Rate ID No.,Location Code,Salary Plan Code,Line No.;
+                                                   Clustered=Yes }
+    {    ;Employee No.,Work Order Date             }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000000 : Record 5200;
+      ItemPieceRateMaster@1102159000 : Record 72108;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,45 @@
+OBJECT Table 71069 Faculty Class Formative
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               "Academic Year" := EducationVertical.GetAcademicYear;
+               "User ID" := USERID;
+             END;
+
+    CaptionML=ENU=Faculty Class Formative;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Subject Code        ;Code20        ;CaptionML=ENU=Subject Code }
+    { 2   ;   ;Formative Code      ;Code20        ;TableRelation="Subject Formative Assesment"."Formative Assesment Code" WHERE (Subject Code=FIELD(Subject Code));
+                                                   CaptionML=ENU=Formative Code }
+    { 3   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 4   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Document No.,Subject Code,Formative Code;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationVertical@1102155000 : Codeunit 71880;
+
+    BEGIN
+    END.
+  }
+}
+

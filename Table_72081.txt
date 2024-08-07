@@ -1,0 +1,102 @@
+OBJECT Table 72081 Time Sheet
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Employee No;
+    CaptionML=ENU=Time Sheet;
+    LookupPageID=Page72113;
+    DrillDownPageID=Page72113;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No;
+                                                   NotBlank=Yes }
+    { 4   ;   ;Attend Date         ;Date          ;CaptionML=ENU=Attend Date;
+                                                   NotBlank=Yes }
+    { 5   ;   ;Line No             ;Integer       ;CaptionML=ENU=Line No }
+    { 6   ;   ;Time From           ;Time          ;OnValidate=BEGIN
+                                                                IF "Time From" = 0T THEN BEGIN
+                                                                  "Time To" := 0T;
+                                                                  "Total Hours" := 0;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Time From;
+                                                   NotBlank=Yes }
+    { 7   ;   ;Time To             ;Time          ;OnValidate=BEGIN
+                                                                "Total Hours" := TotalHours("Time From","Time To");
+                                                              END;
+
+                                                   CaptionML=ENU=Time To;
+                                                   NotBlank=Yes;
+                                                   BlankNumbers=BlankZero }
+    { 8   ;   ;Total Hours         ;Decimal       ;CaptionML=ENU=Total Hours;
+                                                   Editable=No }
+    { 9   ;   ;Name of the Task    ;Text50        ;CaptionML=ENU=Name of the Task }
+    { 10  ;   ;Completed           ;Boolean       ;CaptionML=ENU=Completed }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Employee No,Attend Date,Line No;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    PROCEDURE TotalHours@1000000001(InTime@1000000000 : Time;OutTime@1000000001 : Time) TotalHours : Decimal;
+    VAR
+      StartDateTime@1000000005 : DateTime;
+      EndDateTime@1000000004 : DateTime;
+      Day@1000000003 : Date;
+      CheckTime@1000000002 : Time;
+    BEGIN
+      CLEAR(CheckTime);
+      CLEAR(Day);
+      CLEAR(StartDateTime);
+      CLEAR(EndDateTime);
+
+      IF (InTime <> 0T) AND (OutTime <> 0T) THEN BEGIN
+        CheckTime := 130000T;
+        Day := TODAY;
+
+        IF (InTime > CheckTime) AND (OutTime < CheckTime) THEN BEGIN
+          StartDateTime := CREATEDATETIME(Day, InTime);
+          EndDateTime := CREATEDATETIME((Day + 1), OutTime);
+          TotalHours := ABS((StartDateTime - EndDateTime) / 3600000);
+        END ELSE
+          TotalHours := ABS((InTime - OutTime) / 3600000);
+      END;
+
+      IF (InTime = 0T) AND (OutTime = 0T) THEN
+        TotalHours := 0;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

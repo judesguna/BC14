@@ -1,0 +1,155 @@
+OBJECT Table 72095 Final Settlement Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 FinalSettlementLine.RESET;
+                 FinalSettlementLine.SETRANGE("Location Code", "Location Code");
+                 FinalSettlementLine.SETRANGE("Salary Plan Code", "Salary Plan Code");
+                 FinalSettlementLine.SETRANGE("Employee No", "Employee No.");
+                 IF FinalSettlementLine.FINDFIRST THEN BEGIN
+                   FinalSettlementLine.LOCKTABLE;
+                   FinalSettlementLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Final Settlement Header;
+    LookupPageID=Page72136;
+    DrillDownPageID=Page72136;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cycle Code   ;Code20        ;TableRelation="Payroll Month & Year" WHERE (Location Code=FIELD(Location Code),
+                                                                                               Salary Plan Code=FIELD(Salary Plan Code)) }
+    { 4   ;   ;Payroll Start Date  ;Date          ;CaptionML=ENU=Payroll Start Date;
+                                                   Editable=No }
+    { 5   ;   ;Payroll End Date    ;Date          ;CaptionML=ENU=Payroll End Date;
+                                                   Editable=No }
+    { 6   ;   ;Month               ;Integer       ;CaptionML=ENU=Month;
+                                                   Editable=No }
+    { 7   ;   ;Year                ;Integer       ;CaptionML=ENU=Year;
+                                                   Editable=No }
+    { 8   ;   ;Employee No.        ;Code20        ;TableRelation=Employee WHERE (Location Code=FIELD(Location Code),
+                                                                                 Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                 Status=CONST(Inactive));
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No.") THEN BEGIN
+                                                                  Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                                  "Date of Joining" := Employee."Employment Date";
+                                                                  "Date of Leaving" := Employee."Date of Relieving";
+                                                                  Month := DATE2DMY("Date of Leaving",2);
+                                                                  Year := DATE2DMY("Date of Leaving",3);
+                                                                  "Grautity Service Year" := ROUND((("Date of Leaving" - "Date of Joining") / 365.2364),1,'>');
+                                                                END;
+
+                                                                LeaveMaster.RESET;
+                                                                LeaveMaster.SETRANGE("Location Code", "Location Code");
+                                                                LeaveMaster.SETRANGE("Salary Plan Code", "Salary Plan Code");
+                                                                LeaveMaster.SETRANGE("Encash Leave", TRUE);
+                                                                IF LeaveMaster.FINDFIRST THEN
+                                                                  REPEAT
+                                                                    LeaveEntitlement.RESET;
+                                                                    LeaveEntitlement.SETRANGE("Location Code", "Location Code");
+                                                                    LeaveEntitlement.SETRANGE("Salary Plan Code", "Salary Plan Code");
+                                                                    LeaveEntitlement.SETRANGE("Leave Code", LeaveMaster."Leave Code");
+                                                                    LeaveEntitlement.SETRANGE("Employee No", "Employee No.");
+                                                                    IF LeaveEntitlement.FINDFIRST THEN
+                                                                      REPEAT
+                                                                        "Total Encash Leave" += LeaveEntitlement."Leave Closing Balance";
+                                                                      UNTIL LeaveEntitlement.NEXT = 0;
+                                                                  UNTIL LeaveMaster.NEXT = 0;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No. }
+    { 9   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 10  ;   ;Date of Joining     ;Date          ;CaptionML=ENU=Date of Joining;
+                                                   Editable=No }
+    { 11  ;   ;Date of Leaving     ;Date          ;CaptionML=ENU=Date of Leaving;
+                                                   Editable=No }
+    { 12  ;   ;Grautity Service Year;Integer      ;CaptionML=ENU=Grautity Service Year;
+                                                   Editable=No }
+    { 13  ;   ;Total Encash Leave  ;Decimal       ;CaptionML=ENU=Total Encash Leave;
+                                                   Editable=No }
+    { 14  ;   ;Days Worked         ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Payable Days" WHERE (Location Code=FIELD(Location Code),
+                                                                                                            Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                            Employee No=FIELD(Employee No.),
+                                                                                                            Salary Cyclic Code=FIELD(Salary Cycle Code)));
+                                                   CaptionML=ENU=Days Worked;
+                                                   Editable=No }
+    { 15  ;   ;Total Gross Earnings;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Final Settlement Line"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                                   Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                                   Employee No=FIELD(Employee No.),
+                                                                                                                   Pay Type=FILTER(<>Deduction)));
+                                                   CaptionML=ENU=Total Gross Earnings;
+                                                   Editable=No }
+    { 16  ;   ;Total Deductions    ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=-Sum("Final Settlement Line"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                    Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                                    Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                                    Employee No=FIELD(Employee No.),
+                                                                                                                    Pay Type=CONST(Deduction)));
+                                                   OnValidate=BEGIN
+                                                                "Net Amount" := "Total Gross Earnings" - "Total Deductions";
+                                                              END;
+
+                                                   CaptionML=ENU=Total Deductions;
+                                                   Editable=No }
+    { 17  ;   ;Net Amount          ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Final Settlement Line"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                                   Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                                   Employee No=FIELD(Employee No.)));
+                                                   CaptionML=ENU=Net Amount;
+                                                   Editable=No }
+    { 18  ;   ;Journal Template Name;Code20       ;CaptionML=ENU=Journal Template Name }
+    { 19  ;   ;Journal Batch Name  ;Code20        ;CaptionML=ENU=Journal Batch Name }
+    { 20  ;   ;Posting Date        ;Date          ;CaptionML=ENU=Posting Date }
+    { 21  ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Salary Cycle Code,Employee No.;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1000000000 : Record 5200;
+      LeaveMaster@1000000001 : Record 72069;
+      LeaveEntitlement@1000000002 : Record 72084;
+      FinalSettlementLine@1000000003 : Record 72096;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

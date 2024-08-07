@@ -1,0 +1,55 @@
+OBJECT Table 71077 Co-Curricular Points Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               "User ID" := USERID;
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=Co-Curricular Points Setup;
+    LookupPageID=Page71087;
+    DrillDownPageID=Page71087;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Competition type    ;Code20        ;TableRelation="Competition Type";
+                                                   CaptionML=ENU=Competition type }
+    { 2   ;   ;1st Place           ;Decimal       ;CaptionML=ENU=1st Place }
+    { 3   ;   ;2nd Place           ;Decimal       ;CaptionML=ENU=2nd Place }
+    { 4   ;   ;3rd Place           ;Decimal       ;CaptionML=ENU=3rd Place }
+    { 5   ;   ;4th Place           ;Decimal       ;CaptionML=ENU=4th Place }
+    { 6   ;   ;Participation       ;Decimal       ;CaptionML=ENU=Participation }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;5th Place           ;Decimal        }
+    { 70123;  ;6th Place           ;Decimal        }
+  }
+  KEYS
+  {
+    {    ;Competition type                        ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                 Code added to enter the User id
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,318 @@
+OBJECT Codeunit 71850 Stores & Stationeries
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Student@1102155000 : Record 71046;
+      BulkHeader@1102155001 : Record 71850;
+      BulkIssues@1102155002 : Record 71852;
+      BulkLine@1102155003 : Record 71851;
+      SalesHead@1102155004 : Record 36;
+      SalesLine@1102155005 : Record 37;
+      SalesPost@1102155006 : Codeunit 80;
+      StoresSetup@1102155007 : Record 71854;
+      EducationSetup@1102155008 : Record 71884;
+      BulkStationeryHeader@1102155009 : Record 71855;
+      BulkStationeryLine@1102155010 : Record 71856;
+      StudentCOLLEGE@1102155011 : Record 71355;
+      "SetLineNo."@1102155012 : Integer;
+      Text000@1102155013 : TextConst 'ENU=Please select the items';
+      Text001@1102155014 : TextConst 'ENU=Nothing to post';
+      BulkLine2@1102155015 : Record 71851;
+      Student2@1102155016 : Record 71046;
+
+    PROCEDURE "Line Post"@1102155000("IssueNo."@1102155000 : Code[20]);
+    BEGIN
+      // Start 01.KATHIR
+      BulkHeader.GET("IssueNo.");
+      BulkLine2.SETRANGE(BulkLine2."Document No.","IssueNo.");
+      IF BulkLine2.FINDSET THEN BEGIN
+        IF CONFIRM('Do u want to delete the exisitng \ line and update with the new !!!')  THEN
+          BulkLine2.DELETEALL;
+      END;
+
+      IF NOT BulkHeader."Dormitory Wise" THEN BEGIN
+        BulkHeader.TESTFIELD("Indent No");
+        BulkHeader.TESTFIELD("Issue Date");
+        BulkHeader.TESTFIELD(BulkHeader."Class Code");
+        BulkIssues.RESET;
+        BulkIssues.SETRANGE("Document No.","IssueNo.");
+        IF BulkIssues.FINDSET THEN
+          REPEAT
+            BulkIssues.TESTFIELD(Quantity);
+            Student.RESET;
+            Student.SETCURRENTKEY("Class Code");
+            Student.SETRANGE(Student."Class Code",BulkHeader."Class Code");
+            Student.SETRANGE("Student Status",Student."Student Status"::Student);
+            IF Student.FINDSET THEN
+              REPEAT
+                "Insert Issue Line"("IssueNo.",BulkHeader."Issue Date",Student."No.",Student.Name,
+                  BulkIssues."Item No",BulkIssues.Quantity);
+              UNTIL Student.NEXT = 0;
+          UNTIL BulkIssues.NEXT = 0
+        ELSE
+          ERROR(Text000);
+      END ELSE BEGIN
+        BulkIssues.RESET;
+        BulkIssues.SETRANGE(BulkIssues."Document No.","IssueNo.");
+        IF BulkIssues.FINDSET THEN
+        REPEAT
+          BulkIssues.TESTFIELD(BulkIssues.Quantity);
+          Student.RESET;
+          Student.SETRANGE(Student."Hostel Code",BulkHeader.Dormitory);
+          Student.SETRANGE(Student."Student Status",Student."Student Status"::Student);
+          IF Student.FINDSET THEN
+          REPEAT
+            "Insert Issue Line"("IssueNo.",BulkHeader."Issue Date",Student."No.",Student.Name,
+                              BulkIssues."Item No",BulkIssues.Quantity);
+          UNTIL Student.NEXT=0;
+        UNTIL BulkIssues.NEXT=0
+        ELSE
+          ERROR('Please Select Items');
+      END;
+
+      // Stop 01.KATHIR
+    END;
+
+    PROCEDURE "Post Items"@1102155001("IssueNo."@1102155000 : Code[20]);
+    BEGIN
+      // Start 02.KATHIR
+      BulkLine.RESET;
+      BulkHeader.GET("IssueNo.");
+      BulkHeader.TESTFIELD(BulkHeader.Location);
+      StoresSetup.GET;
+      StoresSetup.TESTFIELD("Fee Code");
+      BulkLine.SETRANGE("Document No.","IssueNo.");
+      IF BulkLine.ISEMPTY THEN
+        ERROR(Text001);
+      IF BulkLine.FINDSET THEN
+        REPEAT
+          SalesHead.INIT;
+          SalesHead."Document Type" := SalesHead."Document Type"::Order;
+          SalesHead."No." := '';
+          SalesHead."Document Date" := TODAY;
+          SalesHead."Posting Date" := BulkLine."Issue Date";
+          SalesHead.VALIDATE("Sell-to Customer No.",BulkLine."Student No.");
+          SalesHead."External Document No." := BulkLine."Document No.";
+          SalesHead."Due Date" := TODAY;
+          SalesHead."Order Date" := BulkLine."Issue Date";
+          SalesHead."Fee Code" := StoresSetup."Fee Code";
+          SalesHead.Ship := TRUE;
+          SalesHead.Invoice := TRUE;
+          SalesHead."Type of Fees":=SalesHead."Type of Fees"::Others;
+
+          IF Student.GET(BulkLine."Student No.") THEN
+            SalesHead."Class Code" := Student."Class Code";
+       //Commented By ARAVIND 11/11/10
+        {
+          IF NOT BulkHeader."Charge All" THEN
+            IF Student2.GET(BulkLine."Student No.") THEN
+              IF  Student2."New Student" = TRUE  THEN
+                IF Student2."Staff Child" = FALSE THEN
+                  IF ((Student2."Student Status" = 4) OR (Student2."Student Status" = 1)) THEN BEGIN
+                    SalesHead."Free Supply":=TRUE;
+                    SalesHead.VALIDATE(SalesHead."Free Supply");
+                   END;
+         }
+       //Commented By ARAVIND 11/11/10
+
+      //ARAVIND
+          IF BulkHeader."Free Supply" THEN  BEGIN
+            SalesHead."Free Supply":=TRUE;
+            SalesHead.VALIDATE(SalesHead."Free Supply");
+          END;
+      //ARAVIND
+
+
+          {
+          // Start 04.GUNA
+          IF BulkHeader."Charge All" THEN
+            SalesHead."Free Supply" := TRUE;
+          // Stop 04.GUNA
+          }
+          BulkLine.CALCFIELDS(Location);
+          SalesHead.INSERT(TRUE);
+          IF BulkLine.Location <> '' THEN BEGIN
+            SalesHead.VALIDATE("Location Code",BulkLine.Location);
+            SalesHead.MODIFY;
+          END;
+          SalesLine.INIT;
+          SalesLine."Document Type" := SalesHead."Document Type";
+          SalesLine."Document No." := SalesHead."No.";
+          SalesLine."Line No." := SalesLine."Line No." + 10000;
+          SalesLine.VALIDATE("Sell-to Customer No.",SalesHead."Sell-to Customer No.");
+          SalesLine.Type := SalesLine.Type::Item;
+          SalesLine.VALIDATE("No.",BulkLine."Item No");
+          SalesLine.Description := BulkLine.Description;
+          SalesLine.Quantity := BulkLine.Quantity;
+          SalesLine.VALIDATE(Quantity,BulkLine.Quantity);
+          SalesLine."Unit of Measure" := BulkLine.UOM;
+          SalesLine."Unit Price" := BulkLine."Unit Price";
+          SalesLine."Line Amount" := BulkLine."Line Amount";
+          SalesLine.INSERT(TRUE);
+          SalesPost.RUN(SalesHead);
+        UNTIL BulkLine.NEXT = 0;
+      IF BulkHeader.GET("IssueNo.") THEN BEGIN
+        BulkHeader.Posted := TRUE;
+        BulkHeader.MODIFY;
+      END;
+      // Stop 02.KATHIR
+    END;
+
+    PROCEDURE "Insert Issue Line"@1102155002("IssNo."@1102155000 : Code[20];IssDate@1102155001 : Date;"StudNo."@1102155002 : Code[20];Name@1102155003 : Text[100];"ItmNo."@1102155004 : Code[20];Qty@1102155005 : Integer);
+    BEGIN
+      // Start 03.KATHIR
+      BulkLine."Document No." := "IssNo.";
+      BulkLine."Issue Date" := IssDate;
+      BulkLine."Line No." += 10000;
+      BulkLine."Serial No" += 1;
+      BulkLine."Student No." := "StudNo.";
+      BulkLine."Student Name" := Name;
+      BulkLine.Type := BulkLine.Type::Item;
+      BulkLine."Item No" := "ItmNo.";
+      BulkLine.VALIDATE("Item No");
+      BulkLine.Quantity := Qty;
+      BulkLine."Line Amount" := BulkHeader.Quantity * BulkLine."Unit Price";
+      BulkLine.VALIDATE(Quantity);
+      BulkLine.INSERT;
+      // Stop 03.KATHIR
+    END;
+
+    PROCEDURE "Bulk Stationery Line Post"@1102155003("IssueNo."@1102155000 : Code[20]);
+    BEGIN
+      // Start 05.VIGNESH
+      "SetLineNo." := 0;
+      BulkStationeryHeader.GET("IssueNo.");
+      BulkStationeryHeader.TESTFIELD("Indent No");
+      BulkStationeryHeader.TESTFIELD("Issue Date");
+      BulkStationeryHeader.TESTFIELD(Course);
+      BulkStationeryHeader.TESTFIELD(Semester);
+      BulkStationeryHeader.TESTFIELD("Academic Year");
+      BulkIssues.RESET;
+      BulkIssues.SETRANGE("Document No.","IssueNo.");
+      IF BulkIssues.FINDSET THEN
+        REPEAT
+          BulkIssues.TESTFIELD(Quantity);
+          StudentCOLLEGE.RESET;
+          StudentCOLLEGE.SETCURRENTKEY("Course Code",Semester,"Academic Year");
+          StudentCOLLEGE.SETRANGE("Course Code",BulkStationeryHeader.Course);
+          StudentCOLLEGE.SETRANGE(Semester,BulkStationeryHeader.Semester);
+          StudentCOLLEGE.SETRANGE("Academic Year",BulkStationeryHeader."Academic Year");
+          StudentCOLLEGE.SETRANGE(Section,BulkStationeryHeader.Section);
+          StudentCOLLEGE.SETRANGE("Student Status",StudentCOLLEGE."Student Status"::Student);
+          IF StudentCOLLEGE.FINDSET THEN
+            REPEAT
+              "SetLineNo." := "SetLineNo." + 10000;
+              "Insert Bulk Stationery Line"(BulkStationeryHeader."No.",BulkStationeryHeader."Issue Date",
+                StudentCOLLEGE."No.",StudentCOLLEGE."Student Name",BulkIssues."Item No",BulkIssues.Quantity,"SetLineNo.");
+            UNTIL StudentCOLLEGE.NEXT = 0;
+        UNTIL BulkIssues.NEXT = 0
+      ELSE
+        ERROR(Text000);
+      // Stop 05.VIGNESH
+    END;
+
+    PROCEDURE "Insert Bulk Stationery Line"@1102155011("getIssueNo."@1102155000 : Code[20];getIssueDate@1102155001 : Date;"getStudentNo."@1102155002 : Code[20];getName@1102155003 : Text[100];"getItemNo."@1102155004 : Code[20];getQuantity@1102155005 : Integer;"getLineNo."@1102155006 : Integer);
+    BEGIN
+      // Start 06.VIGNESH
+      BulkStationeryLine.INIT;
+      BulkStationeryLine."Document No." := "getIssueNo.";
+      BulkStationeryLine."Line No." := "getLineNo.";
+      BulkStationeryLine."Student No." := "getStudentNo.";
+      BulkStationeryLine."Student Name" := getName;
+      BulkStationeryLine.Type := BulkStationeryLine.Type::Item;
+      BulkStationeryLine."Item No" := "getItemNo.";
+      BulkStationeryLine.VALIDATE("Item No");
+      BulkStationeryLine.Quantity := getQuantity;
+      BulkStationeryLine."Line Amount" := BulkStationeryLine.Quantity * BulkStationeryLine."Unit Price";
+      BulkStationeryLine.VALIDATE(Quantity);
+      BulkStationeryLine.INSERT;
+      // Stop 06.VIGNESH
+    END;
+
+    PROCEDURE "Post Bulk Stationery Items"@1102155026("IssueNo."@1102155000 : Code[20]);
+    BEGIN
+      // Start 02.VIGENSH
+      BulkStationeryLine.RESET;
+      BulkStationeryHeader.GET("IssueNo.");
+
+      StoresSetup.GET;
+      StoresSetup.TESTFIELD("Fee Code");
+      BulkStationeryLine.SETRANGE("Document No.","IssueNo.");
+      IF BulkStationeryLine.ISEMPTY THEN
+        ERROR(Text001);
+      IF BulkStationeryLine.FINDSET THEN
+        REPEAT
+          SalesHead.INIT;
+          SalesHead."Document Type" := SalesHead."Document Type"::Order;
+          SalesHead."No." := '';
+          SalesHead."Document Date" := TODAY;
+          SalesHead."Posting Date" := BulkStationeryLine."Issue Date";
+          SalesHead.VALIDATE("Sell-to Customer No.",BulkStationeryLine."Student No.");
+          SalesHead."External Document No." := BulkStationeryLine."Document No.";
+          SalesHead."Due Date" := TODAY;
+          SalesHead."Order Date" := BulkStationeryLine."Issue Date";
+          SalesHead."Fee Code" := StoresSetup."Fee Code";
+          SalesHead.Ship := TRUE;
+          SalesHead.Invoice := TRUE;
+          // Start 04.GUNA
+          IF BulkStationeryHeader."Free Supply" THEN
+            SalesHead."Free Supply" := TRUE;
+          // Stop 04.GUNA
+
+          BulkStationeryLine.CALCFIELDS(Location);
+          SalesHead.INSERT(TRUE);
+          IF BulkStationeryLine.Location <> '' THEN BEGIN
+            SalesHead.VALIDATE("Location Code",BulkStationeryLine.Location);
+            SalesHead.MODIFY;
+          END;
+          SalesLine.INIT;
+          SalesLine."Document Type" := SalesHead."Document Type";
+          SalesLine."Document No." := SalesHead."No.";
+          SalesLine."Line No." := SalesLine."Line No." + 10000;
+          SalesLine.VALIDATE("Sell-to Customer No.",SalesHead."Sell-to Customer No.");
+          SalesLine.Type := SalesLine.Type::Item;
+          SalesLine.VALIDATE("No.",BulkStationeryLine."Item No");
+          SalesLine.Description := BulkStationeryLine.Description;
+          SalesLine.Quantity := BulkStationeryLine.Quantity;
+          SalesLine.VALIDATE(Quantity,BulkStationeryLine.Quantity);
+          SalesLine."Unit of Measure" := BulkStationeryLine.UOM;
+          SalesLine."Unit Price" := BulkStationeryLine."Unit Price";
+          SalesLine."Line Amount" := BulkStationeryLine."Line Amount";
+          SalesLine.INSERT(TRUE);
+          SalesPost.RUN(SalesHead);
+        UNTIL BulkStationeryLine.NEXT = 0;
+
+      IF BulkStationeryHeader.GET("IssueNo.") THEN BEGIN
+        BulkStationeryHeader.Posted := TRUE;
+        BulkStationeryHeader.MODIFY;
+      END;
+      // Stop 02.VIGNESH
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+       01   13/10/09  KATHIR    Line Post()               Function added to Get the students and Insert Items for repective students
+       02   13/10/09  KATHIR    Post Items()              Function added to Create Sales Order and Post
+       03   21/10/09  KATHIR    Insert Issue Line()       Function added to get Insert in to Line
+       04   16.11.09  GUNA      Post Items()              To include free supply
+    }
+    END.
+  }
+}
+

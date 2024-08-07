@@ -1,0 +1,273 @@
+OBJECT Table 72098 Posted Monthly Attendance
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-06-18;
+    Time=11:33:58;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Salary Cycle Code,Name;
+    CaptionML=ENU=Monthly Attendance;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cycle Code   ;Code20        ;TableRelation="Payroll Month & Year"."Salary Cyclic Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                    Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Salary Cycle Code }
+    { 4   ;   ;Payroll Start Date  ;Date          ;CaptionML=ENU=Payroll Start Date }
+    { 5   ;   ;Payroll End Date    ;Date          ;CaptionML=ENU=Payroll End Date }
+    { 6   ;   ;Year                ;Integer       ;CaptionML=ENU=Year }
+    { 7   ;   ;Month               ;Integer       ;CaptionML=ENU=Month;
+                                                   ValuesAllowed=[1;2;3;4;5;6;7;8;9;10;11;12] }
+    { 8   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Employee No;
+                                                   Editable=No }
+    { 9   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 10  ;   ;Present             ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".Present WHERE (Location Code=FIELD(Location Code),
+                                                                                                     Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                     Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                     Employee No=FIELD(Employee No),
+                                                                                                     Present=FILTER(<>0)));
+                                                   CaptionML=ENU=Present;
+                                                   Editable=No }
+    { 11  ;   ;Absent              ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".Absent WHERE (Location Code=FIELD(Location Code),
+                                                                                                    Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                    Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                    Employee No=FIELD(Employee No),
+                                                                                                    Absent=FILTER(<>0)));
+                                                   CaptionML=ENU=Absent;
+                                                   Editable=No }
+    { 12  ;   ;Leave               ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".Leave WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                   Employee No=FIELD(Employee No),
+                                                                                                   Leave=FILTER(<>0)));
+                                                   CaptionML=ENU=Leave;
+                                                   Editable=No }
+    { 13  ;   ;Weekly Off          ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Weekly Off" WHERE (Location Code=FIELD(Location Code),
+                                                                                                          Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                          Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                          Employee No=FIELD(Employee No),
+                                                                                                          Weekly Off=FILTER(<>0)));
+                                                   CaptionML=ENU=Weekly Off;
+                                                   Editable=No }
+    { 14  ;   ;Holiday             ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".Holiday WHERE (Location Code=FIELD(Location Code),
+                                                                                                     Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                     Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                     Employee No=FIELD(Employee No),
+                                                                                                     Holiday=FILTER(<>0)));
+                                                   CaptionML=ENU=Holiday;
+                                                   Editable=No }
+    { 15  ;   ;On-Duty             ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".On-Duty WHERE (Location Code=FIELD(Location Code),
+                                                                                                     Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                     Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                     Employee No=FIELD(Employee No),
+                                                                                                     On-Duty=FILTER(<>0)));
+                                                   CaptionML=ENU=On-Duty;
+                                                   Editable=No }
+    { 16  ;   ;Not Joined          ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".Relieved WHERE (Location Code=FIELD(Location Code),
+                                                                                                      Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                      Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                      Employee No=FIELD(Employee No),
+                                                                                                      Not Joined=FILTER(<>0)));
+                                                   CaptionML=ENU=Not Joined;
+                                                   Editable=No }
+    { 17  ;   ;Relieved            ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance".Relieved WHERE (Location Code=FIELD(Location Code),
+                                                                                                      Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                      Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                      Employee No=FIELD(Employee No),
+                                                                                                      Relieved=FILTER(<>0)));
+                                                   CaptionML=ENU=Relieved;
+                                                   Editable=No }
+    { 18  ;   ;Over Time In Mins   ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Total OT In Mins" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                                Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                                Employee No=FIELD(Employee No),
+                                                                                                                Total OT In Mins=FILTER(<>0)));
+                                                   CaptionML=ENU=Over Time In Mins;
+                                                   Editable=No }
+    { 19  ;   ;Total Payable Days  ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Payable Days" WHERE (Location Code=FIELD(Location Code),
+                                                                                                            Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                            Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                            Employee No=FIELD(Employee No),
+                                                                                                            Payable Days=FILTER(<>0)));
+                                                   CaptionML=ENU=Total Payable Days;
+                                                   Editable=No }
+    { 20  ;   ;Actual Gross Amount ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Actual Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                             Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                             Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                             Employee No=FIELD(Employee No),
+                                                                                                             Pay Type=CONST(Addition)));
+                                                   CaptionML=ENU=Actual Gross Amount;
+                                                   Editable=No }
+    { 21  ;   ;Payable Gross Amount;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                              Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                              Employee No=FIELD(Employee No),
+                                                                                                              Pay Type=CONST(Addition)));
+                                                   CaptionML=ENU=Payable Gross Amount;
+                                                   Editable=No }
+    { 22  ;   ;Actual Reimburesment Amount;Decimal;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Actual Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                             Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                             Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                             Employee No=FIELD(Employee No),
+                                                                                                             Pay Type=CONST(Reimbursement)));
+                                                   CaptionML=ENU=Actual Reimburesment Amount;
+                                                   Editable=No }
+    { 23  ;   ;Payable Reimburesment Amount;Decimal;
+                                                   FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                              Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                              Employee No=FIELD(Employee No),
+                                                                                                              Pay Type=CONST(Reimbursement)));
+                                                   CaptionML=ENU=Payable Reimburesment Amount;
+                                                   Editable=No }
+    { 24  ;   ;Actual Deduction Amount;Decimal    ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Actual Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                             Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                             Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                             Employee No=FIELD(Employee No),
+                                                                                                             Pay Type=CONST(Deduction)));
+                                                   CaptionML=ENU=Actual Deduction Amount;
+                                                   Editable=No }
+    { 25  ;   ;Payable Deduction Amount;Decimal   ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Processed Salary"."Payable Amount" WHERE (Location Code=FIELD(Location Code),
+                                                                                                              Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                              Salary Cycle Code=FIELD(Salary Cycle Code),
+                                                                                                              Employee No=FIELD(Employee No),
+                                                                                                              Pay Type=CONST(Deduction)));
+                                                   CaptionML=ENU=Payable Deduction Amount;
+                                                   Editable=No }
+    { 26  ;   ;Actual Net Amount   ;Decimal       ;CaptionML=ENU=Actual Net Amount;
+                                                   Editable=No }
+    { 27  ;   ;Payable Net Amount  ;Decimal       ;CaptionML=ENU=Payable Net Amount;
+                                                   Editable=No }
+    { 28  ;   ;Pay Amount          ;Decimal       ;CaptionML=ENU=Pay Amount;
+                                                   Editable=No }
+    { 29  ;   ;Paid Amount         ;Decimal       ;CaptionML=ENU=Paid Amount;
+                                                   Editable=No }
+    { 30  ;   ;Processed           ;Boolean       ;CaptionML=ENU=Processed }
+    { 31  ;   ;Processed Date      ;Date          ;CaptionML=ENU=Processed Date }
+    { 32  ;   ;Journal Batch Name  ;Code20        ;CaptionML=ENU=Journal Batch Name }
+    { 33  ;   ;Journal Template Name;Code20       ;CaptionML=ENU=Journal Template Name }
+    { 34  ;   ;Posted Document No  ;Code20        ;CaptionML=ENU=Posted Document No }
+    { 35  ;   ;Posted Date         ;Date          ;CaptionML=ENU=Posted Date }
+    { 36  ;   ;Posted              ;Boolean       ;CaptionML=ENU=Posted }
+    { 37  ;   ;Paid                ;Boolean       ;CaptionML=ENU=Paid }
+    { 38  ;   ;Account Type        ;Option        ;CaptionML=ENU=Account Type;
+                                                   OptionCaptionML=ENU=G/L Account,Customer,Vendor,Bank Account,Fixed Asset,IC Partner;
+                                                   OptionString=G/L Account,Customer,Vendor,Bank Account,Fixed Asset,IC Partner }
+    { 39  ;   ;Pay Method          ;Option        ;CaptionML=ENU=Pay Method;
+                                                   OptionCaptionML=ENU=Cash,Cheque,Bank Transfer;
+                                                   OptionString=Cash,Cheque,Bank Transfer }
+    { 40  ;   ;Cheque No.          ;Code20        ;CaptionML=ENU=Cheque No. }
+    { 41  ;   ;Cheque Date         ;Date          ;CaptionML=ENU=Cheque Date }
+    { 42  ;   ;Account No.         ;Code20        ;TableRelation=IF (Account Type=CONST(G/L Account)) "G/L Account"
+                                                                 ELSE IF (Account Type=CONST(Customer)) Customer
+                                                                 ELSE IF (Account Type=CONST(Vendor)) Vendor
+                                                                 ELSE IF (Account Type=CONST(Bank Account)) "Bank Account"
+                                                                 ELSE IF (Account Type=CONST(Fixed Asset)) "Fixed Asset"
+                                                                 ELSE IF (Account Type=CONST(IC Partner)) "IC Partner";
+                                                   CaptionML=ENU=Account No. }
+    { 43  ;   ;Blocked             ;Boolean       ;CaptionML=ENU=Blocked }
+    { 44  ;   ;I Payment Document No.;Code20      ;CaptionML=ENU=I Payment Document No. }
+    { 45  ;   ;I Payment Date      ;Date          ;CaptionML=ENU=I Payment Date }
+    { 46  ;   ;Stop Payment        ;Boolean       ;CaptionML=ENU=Stop Payment }
+    { 47  ;   ;Date Filter         ;Date          ;FieldClass=FlowFilter;
+                                                   CaptionML=ENU=Date Filter }
+    { 48  ;   ;Total Permission In Mins;Decimal   ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Total Permission In Mins" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                        Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                                        Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                                        Employee No=FIELD(Employee No),
+                                                                                                                        Total Permission In Mins=FILTER(<>0)));
+                                                   CaptionML=ENU=Total Permission In Mins;
+                                                   Editable=No }
+    { 49  ;   ;Credit Days         ;Decimal       ;CaptionML=ENU=Credit Days }
+    { 50  ;   ;First Net Amount    ;Decimal       ;CaptionML=ENU=First Net Amount;
+                                                   Editable=No }
+    { 51  ;   ;Second Net Amount   ;Decimal       ;CaptionML=ENU=Second Net Amount;
+                                                   Editable=No }
+    { 52  ;   ;Payment Type        ;Option        ;CaptionML=ENU=Payment Type;
+                                                   OptionCaptionML=ENU=Full Payment,First Payment,Second Payment;
+                                                   OptionString=Full Payment,First Payment,Second Payment }
+    { 53  ;   ;Employee Category   ;Option        ;CaptionML=ENU=Employee Category;
+                                                   OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary,Class III Permanent,Class III Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary,Class III Permanent,Class III Temporary] }
+    { 54  ;   ;Lay Off             ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Daily Attendance"."Lay Off" WHERE (Location Code=FIELD(Location Code),
+                                                                                                       Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                       Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                                       Employee No=FIELD(Employee No),
+                                                                                                       Lay Off=FILTER(<>0)));
+                                                   CaptionML=ENU=Lay Off;
+                                                   Editable=No }
+    { 55  ;   ;Total Perm. Hours   ;Decimal       ;CaptionML=ENU=Total Perm. Hours;
+                                                   Editable=No }
+    { 56  ;   ;Total Over Time Hours;Decimal      ;CaptionML=ENU=Total Over Time Hours;
+                                                   Editable=No }
+    { 57  ;   ;Total DA Days       ;Decimal       ;CaptionML=ENU=Total DA Days;
+                                                   MinValue=0;
+                                                   MaxValue=31 }
+    { 58  ;   ;Total Days Count    ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count("Daily Attendance" WHERE (Location Code=FIELD(Location Code),
+                                                                                               Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                               Salary Cyclic Code=FIELD(Salary Cycle Code),
+                                                                                               Employee No=FIELD(Employee No)));
+                                                   CaptionML=ENU=Total Days Count;
+                                                   Editable=No }
+    { 59  ;   ;II Payment Document No.;Code20     ;CaptionML=ENU=II Payment Document No. }
+    { 60  ;   ;II Payment Date     ;Date          ;CaptionML=ENU=II Payment Date }
+    { 61  ;   ;Branch Code         ;Code10        ;CaptionML=ENU=Branch Code }
+    { 62  ;   ;Manual Total Days Worked;Decimal   ;CaptionML=ENU=Manual Total Days Worked;
+                                                   Editable=No }
+    { 63  ;   ;Negative Pay        ;Boolean       ;CaptionML=ENU=Negative Pay }
+  }
+  KEYS
+  {
+    {    ;Employee No,Salary Cycle Code,Payroll Start Date,Payroll End Date,Month,Year,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+    {    ;Employee No,Payroll End Date             }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

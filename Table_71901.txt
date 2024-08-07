@@ -1,0 +1,43 @@
+OBJECT Table 71901 Chapter Master
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               "Academic Year" := EducationVertical.GetAcademicYear;
+             END;
+
+    CaptionML=ENU=Chapter Master;
+    LookupPageID=Page71905;
+    DrillDownPageID=Page71905;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 3   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationVertical@1102155000 : Codeunit 71880;
+
+    BEGIN
+    END.
+  }
+}
+

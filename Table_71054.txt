@@ -1,0 +1,85 @@
+OBJECT Table 71054 Class Grade
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Class Grade;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class               ;Code10        ;CaptionML=ENU=Class }
+    { 2   ;   ;Grade Code          ;Code20        ;TableRelation=Grade;
+                                                   OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                IF Grade.GET("Grade Code") THEN BEGIN
+                                                                  Description := Grade.Description;
+                                                                  "Max Percentage" := Grade."Max Percentage";
+                                                                  "Min Percentage" := Grade."Min Percentage";
+                                                                END ELSE BEGIN
+                                                                  Description := '';
+                                                                  "Max Percentage" := 0;
+                                                                  "Min Percentage" := 0;
+                                                                END;
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Grade Code }
+    { 3   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 4   ;   ;Section             ;Code10        ;CaptionML=ENU=Section }
+    { 5   ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculum }
+    { 6   ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year }
+    { 7   ;   ;Max Percentage      ;Decimal       ;CaptionML=ENU=Max Percentage }
+    { 8   ;   ;Min Percentage      ;Decimal       ;CaptionML=ENU=Min Percentage }
+    { 9   ;   ;Points              ;Decimal       ;CaptionML=ENU=Points }
+    { 10  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   CaptionML=ENU=Class Code }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class,Curriculum,Academic Year,Grade Code;
+                                                   Clustered=Yes }
+    {    ;Points                                   }
+    {    ;Class,Points                             }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Grade@1102155000 : Record 71889;
+      ClassSectionLook@1102155001 : Record 71015;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01   30/09/09  KATHIR   Grade Code - OnValidate()     code added to get grade description
+        02  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        03  23/11/09   VIGNESH  Class - OnValidate()                Code added to get the Class Section & Curriculum
+        04  23/11/09   VIGNESH  Class - OnLookup()                  Code added to get the Class Section & Curriculum
+        05  23/11/09   VIGNESH  Section - OnValidate()              Code added to get the Class Section & Curriculum
+        06  23/11/09   VIGNESH  Section - OnLookup()                Code added to get the Class Section & Curriculum
+        07  23/11/09   VIGNESH  Curriculum - OnValidate()           Code added to get the Class Section & Curriculum
+        08  23/11/09   VIGNESH  Curriculum - OnLookup()             Code added to get the Class Section & Curriculum
+    }
+    END.
+  }
+}
+

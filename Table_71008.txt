@@ -1,0 +1,102 @@
+OBJECT Table 71008 Class Evaluation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=21-03-14;
+    Time=14:42:18;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+               "User ID" := USERID;
+               // Stop 02. VANDHANA
+             END;
+
+    OnDelete=BEGIN
+
+               "Evaluation Header".RESET;
+               "Evaluation Header".SETRANGE("Evaluation Header".Class,Class);
+               "Evaluation Header".SETRANGE("Evaluation Header".Curriculum,Curriculum);
+               "Evaluation Header".SETRANGE("Evaluation Header"."Academic Year","Academic Year");
+               "Evaluation Header".SETRANGE("Evaluation Header"."Evaluation Code","Evaluation Method Code");
+               IF "Evaluation Header".FINDFIRST THEN
+                 ERROR('Please Delete Evaluation Mark Frist');
+             END;
+
+    CaptionML=ENU=Class Evaluation;
+    LookupPageID=Page71016;
+    DrillDownPageID=Page71016;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class               ;Code10        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class }
+    { 2   ;   ;Evaluation Method Code;Code20      ;TableRelation="Evaluation Method";
+                                                   OnValidate=BEGIN
+                                                                Evaluation.GET("Evaluation Method Code");
+                                                                "Prequalification Mark" := Evaluation."Prequalification Mark";
+                                                              END;
+
+                                                   CaptionML=ENU=Evaluation Method Code }
+    { 3   ;   ;Maximum Mark        ;Decimal       ;CaptionML=ENU=Maximum Mark }
+    { 4   ;   ;Pass Mark           ;Decimal       ;CaptionML=ENU=Pass Mark }
+    { 5   ;   ;Compulsory          ;Boolean       ;CaptionML=ENU=Compulsory }
+    { 6   ;   ;Curriculum          ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 7   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 8   ;   ;Weightage           ;Decimal       ;OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                WeigAge := 0;
+                                                                ClassEvaluation.RESET;
+                                                                ClassEvaluation.SETRANGE(Class,Class);
+                                                                ClassEvaluation.SETRANGE(Curriculum,Curriculum);
+                                                                ClassEvaluation.SETRANGE("Academic Year","Academic Year");
+                                                                IF ClassEvaluation.FINDSET THEN
+                                                                  REPEAT
+                                                                    WeigAge += ClassEvaluation.Weightage ;
+                                                                  UNTIL ClassEvaluation.NEXT = 0;
+
+                                                                IF (WeigAge + Weightage - xRec.Weightage) > 100 THEN
+                                                                  ERROR(Text000);
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Weightage }
+    { 9   ;   ;Prequalification Mark;Boolean      ;CaptionML=ENU=Prequalification Mark }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class,Curriculum,Evaluation Method Code,Academic Year;
+                                                   Clustered=Yes }
+    {    ;Class,Compulsory                         }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EduVert@1102155000 : Codeunit 71880;
+      WeigAge@1102155001 : Decimal;
+      ClassEvaluation@1102155002 : Record 71008;
+      Evaluation@1102155003 : Record 71007;
+      Text000@1102155004 : TextConst 'ENU=Weightagea cannot be more than 100.';
+      "Evaluation Header"@1102159000 : Record 71012;
+
+    BEGIN
+    {
+       No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+       01  15/10/09  KATHIR    Weightage - OnValidate()    Code added to Check weightage should not exceed more than 100
+       02  19/10/09  VANDHANA  OnInsert                    Code to assign User ID.
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,72 @@
+OBJECT Table 71154 Time Table Generation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU2.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+               "User ID" := USERID;
+               // Stop 01. VANDHANA
+               EduSetup.GET;
+               "Academic Year" := EduSetup."Academic Year";
+             END;
+
+    CaptionML=ENU=Time Table Generation;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No.           ;Integer       ;AutoIncrement=Yes;
+                                                   CaptionML=ENU=Entry No. }
+    { 2   ;   ;Class               ;Code10        ;CaptionML=ENU=Class }
+    { 3   ;   ;Section             ;Code10        ;CaptionML=ENU=Section }
+    { 4   ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculum }
+    { 5   ;   ;Day No              ;Integer       ;CaptionML=ENU=Day No }
+    { 6   ;   ;Hour No             ;Integer       ;CaptionML=ENU=Hour No }
+    { 7   ;   ;Subject             ;Code20        ;CaptionML=ENU=Subject }
+    { 8   ;   ;Employee Code       ;Code20        ;CaptionML=ENU=Employee Code }
+    { 9   ;   ;Generate Date       ;Date          ;Description=Asc Time Table }
+    { 10  ;   ;Academic Year       ;Code20         }
+    { 11  ;   ;Joint               ;Boolean        }
+    { 12  ;   ;Period Length       ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(Subject."Period Length" WHERE (Code=FIELD(Subject))) }
+    { 13  ;   ;Archived            ;Boolean        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Entry No.                               ;Clustered=Yes }
+    {    ;Class,Section                            }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      ClassSectionLook@1102155000 : Record 71015;
+      EduSetup@1102159000 : Record 71884;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+        02  23/11/09   VIGNESH  Class - OnValidate()                Code added to get the Class Section & Curriculum
+        03  23/11/09   VIGNESH  Class - OnLookup()                  Code added to get the Class Section & Curriculum
+        04  23/11/09   VIGNESH  Curriculum - OnValidate()           Code added to get the Class Section & Curriculum
+        05  23/11/09   VIGNESH  Curriculum - OnLookup()             Code added to get the Class Section & Curriculum
+        06  23/11/09   VIGNESH  Section - OnValidate()              Code added to get the Class Section & Curriculum
+        07  23/11/09   VIGNESH  Section - OnLookup()                Code added to get the Class Section & Curriculum
+    }
+    END.
+  }
+}
+

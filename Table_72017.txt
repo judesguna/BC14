@@ -1,0 +1,59 @@
+OBJECT Table 72017 Interview Process Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Interview Process Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No                  ;Code20        ;CaptionML=ENU=No }
+    { 2   ;   ;Interview Round Code;Code10        ;TableRelation="Interview Round";
+                                                   OnValidate=BEGIN
+                                                                IF InterviewRound.GET("Interview Round Code") THEN
+                                                                  Description := InterviewRound.Description;
+                                                              END;
+
+                                                   CaptionML=ENU=Interview Round Code }
+    { 3   ;   ;Description         ;Text100       ;CaptionML=ENU=Description;
+                                                   Editable=No }
+    { 4   ;   ;Test Taken          ;Boolean       ;CaptionML=ENU=Test Taken }
+    { 5   ;   ;Test Result         ;Option        ;CaptionML=ENU=Test Result;
+                                                   OptionCaptionML=ENU=" ,Pass,Fail";
+                                                   OptionString=[ ,Pass,Fail] }
+    { 6   ;   ;Remarks             ;Text100       ;CaptionML=ENU=Remarks }
+    { 7   ;   ;Interview Date      ;Date          ;CaptionML=ENU=Interview Date }
+    { 8   ;   ;Interview Time      ;Time          ;CaptionML=ENU=Interview Time }
+    { 9   ;   ;Select              ;Boolean       ;CaptionML=ENU=Select }
+  }
+  KEYS
+  {
+    {    ;No,Interview Round Code                 ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      InterviewRound@1000000000 : Record 72005;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

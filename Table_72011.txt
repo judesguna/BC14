@@ -1,0 +1,81 @@
+OBJECT Table 72011 Agency
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=16:48:32;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Indenting No;
+    CaptionML=ENU=Agency;
+    LookupPageID=Page72016;
+    DrillDownPageID=Page72016;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Indenting No        ;Code20        ;CaptionML=ENU=Indenting No }
+    { 2   ;   ;Agency Code         ;Code10        ;CaptionML=ENU=Agency Code;
+                                                   NotBlank=Yes }
+    { 3   ;   ;Agency Name         ;Text30        ;CaptionML=ENU=Agency Name }
+    { 4   ;   ;Contact Person      ;Text30        ;CaptionML=ENU=Contact Person }
+    { 5   ;   ;Address 1           ;Text30        ;CaptionML=ENU=Address 1 }
+    { 6   ;   ;Address 2           ;Text30        ;CaptionML=ENU=Address 2 }
+    { 7   ;   ;Address 3           ;Text30        ;CaptionML=ENU=Address 3 }
+    { 8   ;   ;Postal Code         ;Code10        ;TableRelation="Post Code";
+                                                   OnValidate=BEGIN
+                                                                //PostCode.ValidatePostCode(City,"Postal Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpPostCode(City,"Postal Code",TRUE);
+                                                            END;
+
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Postal Code }
+    { 9   ;   ;City                ;Text30        ;OnValidate=BEGIN
+                                                                //PostCode.ValidateCity(City,"Postal Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpCity(City,"Postal Code",TRUE);
+                                                            END;
+
+                                                   CaptionML=ENU=City }
+    { 10  ;   ;Country             ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country }
+    { 11  ;   ;Phone               ;Text30        ;CaptionML=ENU=Phone }
+    { 12  ;   ;Mobile              ;Text30        ;CaptionML=ENU=Mobile }
+    { 13  ;   ;Fax                 ;Text30        ;CaptionML=ENU=Fax }
+    { 14  ;   ;E-mail              ;Text50        ;CaptionML=ENU=E-mail }
+    { 15  ;   ;Attachment          ;Text100       ;CaptionML=ENU=Attachment }
+    { 16  ;   ;Date                ;Date          ;CaptionML=ENU=Date }
+  }
+  KEYS
+  {
+    {    ;Indenting No,Agency Code                ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PostCode@1000000000 : Record 225;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

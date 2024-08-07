@@ -1,0 +1,75 @@
+OBJECT Table 71040 Academics Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Academics Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Marks No.           ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Marks No. }
+    { 4   ;   ;Attendance          ;Option        ;CaptionML=ENU=Attendance;
+                                                   OptionCaptionML=ENU=Daily,Hourly;
+                                                   OptionString=Daily,Hourly }
+    { 5   ;   ;Fore Noon Attendance Hour;Integer  ;CaptionML=ENU=Fore Noon Attendance Hour;
+                                                   BlankZero=Yes }
+    { 6   ;   ;After Noon Attendance Hour;Integer ;CaptionML=ENU=After Noon Attendance Hour;
+                                                   BlankZero=Yes }
+    { 7   ;   ;Attendance No.      ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Attendance No. }
+    { 8   ;   ;Withdrawl No.       ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Withdrawl No. }
+    { 9   ;   ;TC No.              ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=TC No. }
+    { 10  ;   ;Class Syllabus No.  ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Class Syllabus No. }
+    { 11  ;   ;Faculty Class Plan No.;Code20      ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Faculty Class Plan No. }
+    { 12  ;   ;Exam Schedule No.   ;Code20        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Exam Schedule No. }
+    { 13  ;   ;Student Leave Application No.;Code20;
+                                                   TableRelation="No. Series";
+                                                   CaptionML=ENU=Student Leave Application No. }
+    { 14  ;   ;Mark Super User     ;Code20        ;TableRelation="Portal Users" }
+    { 20  ;   ;Prescription Nos.   ;Code20        ;TableRelation="No. Series" }
+    { 21  ;   ;Edu. Calender No.   ;Code20        ;TableRelation="No. Series" }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+        No   Date        Sign       Trigger          Description
+      -----------------------------------------------------------------------------------------------
+        01   17/09/09    Kathir                      Table Created by Kathir
+        02   19/10/09    VANDHANA  OnInsert          Code to assign User ID.
+    }
+    END.
+  }
+}
+

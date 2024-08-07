@@ -1,0 +1,53 @@
+OBJECT Table 72053 Salary Plan
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Code,Description;
+    OnInsert=BEGIN
+               TESTFIELD(Code);
+             END;
+
+    CaptionML=ENU=Salary Plan;
+    LookupPageID=Page72064;
+    DrillDownPageID=Page72064;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 3   ;   ;Date Interval       ;DateFormula   ;CaptionML=ENU=Date Interval }
+    { 4   ;   ;Type                ;Option        ;CaptionML=ENU=Type;
+                                                   OptionCaptionML=ENU=Monthly,Daily,Weekly,FortNight,Quarterly,Half Yearly,Yearly;
+                                                   OptionString=Monthly,Daily,Weekly,FortNight,Quarterly,Half Yearly,Yearly }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

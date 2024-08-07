@@ -1,0 +1,89 @@
+OBJECT Table 72010 News Paper
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=16:48:13;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Indenting No.;
+    CaptionML=ENU=News Paper;
+    LookupPageID=Page72014;
+    DrillDownPageID=Page72014;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Indenting No.       ;Code20        ;CaptionML=ENU=Indenting No. }
+    { 2   ;   ;News Paper Code     ;Code10        ;CaptionML=ENU=News Paper Code }
+    { 3   ;   ;News Paper Name     ;Text30        ;CaptionML=ENU=News Paper Name }
+    { 4   ;   ;Contact Person      ;Text30        ;CaptionML=ENU=Contact Person }
+    { 5   ;   ;Address 1           ;Text30        ;CaptionML=ENU=Address1 }
+    { 6   ;   ;Address 2           ;Text30        ;CaptionML=ENU=Address 2 }
+    { 7   ;   ;Address 3           ;Text30        ;CaptionML=ENU=Address 3 }
+    { 8   ;   ;Postal Code         ;Code10        ;TableRelation="Post Code";
+                                                   OnValidate=BEGIN
+                                                                //PostCode.ValidatePostCode(City,"Postal Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpPostCode(City,"Postal Code",TRUE);
+                                                            END;
+
+                                                   CaptionML=ENU=Postal Code }
+    { 9   ;   ;City                ;Text30        ;OnValidate=BEGIN
+                                                                //PostCode.ValidateCity(City,"Postal Code");
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              //PostCode.LookUpCity(City,"Postal Code",TRUE);
+                                                            END;
+
+                                                   CaptionML=ENU=City }
+    { 10  ;   ;Country             ;Code10        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country }
+    { 11  ;   ;Phone               ;Text30        ;CaptionML=ENU=Phone }
+    { 12  ;   ;Mobile              ;Text30        ;CaptionML=ENU=Mobile }
+    { 13  ;   ;Fax                 ;Text30        ;CaptionML=ENU=Fax }
+    { 14  ;   ;E-mail              ;Text50        ;CaptionML=ENU=E-mail }
+    { 15  ;   ;Attachment          ;Text100       ;CaptionML=ENU=Attachment }
+    { 16  ;   ;Date                ;Date          ;CaptionML=ENU=Date }
+    { 17  ;   ;Page No.            ;Integer       ;CaptionML=ENU=Page No. }
+    { 18  ;   ;Size                ;Text30        ;CaptionML=ENU=Size }
+    { 19  ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount }
+    { 20  ;   ;Payment Method      ;Option        ;CaptionML=ENU=Payment Method;
+                                                   OptionCaptionML=ENU=Cash,Cheque,Bank Transfer;
+                                                   OptionString=Cash,Cheque,Bank Transfer }
+    { 21  ;   ;Bank Code           ;Code10        ;CaptionML=ENU=Bank Code }
+    { 22  ;   ;Bank Name           ;Code30        ;CaptionML=ENU=Bank Name }
+    { 23  ;   ;Bank Branch         ;Code30        ;CaptionML=ENU=Bank Branch }
+    { 24  ;   ;Account Type        ;Text30        ;CaptionML=ENU=Account Type }
+    { 25  ;   ;Account No          ;Code20        ;CaptionML=ENU=Account No }
+  }
+  KEYS
+  {
+    {    ;Indenting No.,News Paper Code           ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PostCode@1000000000 : Record 225;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

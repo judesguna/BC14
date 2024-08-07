@@ -1,0 +1,62 @@
+OBJECT Table 72064 PF Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Effective Date,Location Code,Salary Plan Code,PF Gross Salary Limit;
+    CaptionML=ENU=PF Setup;
+    LookupPageID=Page72083;
+    DrillDownPageID=Page72083;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Effective Date      ;Date          ;CaptionML=ENU=Effective Date }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;PF Gross Salary Limit;Decimal      ;CaptionML=ENU=PF Gross Salary Limit }
+    { 5   ;   ;EPS Gross Salary Limit;Decimal     ;CaptionML=ENU=EPS Gross Salary Limit }
+    { 6   ;   ;Employee PF (Employee) %;Decimal   ;CaptionML=ENU=Employee PF (Employee) % }
+    { 7   ;   ;Employer PF (Company) %;Decimal    ;CaptionML=ENU=Employer PF (Company) % }
+    { 8   ;   ;Employer EPS ( Company) %;Decimal  ;CaptionML=ENU=Employer EPS ( Company) % }
+    { 9   ;   ;Employee VPF ( Employee) %;Decimal ;CaptionML=ENU=Employee VPF ( Employee) % }
+    { 10  ;   ;PF Admin Charges %  ;Decimal       ;CaptionML=ENU=PF Admin Charges % }
+    { 11  ;   ;PF EDLI %           ;Decimal       ;CaptionML=ENU=PF EDLI % }
+    { 12  ;   ;PF RIFA %           ;Decimal       ;CaptionML=ENU=PF RIFA % }
+    { 13  ;   ;PF Rounding Amount  ;Decimal       ;CaptionML=ENU=PF Rounding Amount }
+    { 14  ;   ;PF Rounding Type    ;Option        ;CaptionML=ENU=PF Rounding Type;
+                                                   OptionCaptionML=ENU=Nearest,Up,Down;
+                                                   OptionString=Nearest,Up,Down }
+  }
+  KEYS
+  {
+    {    ;Effective Date,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

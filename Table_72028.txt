@@ -1,0 +1,120 @@
+OBJECT Table 72028 Daily Punch Details
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=17:05:26;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Daily Punch Details;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Cyclic Code  ;Code20        ;TableRelation="Payroll Month & Year"."Salary Cyclic Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                                    Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Salary Cyclic Code }
+    { 4   ;   ;Employee No.        ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No.") THEN BEGIN
+                                                                  Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                                  "Department Code" := Employee."Department Code";
+                                                                  "Department Name" := Employee."Department Name";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No. }
+    { 5   ;   ;Attendance Date     ;Date          ;CaptionML=ENU=Attendance Date }
+    { 6   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 7   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 8   ;   ;In Punch DateTime   ;DateTime      ;OnValidate=BEGIN
+                                                                VALIDATE("Out Punch DateTime");
+                                                              END;
+
+                                                   CaptionML=ENU=In Punch DateTime }
+    { 9   ;   ;Out Punch DateTime  ;DateTime      ;OnValidate=BEGIN
+                                                                IF "Out Punch DateTime" <> 0DT THEN BEGIN
+                                                                  "Total Hours In Mins" := ("Out Punch DateTime" - "In Punch DateTime") / 60000;
+                                                                  "Total Hours" := "Convert Mins To Hours"("Total Hours In Mins");
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Out Punch DateTime }
+    { 10  ;   ;Total Hours In Mins ;Decimal       ;CaptionML=ENU=Total Hours In Mins;
+                                                   Editable=No }
+    { 11  ;   ;Total Hours         ;Decimal       ;CaptionML=ENU=Total Hours;
+                                                   Editable=No }
+    { 12  ;   ;No of Pieces        ;Decimal       ;CaptionML=ENU=No of Pieces }
+    { 13  ;   ;Department Code     ;Code10        ;TableRelation=Departments;
+                                                   OnValidate=BEGIN
+                                                                IF Departments.GET("Department Code") THEN
+                                                                  "Department Name" := Departments.Description
+                                                                ELSE
+                                                                  "Department Name" := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Department Code }
+    { 14  ;   ;Department Name     ;Text50        ;CaptionML=ENU=Department Name;
+                                                   Editable=No }
+    { 15  ;   ;Attendance Verified ;Boolean       ;CaptionML=ENU=Attendance Verified }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Salary Cyclic Code,Employee No.,Attendance Date,Line No.;
+                                                   SumIndexFields=Total Hours In Mins;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1102159000 : Record 5200;
+      Departments@1102159002 : Record 72001;
+
+    PROCEDURE "Convert Mins To Hours"@1000000023(TotalHrsMins@1000000000 : Decimal) : Decimal;
+    VAR
+      ConvertHours@1000000001 : Decimal;
+      DecimalPart@1000000002 : Decimal;
+      IntegerPart@1000000003 : Integer;
+    BEGIN
+      CLEAR(ConvertHours);
+      CLEAR(DecimalPart);
+      CLEAR(IntegerPart);
+      DecimalPart := TotalHrsMins MOD 60;
+      IntegerPart := TotalHrsMins - DecimalPart;
+      IntegerPart := IntegerPart / 60;
+      ConvertHours := IntegerPart + (DecimalPart / 100);
+      EXIT(ConvertHours);
+    END;
+
+    PROCEDURE "Convert Hours To Mins"@1000000022(TotalHrsMins@1000000000 : Decimal) : Decimal;
+    VAR
+      ConvertHours@1000000001 : Decimal;
+      DecimalPart@1000000002 : Decimal;
+      IntegerPart@1000000003 : Integer;
+    BEGIN
+      CLEAR(ConvertHours);
+      CLEAR(DecimalPart);
+      CLEAR(IntegerPart);
+      ConvertHours := TotalHrsMins * 100;
+      DecimalPart := ConvertHours MOD 100;
+      DecimalPart := DecimalPart / 100;
+      IntegerPart := TotalHrsMins - DecimalPart;
+      ConvertHours := (IntegerPart * 60) + (DecimalPart * 100);
+      EXIT(ConvertHours);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

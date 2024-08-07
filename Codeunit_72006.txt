@@ -1,0 +1,148 @@
+OBJECT Codeunit 72006 Pay Revision
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE "Process Monthly Salary"@1000000000(PayRevisionID@1000000002 : Code[20];EffectiveDate@1000000000 : Date;EmployeeNo@1000000001 : Code[20];NewEffectiveDate@1000000003 : Date) Status : Boolean;
+    VAR
+      Employee@1000000005 : Record 5200;
+    BEGIN
+      Employee.RESET;
+      Employee.SETRANGE(Status, Employee.Status::Active);
+      IF Employee.FINDFIRST THEN
+        REPEAT
+          "Read Pay Employee Elements"(PayRevisionID,TODAY, Employee."No.",NewEffectiveDate);
+        UNTIL Employee.NEXT = 0;
+    END;
+
+    PROCEDURE "Read Pay Employee Elements"@1000000002(PayRevisionID@1000000006 : Code[20];LPayrollDate@1000000003 : Date;LEmployeeNo@1000000001 : Code[20];NewEffectiveDate@1000000007 : Date);
+    VAR
+      Employee@1000000005 : Record 5200;
+      EmployeePayElements@1000000000 : Record 72078;
+      RevisionLine@1000000004 : Record 72092;
+      LastEffectiveDate@1000000002 : Date;
+    BEGIN
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE ("Employee No", LEmployeeNo);
+      IF EmployeePayElements.FINDLAST THEN
+        LastEffectiveDate := EmployeePayElements."Effective Date";
+
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Employee No",LEmployeeNo);
+      EmployeePayElements.SETRANGE("Effective Date",LastEffectiveDate);
+      IF EmployeePayElements.FINDFIRST THEN
+        REPEAT
+          RevisionLine."Pay Revision Id" := PayRevisionID;
+          RevisionLine."Location Code" := EmployeePayElements."Location Code";
+          RevisionLine."Salary Plan Code" := EmployeePayElements."Salary Plan Code";
+          RevisionLine."Last Effective Date" := EmployeePayElements."Effective Date";
+          RevisionLine."Pay Element Code" := EmployeePayElements."Pay Element Code";
+          RevisionLine.Description := EmployeePayElements.Description;
+          RevisionLine."Employee No" := EmployeePayElements."Employee No";
+          RevisionLine."Pay Type" := EmployeePayElements."Pay Type";
+          IF Employee.GET(RevisionLine."Employee No") THEN BEGIN
+            RevisionLine.Name := Employee."First Name" + ' ' + Employee.Initials;
+            RevisionLine."Old Grade Code" := Employee."Grade Code";
+          END;
+
+          RevisionLine."Fixed/Percent" := EmployeePayElements."Fixed/Percent";
+          RevisionLine."Amount Calculation Type" := EmployeePayElements."Amount Calculation Type";
+          RevisionLine."Base Pay Elements" := EmployeePayElements."Base Pay Elements";
+          RevisionLine."Last Drawn Amount" := EmployeePayElements.Amount;
+          RevisionLine."Last Drawn Percent (%)" := EmployeePayElements."Percent (%)";
+          RevisionLine."Sorting Order" := EmployeePayElements."Sorting Order";
+          RevisionLine."New Effective Date" := NewEffectiveDate;
+          RevisionLine."Excluded In Pay Slip" := EmployeePayElements."Excluded In Pay Slip";
+          RevisionLine."Employee Category" := Employee."Employee Category";
+          IF NOT RevisionLine.INSERT THEN ;
+
+        UNTIL EmployeePayElements.NEXT = 0;
+    END;
+
+    PROCEDURE "Process VDA Revision"@1102159001(PayRevisionID@1000000002 : Code[20];EffectiveDate@1000000000 : Date;EmployeeNo@1000000001 : Code[20];NewEffectiveDate@1000000003 : Date;VDAMaxRange@1102159000 : Decimal) Status : Boolean;
+    VAR
+      Employee@1000000005 : Record 5200;
+    BEGIN
+      Employee.RESET;
+      Employee.SETRANGE("Employee Category", Employee."Employee Category"::"Class IV Permanent");
+      Employee.SETRANGE(Status, Employee.Status::Active);
+      IF Employee.FINDFIRST THEN
+        REPEAT
+          "Read Daily Wages Elements"(PayRevisionID,TODAY, Employee."No.",NewEffectiveDate,VDAMaxRange);
+        UNTIL Employee.NEXT = 0;
+    END;
+
+    PROCEDURE "Read Daily Wages Elements"@1102159000(PayRevisionID@1000000006 : Code[20];LPayrollDate@1000000003 : Date;LEmployeeNo@1000000001 : Code[20];NewEffectiveDate@1000000007 : Date;VDAMaxRange@1102159000 : Decimal);
+    VAR
+      Employee@1000000005 : Record 5200;
+      EmployeePayElements@1000000000 : Record 72078;
+      RevisionLine@1000000004 : Record 72092;
+      LastEffectiveDate@1000000002 : Date;
+    BEGIN
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE ("Employee No", LEmployeeNo);
+      IF EmployeePayElements.FINDLAST THEN
+        LastEffectiveDate := EmployeePayElements."Effective Date";
+
+      EmployeePayElements.RESET;
+      EmployeePayElements.SETRANGE("Employee No",LEmployeeNo);
+      EmployeePayElements.SETRANGE("Effective Date", LastEffectiveDate);
+      EmployeePayElements.SETFILTER(Amount,'<=%1',VDAMaxRange);
+      IF EmployeePayElements.FINDFIRST THEN
+        REPEAT
+          RevisionLine."Pay Revision Id" := PayRevisionID;
+          RevisionLine."Location Code" := EmployeePayElements."Location Code";
+          RevisionLine."Salary Plan Code" := EmployeePayElements."Salary Plan Code";
+          RevisionLine."Last Effective Date" := EmployeePayElements."Effective Date";
+          RevisionLine."Pay Element Code" := EmployeePayElements."Pay Element Code";
+          RevisionLine.Description := EmployeePayElements.Description;
+          RevisionLine."Employee No" := EmployeePayElements."Employee No";
+          RevisionLine."Pay Type" := EmployeePayElements."Pay Type";
+
+          IF Employee.GET(RevisionLine."Employee No") THEN BEGIN
+            RevisionLine.Name := Employee."First Name" + ' ' + Employee.Initials;
+            RevisionLine."Old Grade Code" := Employee."Grade Code";
+          END;
+
+          RevisionLine."Fixed/Percent" := EmployeePayElements."Fixed/Percent";
+          RevisionLine."Amount Calculation Type" := EmployeePayElements."Amount Calculation Type";
+          RevisionLine."Base Pay Elements" := EmployeePayElements."Base Pay Elements";
+          RevisionLine."Last Drawn Amount" := EmployeePayElements.Amount;
+          RevisionLine."Last Drawn Percent (%)" := EmployeePayElements."Percent (%)";
+          RevisionLine."Sorting Order" := EmployeePayElements."Sorting Order";
+          RevisionLine."New Effective Date" := NewEffectiveDate;
+          RevisionLine."Excluded In Pay Slip" := EmployeePayElements."Excluded In Pay Slip";
+          RevisionLine."Employee Category" := Employee."Employee Category";
+
+          IF NOT RevisionLine.INSERT THEN;
+
+        UNTIL EmployeePayElements.NEXT = 0;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

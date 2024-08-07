@@ -1,0 +1,49 @@
+OBJECT Table 71091 Employee Alll
+{
+  OBJECT-PROPERTIES
+  {
+    Date=12-02-18;
+    Time=13:40:55;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    LookupPageID=Page71936;
+    DrillDownPageID=Page71936;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Employee No.        ;Code10         }
+    { 2   ;   ;Company Name        ;Text30        ;TableRelation=Company }
+    { 3   ;   ;Name                ;Text100        }
+    { 50000;  ;Employee Category   ;Option        ;OptionCaptionML=ENU=" ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary";
+                                                   OptionString=[ ,Staff Permanent,Staff Temporary,Class IV Permanent,Class IV Temporary] }
+    { 51000;  ;Class From          ;Code10        ;TableRelation=Class;
+                                                   Description=Coding added by kathir for Employee category HM }
+    { 51001;  ;Class To            ;Code10        ;TableRelation=Class;
+                                                   Description=Coding added by kathir for Employee category HM }
+    { 51002;  ;Employee Type       ;Option        ;CaptionML=ENU=Employee Type;
+                                                   OptionCaptionML=ENU=" ,Teaching,Non-Teaching,HOD,Principal,Sub Staff,HM";
+                                                   OptionString=[ ,Teaching,Non-Teaching,HOD,Principal,Sub Staff,HM] }
+    { 51003;  ;Gender              ;Option        ;OptionString=[ ,Female,Male] }
+    { 51004;  ;Employee Image File ;Text250        }
+    { 51005;  ;Employment Date     ;Date           }
+    { 51006;  ;Date of Birth       ;Date           }
+  }
+  KEYS
+  {
+    {    ;Employee No.,Company Name               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

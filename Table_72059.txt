@@ -1,0 +1,153 @@
+OBJECT Table 72059 Shift
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Code,Description;
+    CaptionML=ENU=Shift;
+    LookupPageID=Page72074;
+    DrillDownPageID=Page72074;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Code                ;Code20        ;CaptionML=ENU=Code }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 5   ;   ;First Half Starting Time;Time      ;OnValidate=BEGIN
+                                                                IF ("First Half Starting Time" = 0T) THEN BEGIN
+                                                                    "First Half Ending Time" := 0T;
+                                                                    "First Half Total Hours" := 0;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=First Half Starting Time }
+    { 6   ;   ;First Half Ending Time;Time        ;OnValidate=BEGIN
+                                                                "First Half Total Hours" := TotalHours("First Half Starting Time","First Half Ending Time");
+                                                                "Total Hours" := "First Half Total Hours" + "Second Half Total Hours";
+                                                              END;
+
+                                                   CaptionML=ENU=First Half Ending Time }
+    { 7   ;   ;First Half Total Hours;Decimal     ;CaptionML=ENU=First Half Total Hours;
+                                                   Editable=No }
+    { 8   ;   ;Second Half Starting Time;Time     ;OnValidate=BEGIN
+                                                                IF "Second Half Starting Time" = 0T THEN BEGIN
+                                                                  "Second Half Starting Time" := 0T;
+                                                                  "Second Half Total Hours" := 0;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Second Half Starting Time }
+    { 9   ;   ;Second Half Ending Time;Time       ;OnValidate=BEGIN
+                                                                "Second Half Total Hours" := TotalHours("Second Half Starting Time","Second Half Ending Time");
+                                                                "Total Hours" := "First Half Total Hours" + "Second Half Total Hours";
+                                                              END;
+
+                                                   CaptionML=ENU=Second Half Ending Time }
+    { 10  ;   ;Second Half Total Hours;Decimal    ;CaptionML=ENU=Second Half Total Hours;
+                                                   Editable=No }
+    { 11  ;   ;Break Start Time    ;Time          ;OnValidate=BEGIN
+                                                                IF "Break Start Time" = 0T THEN BEGIN
+                                                                  "Break End Time" := 0T;
+                                                                  "Break Total Hours" := 0;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Break Start Time }
+    { 12  ;   ;Break End Time      ;Time          ;OnValidate=BEGIN
+                                                                "Break Total Hours" := TotalHours("Break Start Time","Break End Time");
+                                                                "Total Hours" := "First Half Total Hours" + "Second Half Total Hours";
+                                                              END;
+
+                                                   CaptionML=ENU=Break End Time }
+    { 13  ;   ;Break Total Hours   ;Decimal       ;CaptionML=ENU=Break Total Hours;
+                                                   Editable=No }
+    { 14  ;   ;Total Hours         ;Decimal       ;CaptionML=ENU=Total Hours;
+                                                   Editable=No }
+    { 15  ;   ;Punch Time Applicable;Boolean      ;CaptionML=ENU=Punch Time Applicable }
+    { 16  ;   ;Starting Punching Time;Time        ;CaptionML=ENU=Starting Punching Time }
+    { 17  ;   ;Ending Punching Time;Time          ;CaptionML=ENU=Ending Punching Time }
+    { 18  ;   ;Morning OT Applicable;Boolean      ;CaptionML=ENU=Morning OT Applicable }
+    { 19  ;   ;Morning OT Starts From;Time        ;CaptionML=ENU=Morning OT Starts From }
+    { 20  ;   ;Evening OT Applicable;Boolean      ;CaptionML=ENU=Evening OT Applicable }
+    { 21  ;   ;Evening OT Starts From;Time        ;CaptionML=ENU=Evening OT Starts From }
+    { 22  ;   ;Late Coming Applicable;Boolean     ;CaptionML=ENU=Late Coming Applicable }
+    { 23  ;   ;Late Coming Time Starts From;Time  ;CaptionML=ENU=Late Coming Time Starts From }
+    { 24  ;   ;Early Going Applicable;Boolean     ;CaptionML=ENU=Early Going Applicable }
+    { 25  ;   ;Early Going Time Starts From;Time  ;CaptionML=ENU=Early Going Time Starts From }
+    { 26  ;   ;Friday Over Time    ;Boolean       ;CaptionML=ENU=Friday Over Time }
+    { 27  ;   ;Punching Days       ;Option        ;CaptionML=ENU=Punching Days;
+                                                   OptionCaptionML=ENU=" ,Mon,Tue,Wed,Thu,Fri,Sat,Sun";
+                                                   OptionString=[ ,Mon,Tue,Wed,Thu,Fri,Sat,Sun] }
+    { 28  ;   ;Friday Ending Punching Time;Time   ;CaptionML=ENU=Friday Ending Punching Time }
+    { 29  ;   ;Friday Time Limit Evening OT;Time  ;CaptionML=ENU=Friday Time Limit Evening OT }
+  }
+  KEYS
+  {
+    {    ;Code,Location Code,Salary Plan Code     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    PROCEDURE TotalHours@1000000001(InTime@1000000000 : Time;OutTime@1000000001 : Time) TotalHoursMins : Decimal;
+    VAR
+      StartDateTime@1000000005 : DateTime;
+      EndDateTime@1000000004 : DateTime;
+      Day@1000000003 : Date;
+      CheckTime@1000000002 : Time;
+      TotalDuration@1000000006 : Integer;
+      TotalHours@1000000007 : Integer;
+      TotalMins@1000000008 : Integer;
+    BEGIN
+      CLEAR(CheckTime); CLEAR(Day); CLEAR(StartDateTime); CLEAR(EndDateTime);
+      CLEAR(TotalDuration); CLEAR(TotalHours); CLEAR(TotalMins); CLEAR(TotalHoursMins);
+
+      IF (InTime <> 0T) AND (OutTime <> 0T) THEN BEGIN
+        CheckTime := 130000T;
+        Day       := TODAY;
+
+        IF (InTime > CheckTime) AND (OutTime < CheckTime) THEN BEGIN
+             StartDateTime := CREATEDATETIME(Day,     InTime);
+             EndDateTime   := CREATEDATETIME((Day+1), OutTime);
+             TotalDuration := (EndDateTime - StartDateTime);
+             TotalHours    := ROUND((TotalDuration / 3600000),1,'<');
+             TotalMins     := ((TotalDuration - ( TotalHours * 3600000)) / 60000);
+             TotalHoursMins := TotalHours + (TotalMins / 100);
+           END
+        ELSE
+           BEGIN
+             TotalDuration  := (OutTime - InTime);
+             TotalHours     := ROUND((TotalDuration / 3600000),1,'<');
+             TotalMins      := ((TotalDuration - ( TotalHours * 3600000)) / 60000);
+             TotalHoursMins := TotalHours + (TotalMins / 100);
+           END;
+      END;
+
+      IF (InTime = 0T) AND (OutTime = 0T) THEN
+          TotalHoursMins := 0;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

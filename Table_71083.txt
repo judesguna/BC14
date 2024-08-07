@@ -1,0 +1,233 @@
+OBJECT Table 71083 Participant Entry Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:43:52;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               CoCurricularSetup.GET;
+               IF "No.Series" = '' THEN BEGIN
+                 CoCurricularSetup.TESTFIELD("Participant Entry No.");
+                 NoSeriesMgt.InitSeries(CoCurricularSetup."Participant Entry No.",xRec."No.Series",0D,"No.","No.Series");
+               END;
+               "User ID" := USERID;
+               EducationSetup.GET;
+               EducationSetup.TESTFIELD("Academic Year");
+               "Academic Year" := EducationSetup."Academic Year";
+               // Stop 01.VIGNESH
+
+               IF "Event Type" = "Event Type"::Individual THEN BEGIN
+               //  "Team Size":= 1;    SJ6.01
+                 Substitute := 1;
+               END;
+             END;
+
+    CaptionML=ENU=Participant Entry Header;
+    LookupPageID=Page71097;
+    DrillDownPageID=Page71097;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  CoCurricularSetup.GET;
+                                                                  CoCurricularSetup.TESTFIELD("Participant Entry No.");
+                                                                  NoSeriesMgt.TestManual(CoCurricularSetup."Participant Entry No.");
+                                                                  "No.Series" := '';
+                                                                END;
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Competition Entry No.;Code20       ;TableRelation="Competition Entry Header" WHERE (Academic Year=FIELD(Academic Year),
+                                                                                                   Competition Status=FILTER(<>Completed));
+                                                   OnValidate=BEGIN
+                                                                // Start 04.VIGNESH
+                                                                IF "Update Entry" THEN
+                                                                  ERROR(Text000);
+
+                                                                IF CompetitionEntryHeader.GET("Competition Entry No.") THEN BEGIN
+                                                                  IF (CompetitionEntryHeader."Participant Entry From" <= TODAY) AND
+                                                                     (CompetitionEntryHeader."Participant Entry Till" >= TODAY) THEN
+                                                                     BEGIN
+                                                                      "Competition Name" := CompetitionEntryHeader."Competition Name";
+                                                                      "Competition Type" := CompetitionEntryHeader."Competition Type";
+                                                                      "Event Type" := CompetitionEntryHeader."Event Type";
+                                                                      Gender :=  CompetitionEntryHeader.Gender;
+                                                                      "Team No." := '';
+                                                                      "Student Division" := '';
+                                                                      "Competition Date" := CompetitionEntryHeader."Competition Date";
+                                                                      "Competition Status" := CompetitionEntryHeader."Competition Status";
+                                                                      "Event Code" := CompetitionEntryHeader."Event Code";
+                                                                     END
+                                                                     ELSE
+                                                                       ERROR(Text004);
+                                                                END ELSE BEGIN
+                                                                  "Competition Name" := '';
+                                                                  "Competition Type" := '';
+                                                                  "Event Type" := 0;
+                                                                  "Team No." := '';
+                                                                  "Student Division" := '';
+                                                                END;
+                                                                // Stop 04.VIGNESH
+
+                                                                // >> SJ6.01
+                                                                VALIDATE("Event Type");
+                                                                // << SJ6.01
+                                                              END;
+
+                                                   CaptionML=ENU=Competition Entry No. }
+    { 3   ;   ;Competition Name    ;Text50        ;CaptionML=ENU=Competition Name;
+                                                   Editable=No }
+    { 4   ;   ;Student Division    ;Code20        ;TableRelation="Competition Entry Line"."Student Division" WHERE (Document No.=FIELD(Competition Entry No.));
+                                                   OnValidate=BEGIN
+                                                                // Start 05.VIGNESH
+                                                                IF "Update Entry" THEN
+                                                                  ERROR(Text000);
+
+                                                                TESTFIELD("Competition Entry No.");
+                                                                IF CompetitionEntryLine.GET("Competition Entry No.","Student Division") THEN BEGIN
+                                                                  "Team Size" := CompetitionEntryLine."Team Size";
+                                                                  Substitute := CompetitionEntryLine.Substitute;
+                                                                END ELSE BEGIN
+                                                                  "Team Size" := 0;
+                                                                  Substitute := 0;
+                                                                END;
+
+                                                                // Stop 05.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Student Division }
+    { 5   ;   ;House               ;Code20        ;TableRelation=House;
+                                                   OnValidate=BEGIN
+                                                                // Start 06.VIGNESH
+                                                                IF "Update Entry" THEN
+                                                                  ERROR(Text000);
+
+                                                                ParticipantEntryHeader.RESET;
+                                                                ParticipantEntryHeader.SETRANGE("Competition Entry No.","Competition Entry No.");
+                                                                ParticipantEntryHeader.SETRANGE("Student Division","Student Division");
+                                                                ParticipantEntryHeader.SETRANGE(House,House);
+                                                                IF ParticipantEntryHeader.FINDFIRST THEN
+                                                                  ERROR(Text001);
+
+                                                                // Stop 06.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=House }
+    { 6   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 7   ;   ;No.Series           ;Code20        ;CaptionML=ENU=No.Series }
+    { 8   ;   ;Competition Type    ;Code20        ;TableRelation="Competition Type";
+                                                   CaptionML=ENU=Competition Type;
+                                                   Editable=Yes }
+    { 9   ;   ;Update Entry        ;Boolean       ;CaptionML=ENU=Update Entry }
+    { 10  ;   ;Update Results      ;Boolean       ;CaptionML=ENU=Update Results }
+    { 11  ;   ;Event Type          ;Option        ;OnValidate=BEGIN
+                                                                // >> SJ6.01
+                                                                IF ("Event Type" = "Event Type"::Team) AND ("Team No." = '') THEN BEGIN
+                                                                  CoCurricularSetup.GET;
+                                                                  CoCurricularSetup.TESTFIELD("Last Used Team No");
+                                                                  "Team No." := INCSTR(CoCurricularSetup."Last Used Team No");
+                                                                  CoCurricularSetup."Last Used Team No" := "Team No.";
+                                                                  CoCurricularSetup.MODIFY;
+                                                                END;
+                                                                // << SJ6.01
+                                                              END;
+
+                                                   CaptionML=ENU=Event Type;
+                                                   OptionCaptionML=ENU=" ,Individual,Team";
+                                                   OptionString=[ ,Individual,Team];
+                                                   Editable=No }
+    { 12  ;   ;Team No.            ;Code20        ;OnValidate=BEGIN
+                                                                // Start 04.VIGNESH
+                                                                IF "Event Type" <> "Event Type"::Team THEN
+                                                                  ERROR(Text002);
+                                                                ParticipantEntryHeader.RESET;
+                                                                ParticipantEntryHeader.SETRANGE(ParticipantEntryHeader."Competition Name","Competition Name");
+                                                                ParticipantEntryHeader.SETRANGE("Team No.","Team No.");
+                                                                IF ParticipantEntryHeader.FINDFIRST THEN
+                                                                  ERROR(Text003);
+                                                                // Stop 04.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Team No. }
+    { 13  ;   ;Team Size           ;Integer       ;CaptionML=ENU=Team Size }
+    { 14  ;   ;Substitute          ;Integer       ;CaptionML=ENU=Substitute }
+    { 15  ;   ;Competition Date    ;Date          ;CaptionML=ENU=Competition Date }
+    { 16  ;   ;Competition Status  ;Option        ;CaptionML=ENU=Competition Status;
+                                                   OptionCaptionML=ENU=" ,Up Coming,On Going,Completed";
+                                                   OptionString=[ ,Up Coming,On Going,Completed] }
+    { 17  ;   ;Class               ;Code10        ;TableRelation=Class }
+    { 18  ;   ;Event Code          ;Code20        ;TableRelation="Event Master";
+                                                   Editable=No }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Gender              ;Option        ;OptionCaptionML=ENU=" ,Male,Female,Both";
+                                                   OptionString=[ ,Male,Female,Both] }
+    { 70123;  ;Section             ;Code10        ;TableRelation=Section }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Competition Entry No.,Student Division   }
+    {    ;Competition Entry No.,Student Division,House }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationSetup@1102155000 : Record 71884;
+      CoCurricularSetup@1102155001 : Record 71080;
+      NoSeriesMgt@1102155002 : Codeunit 396;
+      RecParticipant@1102155003 : Record 71083;
+      CompetitionEntryHeader@1102155004 : Record 71081;
+      CompetitionEntryLine@1102155005 : Record 71082;
+      ParticipantEntryHeader@1102155006 : Record 71083;
+      Text000@1102155007 : TextConst 'ENU=You cannot modify the entry, entry is updated.';
+      Text001@1102155008 : TextConst 'ENU=House has already been selected before.';
+      Text002@1102155009 : TextConst 'ENU=Only for the team event type, team no. is required.';
+      Text003@1102155010 : TextConst 'ENU=Team no. should be unique.';
+      Text004@1102159000 : TextConst 'ENU=Entry time expired';
+
+    PROCEDURE Assistedit@1102155003(OldParticipant@1102155000 : Record 71083) : Boolean;
+    BEGIN
+      // Start 03.VIGNESH
+      WITH RecParticipant DO BEGIN
+        RecParticipant := Rec;
+        CoCurricularSetup.GET;
+        CoCurricularSetup.TESTFIELD(CoCurricularSetup."Participant Entry No.");
+        IF NoSeriesMgt.SelectSeries(CoCurricularSetup."Participant Entry No.",OldParticipant."No.Series","No.Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := RecParticipant;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 03.VIGNESH
+    END;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                            Code added to enter the User id,academic Year & No. Series
+      02   15.12.09  VIGNESH  No. - OnValidate()                    Code added tfor generatring No. Series
+      03   15.12.09  VIGNESH  Assistedit()                          Function called for generating No. Series
+      04   15.12.09  VIGNESH  Competition Entry No. - OnValidate()  Code added to get the Competition Name & Type
+      05   15.12.09  VIGNESH  Student Division - OnValidate()       Code added for validatidating the Student Division
+      06   15.12.09  VIGNESH  House - OnValidate()                  Code added for validating House
+      SJ6.01 21/01/18 GB
+        Autogenerate team no
+    }
+    END.
+  }
+}
+

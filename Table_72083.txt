@@ -1,0 +1,367 @@
+OBJECT Table 72083 Leave Application
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06-08-24;
+    Time=17:07:04;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Leave Requsition No.,Application Date,Employee No.,Name;
+    OnInsert=BEGIN
+               IF "Leave Requsition No." = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Leave No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Leave No.",xRec."No. Series",0D,"Leave Requsition No.","No. Series");
+               END;
+
+               "Application Date" := TODAY;
+               "Creator User ID" := USERID;
+               "Creator Date Time" := CURRENTDATETIME;
+             END;
+
+    OnDelete=BEGIN
+               //IF (Status <> Status::Created) THEN
+               //    ERROR('You cannot delete Leave Application');
+             END;
+
+    OnRename=BEGIN
+               ERROR('You cannot Rename the Leave Application');
+             END;
+
+    CaptionML=ENU=Leave Application;
+    LookupPageID=Page72149;
+    DrillDownPageID=Page72149;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Leave Requsition No.;Code20        ;OnValidate=BEGIN
+                                                                IF "Leave Requsition No." <> xRec."Leave Requsition No." THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Leave No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Leave Requsition No. }
+    { 2   ;   ;Application Date    ;Date          ;CaptionML=ENU=Application Date;
+                                                   Editable=No }
+    { 3   ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 4   ;   ;Application Type    ;Option        ;CaptionML=ENU=Application Type;
+                                                   OptionCaptionML=ENU=Leave Application,Cancellation Application;
+                                                   OptionString=Leave Application,Cancellation Application }
+    { 5   ;   ;Employee No.        ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                Employee.GET("Employee No.");
+                                                                Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                                Designation := Employee."Job Title";
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No. }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 7   ;   ;Designation         ;Text50        ;CaptionML=ENU=Designation;
+                                                   Editable=No }
+    { 8   ;   ;From Date           ;Date          ;OnValidate=BEGIN
+                                                                "To Date" := "From Date";
+                                                                VALIDATE("To Date");
+                                                                "Application Date" := "From Date";
+                                                                "Recommending Date" := "From Date";
+                                                                "Sanctioning Date" := "From Date";
+                                                                Reason := 'Personal Work';
+                                                                //"Recommending Authority" := 'AANAND.M';
+                                                                //"Sanctioning Authority" := 'AANAND.M';
+                                                              END;
+
+                                                   CaptionML=ENU=From Date;
+                                                   NotBlank=Yes }
+    { 9   ;   ;To Date             ;Date          ;OnValidate=BEGIN
+                                                                IF "To Date" < "From Date" THEN
+                                                                  ERROR(Text0004);
+
+                                                                "No.of.Days" := ("To Date" - "From Date") + 1;
+
+                                                                IF "No.of.Days" > 1 THEN BEGIN
+                                                                  "First Half Day" := FALSE;
+                                                                  "Second Half Day" := FALSE;
+                                                                END;
+
+                                                                IF "No.of.Days" >= 1 THEN
+                                                                  "Full Day" := TRUE;
+
+                                                                IF "No.of.Days" = 1 THEN
+                                                                  IF "First Half Day" OR "Second Half Day" THEN
+
+                                                                    "No.of.Days" := 1 - 0.5;
+                                                              END;
+
+                                                   CaptionML=ENU=To Date;
+                                                   NotBlank=Yes }
+    { 10  ;   ;Leave Code          ;Code20        ;CaptionML=ENU=Leave Code }
+    { 11  ;   ;Full Day            ;Boolean       ;OnValidate=BEGIN
+                                                                IF "No.of.Days" > 1 THEN BEGIN
+                                                                  "First Half Day" := FALSE;
+                                                                  "Second Half Day" := FALSE;
+                                                                END;
+
+                                                                IF "Full Day" THEN BEGIN
+                                                                  "First Half Day" := FALSE;
+                                                                  "Second Half Day" := FALSE;
+                                                                END;
+
+                                                                VALIDATE("From Date");
+                                                                VALIDATE("To Date");
+                                                              END;
+
+                                                   CaptionML=ENU=Full Day }
+    { 12  ;   ;First Half Day      ;Boolean       ;OnValidate=BEGIN
+                                                                VALIDATE("From Date");
+                                                                VALIDATE("To Date");
+
+                                                                IF "No.of.Days" > 1 THEN BEGIN
+                                                                  "First Half Day" := FALSE;
+                                                                  "Second Half Day" := FALSE;
+                                                                END;
+
+                                                                IF "First Half Day" THEN BEGIN
+                                                                  "Full Day" := FALSE;
+                                                                  "Second Half Day" := FALSE;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=First Half Day }
+    { 13  ;   ;Second Half Day     ;Boolean       ;OnValidate=BEGIN
+                                                                VALIDATE("From Date");
+                                                                VALIDATE("To Date");
+
+                                                                IF "No.of.Days" > 1 THEN BEGIN
+                                                                  "First Half Day" := FALSE;
+                                                                  "Second Half Day" := FALSE;
+                                                                END;
+
+                                                                IF "Second Half Day" THEN BEGIN
+                                                                  "First Half Day" := FALSE;
+                                                                  "Full Day" := FALSE;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Second Half Day }
+    { 14  ;   ;Leave Balance       ;Decimal       ;CaptionML=ENU=Leave Balance;
+                                                   Editable=No }
+    { 15  ;   ;No.of.Days          ;Decimal       ;CaptionML=ENU=No.of.Days;
+                                                   Editable=No }
+    { 16  ;   ;Reason              ;Text50        ;CaptionML=ENU=Reason }
+    { 17  ;   ;Status              ;Option        ;CaptionML=ENU=Status;
+                                                   OptionCaptionML=ENU=Created,Request,Open,Canceled,Rejected,Approved,Closed;
+                                                   OptionString=Created,Request,Open,Canceled,Rejected,Approved,Closed }
+    { 18  ;   ;Recommending Authority;Text50      ;TableRelation=Employee;
+                                                   OnLookup=BEGIN
+                                                              IF PAGE.RUNMODAL(0,Employee) = ACTION::LookupOK THEN
+                                                                "Recommending Authority" := Employee."First Name";
+                                                            END;
+
+                                                   CaptionML=ENU=Recommending Authority }
+    { 19  ;   ;Recommending Date   ;Date          ;OnValidate=BEGIN
+                                                                IF "Recommending Date" < "Application Date" THEN
+                                                                  ERROR(Text0005);
+                                                              END;
+
+                                                   CaptionML=ENU=Recommending Date }
+    { 20  ;   ;Recommending Status ;Option        ;CaptionML=ENU=Recommending Status;
+                                                   OptionCaptionML=ENU=Recommended,Not Recommended;
+                                                   OptionString=Recommended,Not Recommended }
+    { 21  ;   ;Sanctioning Authority;Text50       ;TableRelation=Employee;
+                                                   OnLookup=BEGIN
+                                                              IF PAGE.RUNMODAL(0,Employee) = ACTION::LookupOK THEN
+                                                                "Sanctioning Authority" := Employee."First Name";
+                                                            END;
+
+                                                   CaptionML=ENU=Sanctioning Authority }
+    { 22  ;   ;Sanctioning Date    ;Date          ;OnValidate=BEGIN
+                                                                //IF "Sanctioning Date" < "Application Date" THEN
+                                                                //  ERROR(Text0005);
+                                                              END;
+
+                                                   CaptionML=ENU=Sanctioning Date }
+    { 23  ;   ;Sanctioning Status  ;Option        ;CaptionML=ENU=Sanctioning Status;
+                                                   OptionCaptionML=ENU=Sanctioned,Not Sanctioned;
+                                                   OptionString=Sanctioned,Not Sanctioned }
+    { 24  ;   ;Cancellation Date   ;Date          ;CaptionML=ENU=Cancellation Date }
+    { 25  ;   ;Creator User ID     ;Code20        ;CaptionML=ENU=Creator User ID;
+                                                   Editable=No }
+    { 26  ;   ;Creator Date Time   ;DateTime      ;CaptionML=ENU=Creator Date Time;
+                                                   Editable=No }
+    { 27  ;   ;Processed           ;Boolean       ;CaptionML=ENU=Processed;
+                                                   Editable=No }
+    { 28  ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 29  ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 30  ;   ;Leave Year Code     ;Code20        ;TableRelation="Payroll Year"."Year Code" WHERE (Location Code=FIELD(Location Code),
+                                                                                                   Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                                   Year Code=FIELD(Leave Year Code)) }
+    { 31  ;   ;Academic Year       ;Code20         }
+  }
+  KEYS
+  {
+    {    ;Leave Requsition No.                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000009 : Record 72051;
+      LocationHRPayrollSetup@1000000000 : Record 72052;
+      Employee@1000000001 : Record 5200;
+      NoSeriesMgt@1000000002 : Codeunit 396;
+      Text0001@1000000007 : TextConst 'ENU=Sanction Incharge Should not Same Person';
+      Text0002@1000000006 : TextConst 'ENU=This Leave is cancelled, You can not do any modifications.';
+      Text0003@1000000005 : TextConst 'ENU=Processing is done, You cannot cancel these leaves.';
+      Text0004@1000000004 : TextConst 'ENU=The Leave End Date Should not Lesserthan the Leave Start Date';
+      Text0005@1000000003 : TextConst 'ENU=Leave Approval Date Should not Lesserthan the Leave Application Date';
+      LeaveBalance@1000000008 : Record 72084;
+      LeaveApplication@1102159000 : Record 72083;
+
+    PROCEDURE AssistEdit@2(OldLeaveApplication@1000 : Record 72083) : Boolean;
+    VAR
+      LeaveApplication@1000000000 : Record 72083;
+    BEGIN
+      WITH LeaveApplication DO BEGIN
+        LeaveApplication := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Leave No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Leave No.",OldLeaveApplication."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Leave Requsition No.");
+          Rec := LeaveApplication;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    PROCEDURE "Leave Batch Posting"@1102159000(LeaveRequestNo@1102159000 : Code[20]);
+    BEGIN
+      LeaveApplication.RESET;
+
+      IF LeaveRequestNo <> 'ALL' THEN
+         LeaveApplication.SETRANGE("Leave Requsition No.", LeaveRequestNo);
+      LeaveApplication.SETRANGE(Status, LeaveApplication.Status::Created);
+      IF LeaveApplication.FINDFIRST THEN BEGIN
+         REPEAT
+            "Daily Attendance Update"(LeaveApplication);
+         UNTIL LeaveApplication.NEXT = 0;
+      END;
+    END;
+
+    PROCEDURE "Daily Attendance Update"@1102159001(LeaveApplication1@1102159000 : Record 72083);
+    VAR
+      DailyAttendance@1102159001 : Record 72080;
+      LeaveMaster@1102159002 : Record 72069;
+    BEGIN
+      DailyAttendance.RESET;
+      DailyAttendance.SETRANGE("Location Code", LeaveApplication1."Location Code");
+      DailyAttendance.SETRANGE("Salary Plan Code", LeaveApplication1."Salary Plan Code");
+      DailyAttendance.SETRANGE("Employee No", LeaveApplication1."Employee No.");
+      DailyAttendance.SETRANGE("Attendance Date", LeaveApplication1."From Date", LeaveApplication1."To Date");
+      IF DailyAttendance.FIND('-') THEN BEGIN
+         REPEAT
+
+      //     IF (DailyAttendance."Leave Code" = '') AND (DailyAttendance."Non Working Day" = FALSE) THEN
+           IF (DailyAttendance."Leave Code" = '') THEN
+           IF LeaveApplication1."Application Type" = LeaveApplication1."Application Type"::"Leave Application" THEN BEGIN
+              DailyAttendance."In Time" := 0T;
+              DailyAttendance."Out Time" := 0T;
+              DailyAttendance."Hours Worked" := 0;
+              LeaveApplication1.TESTFIELD("Leave Code");
+              LeaveMaster.GET(LeaveApplication1."Leave Code",LeaveApplication1."Location Code",
+                              LeaveApplication1."Salary Plan Code");
+
+              IF LeaveApplication1."Full Day" THEN BEGIN
+                 DailyAttendance."First Half Attendance Type"  := LeaveMaster."Mark As Full Day First Half";
+                 DailyAttendance."Second Half Attendance Type" := LeaveMaster."Mark As Full Day Secod Half";
+                 DailyAttendance."Leave Type" := DailyAttendance."Leave Type"::"Full Day";
+              END;
+
+              IF LeaveApplication1."First Half Day" THEN BEGIN
+                 DailyAttendance."First Half Attendance Type"  := LeaveMaster."I'st Mark As First Half Day";
+                 DailyAttendance."Second Half Attendance Type" := LeaveMaster."I'st Mark As Second Half Day";
+                 DailyAttendance."Leave Type" := DailyAttendance."Leave Type"::"First Half Day";
+              END;
+
+              IF LeaveApplication1."Second Half Day" THEN BEGIN
+                 DailyAttendance."First Half Attendance Type"  := LeaveMaster."II'nd Mark As First Half Day";
+                 DailyAttendance."Second Half Attendance Type" := LeaveMaster."II'nd Mark As Second Half Day";
+                 DailyAttendance."Leave Type" := DailyAttendance."Leave Type"::"Second Half Day";
+              END;
+              DailyAttendance."Leave Code" := LeaveApplication1."Leave Code";
+              DailyAttendance."Manual Entry" := TRUE;
+           END;
+
+           IF DailyAttendance."Leave Code" <> '' THEN
+           IF LeaveApplication1."Application Type" = LeaveApplication1."Application Type"::"Cancellation Application" THEN BEGIN
+              IF LocationHRPayrollSetup."Default Attendance Type" IN [LocationHRPayrollSetup."Default Attendance Type"::" ",
+                                                                      LocationHRPayrollSetup."Default Attendance Type"::Absent] THEN
+      BEGIN
+                 DailyAttendance."In Time" := 0T;
+                 DailyAttendance."Out Time" := 0T;
+              END;
+
+              IF LocationHRPayrollSetup."Default Attendance Type" = LocationHRPayrollSetup."Default Attendance Type"::Present THEN BEGIN
+                 DailyAttendance."In Time" := DailyAttendance."Actual Time In";
+                 DailyAttendance."Out Time" := DailyAttendance."Actual Time Out";
+              END;
+
+              DailyAttendance."Leave Code" := '';
+              DailyAttendance."Manual Entry" := FALSE;
+              DailyAttendance."Leave Type" := DailyAttendance."Leave Type"::" ";
+              DailyAttendance.VALIDATE("In Time");
+              DailyAttendance.VALIDATE("Out Time");
+            END;
+
+           DailyAttendance."Leave Application No" := LeaveApplication1."Leave Requsition No.";
+           DailyAttendance.VALIDATE("Leave Type");
+           DailyAttendance.VALIDATE("First Half Attendance Type");
+           DailyAttendance.VALIDATE("Second Half Attendance Type");
+
+           DailyAttendance.MODIFY;
+
+         UNTIL DailyAttendance.NEXT=0;
+
+      LeaveApplication1.Status := LeaveApplication1.Status::Approved;
+      LeaveApplication1.Processed := TRUE;
+      LeaveApplication1.MODIFY;
+
+      LeaveBalance.RESET;
+      LeaveBalance.SETRANGE("Location Code",    LeaveApplication1."Location Code");
+      LeaveBalance.SETRANGE("Salary Plan Code", LeaveApplication1."Salary Plan Code");
+      LeaveBalance.SETRANGE("Leave Code",       LeaveApplication1."Leave Code");
+      LeaveBalance.SETRANGE("Employee No",      LeaveApplication1."Employee No.");
+      IF LeaveBalance.FIND('-') THEN
+         REPEAT
+           LeaveBalance.VALIDATE("Leave Opening Balance");
+           LeaveBalance.MODIFY;
+         UNTIL LeaveBalance.NEXT = 0;
+
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

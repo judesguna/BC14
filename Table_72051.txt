@@ -1,0 +1,96 @@
+OBJECT Table 72051 HR & Payroll Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=29-08-19;
+    Time=20:43:15;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=User ID,Location Code,Location Name;
+    CaptionML=ENU=HR & Payroll Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;User ID             ;Code20        ;CaptionML=ENU=User ID;
+                                                   Editable=Yes }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   OnValidate=BEGIN
+                                                                IF LocationHRPayrollSetup.GET("Location Code") THEN
+                                                                  "Location Name" := LocationHRPayrollSetup."Location Name";
+                                                                "Salary Plan Code" := '';
+                                                                "Salary Cyclic Code" := '';
+                                                                "Salary Start Date" := 0D;
+                                                                "Salary End Date" := 0D;
+                                                                "Salary Year Code" := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Location Code;
+                                                   NotBlank=Yes }
+    { 3   ;   ;Location Name       ;Text50        ;CaptionML=ENU=Location Name;
+                                                   Editable=No }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   OnValidate=BEGIN
+                                                                "Salary Cyclic Code" := '';
+                                                                "Salary Start Date" := 0D;
+                                                                "Salary End Date" := 0D;
+                                                                "Salary Year Code" := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Salary Plan Code;
+                                                   NotBlank=Yes }
+    { 5   ;   ;Salary Cyclic Code  ;Code20        ;TableRelation="Payroll Month & Year"."Salary Cyclic Code";
+                                                   CaptionML=ENU=Salary Cyclic Code;
+                                                   NotBlank=Yes }
+    { 6   ;   ;Salary Start Date   ;Date          ;CaptionML=ENU=Salary Start Date;
+                                                   Editable=Yes }
+    { 7   ;   ;Salary End Date     ;Date          ;CaptionML=ENU=Salary End Date;
+                                                   Editable=Yes }
+    { 8   ;   ;Salary Year Code    ;Code20        ;CaptionML=ENU=Salary Year Code;
+                                                   NotBlank=Yes }
+    { 9   ;   ;Payment Salary Plan Code;Code20    ;TableRelation="Salary Plan";
+                                                   OnValidate=BEGIN
+                                                                {
+                                                                "Payment Salary Year Code" := '';
+                                                                "Payment Salary Cyclic Code" := '';
+                                                                "Payment Salary Start Date" := 0D;
+                                                                "Payment Salary End Date" := 0D;
+                                                                      }
+                                                              END;
+
+                                                   CaptionML=ENU=Payment Salary Plan Code }
+    { 10  ;   ;Payment Salary Year Code;Code20    ;CaptionML=ENU=Payment Salary Year Code }
+    { 11  ;   ;Payment Salary Cyclic Code;Code20  ;TableRelation="Payroll Month & Year";
+                                                   CaptionML=ENU=Payment Salary Cyclic Code }
+    { 12  ;   ;Payment Salary Start Date;Date     ;CaptionML=ENU=Payment Salary Start Date;
+                                                   Editable=No }
+    { 13  ;   ;Payment Salary End Date;Date       ;CaptionML=ENU=Payment Salary End Date;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;User ID                                 ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      LocationHRPayrollSetup@1000000000 : Record 72052;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

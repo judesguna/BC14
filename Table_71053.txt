@@ -1,0 +1,173 @@
+OBJECT Table 71053 Marks Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=01-07-20;
+    Time=11:24:57;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Marks Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 3   ;   ;Student No.         ;Code20        ;TableRelation=Student WHERE (Class=FIELD(Class),
+                                                                                Section=FIELD(Section),
+                                                                                Curriculum=FIELD(Curriculum),
+                                                                                Academic Year=FIELD(Academic Year),
+                                                                                Student Status=FILTER(Student));
+                                                   OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                IF RecStudent.GET("Student No.") THEN
+                                                                  "Student Name" := RecStudent.Name
+                                                                ELSE
+                                                                  "Student Name" := '';
+                                                                // Start 04.KATHIR
+                                                              END;
+
+                                                   ValidateTableRelation=No;
+                                                   CaptionML=ENU=Student No.;
+                                                   Editable=Yes }
+    { 4   ;   ;Student Name        ;Text50        ;CaptionML=ENU=Student Name;
+                                                   Editable=No }
+    { 5   ;   ;Max Mark            ;Decimal       ;CaptionML=ENU=Max Mark;
+                                                   BlankZero=Yes }
+    { 6   ;   ;Marks Obtained      ;Decimal       ;OnValidate=BEGIN
+                                                                // Start 02.KATHIR
+                                                                IF ("Marks Obtained" > "Max Mark") OR ("Marks Obtained" < 0) THEN
+                                                                  ERROR(Text000);
+
+                                                                IF "Marks Obtained" < "Pass Mark" THEN
+                                                                  Result := Result::Fail
+                                                                ELSE
+                                                                  Result := Result::Pass;
+
+                                                                IF ("Marks Obtained" <> 0) AND ("Max Mark" <> 0) THEN
+                                                                  Percentage := ("Marks Obtained" / "Max Mark") * 100
+                                                                ELSE
+                                                                  IF ("Marks Obtained" = 0) AND ("Max Mark" <> 0) THEN // Start 03.VIGNESH
+                                                                    Percentage := 0;                                       // Stop 03.VIGNESH
+
+                                                                // Start 10.VIGNESH
+                                                                //IF "Class Card".GET(Class,Section,Curriculum,"Academic Year") THEN;
+                                                                IF ClassSection.GET("Class Code") THEN;
+                                                                // Stop 10.VIGNESH
+
+                                                                //IF "Class Card"."Marks System" = "Class Card"."Marks System"::Grade THEN
+                                                                //BEGIN
+                                                                ClassGrade.RESET;
+                                                                ClassGrade.SETCURRENTKEY(Class,Curriculum,"Academic Year","Grade Code");
+                                                                ClassGrade.SETRANGE(Class,Class);
+                                                                ClassGrade.SETRANGE(Curriculum,Curriculum);
+                                                                ClassGrade.SETRANGE("Academic Year","Academic Year");
+                                                                ClassGrade.SETFILTER("Max Percentage",'>=%1',"Marks Obtained");
+                                                                ClassGrade.SETFILTER("Min Percentage",'<=%1',"Marks Obtained");
+                                                                IF ClassGrade.FINDSET THEN BEGIN
+                                                                  Grade := ClassGrade."Grade Code" ;
+                                                                  // Start01.KAVITHA
+                                                                  Points := ClassGrade.Points;
+                                                                  // Stop01.KAVITHA
+                                                                END ELSE BEGIN
+                                                                  Grade := '';
+                                                                 // Start01.KAVITHA
+                                                                  Points := 0;
+                                                                   // Stop01.KAVITHA
+                                                                END
+                                                                //ELSE
+                                                                //  Grade := '';
+                                                                // Start 02.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Marks Obtained }
+    { 7   ;   ;Result              ;Option        ;CaptionML=ENU=Result;
+                                                   OptionCaptionML=ENU=" ,Pass,Fail,Absent";
+                                                   OptionString=[ ,Pass,Fail,Absent] }
+    { 8   ;   ;Remarks             ;Text50        ;CaptionML=ENU=Remarks }
+    { 9   ;   ;Percentage          ;Decimal       ;CaptionML=ENU=Percentage;
+                                                   BlankZero=Yes }
+    { 10  ;   ;Grade               ;Code20        ;TableRelation=Grade;
+                                                   CaptionML=ENU=Grade }
+    { 11  ;   ;ExamCount           ;Integer       ;CaptionML=ENU=ExamCount }
+    { 12  ;   ;Class               ;Code20        ;CaptionML=ENU=Class }
+    { 13  ;   ;Section             ;Code20        ;CaptionML=ENU=Section }
+    { 14  ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 15  ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculum }
+    { 16  ;   ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 17  ;   ;Subject             ;Code20        ;TableRelation=Subject;
+                                                   CaptionML=ENU=Subject;
+                                                   Editable=Yes }
+    { 18  ;   ;Exam Type           ;Code10        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Type;
+                                                   Editable=Yes }
+    { 19  ;   ;Pass Mark           ;Integer       ;CaptionML=ENU=Pass Mark }
+    { 20  ;   ;Points              ;Decimal       ;CaptionML=ENU=Points }
+    { 21  ;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   OnValidate=BEGIN
+                                                                IF ClassSection1.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection1.Class;
+                                                                  Section := ClassSection1.Section;
+                                                                  Curriculum := ClassSection1.Curriculum;
+                                                                  "Academic Year" := ClassSection1."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Class Code }
+    { 22  ;   ;Gender              ;Option        ;OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 30  ;   ;Published           ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;Document No.,Student No.                ;Clustered=Yes }
+    {    ;Student No.,Exam Type                    }
+    {    ;Class,Section,Academic Year,Curriculum,Exam Type }
+    {    ;Class,Section,Academic Year,Curriculum,Exam Type,Student No.;
+                                                   SumIndexFields=Max Mark,Marks Obtained }
+    {    ;Academic Year,Class,Section,Curriculum,Student No.;
+                                                   SumIndexFields=Points }
+    {    ;Student No.,Exam Type,Subject            }
+    {    ;Class,Section,Academic Year,Curriculum,Subject }
+    {    ;Student No.,Class,Section,Curriculum,Academic Year,Subject,ExamCount,Exam Type }
+    {    ;Class Code                               }
+    {    ;Marks Obtained                           }
+    {    ;Gender,Student Name                      }
+    {    ;Student Name                             }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecStudent@1102155000 : Record 71046;
+      ClassGrade@1102155001 : Record 71054;
+      ClassCard@1102155002 : Record 71006;
+      ClassSection@1102155004 : Record 71015;
+      Text000@1102155005 : TextConst 'ENU=Enter valid mark.';
+      ClassSection1@1102155006 : Record 71015;
+      ClassSectionLook@1102155003 : Record 71015;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                          Description
+      -----------------------------------------------------------------------------------------------
+        01  30/09/09   KATHIR  Student No. - OnValidate()        Code added to Get student Name
+        02  30/09/09   KATHIR  Marks Obtained - OnValidate()     Code added to Calculate Grade and average
+        03  17/11/09   VIGNESH Marks Obtained - OnValidate()     Code added modifiy to validate if mark is zero
+        04  23/11/09   VIGNESH  Class - OnValidate()             Code added to get the Class Section & Curriculum
+        05  23/11/09   VIGNESH  Class - OnLookup()               Code added to get the Class Section & Curriculum
+        06  23/11/09   VIGNESH  Section - OnValidate()           Code added to get the Class Section & Curriculum
+        07  23/11/09   VIGNESH  Section - OnLookup()             Code added to get the Class Section & Curriculum
+        08  23/11/09   VIGNESH  Curriculum - OnValidate()        Code added to get the Class Section & Curriculum
+        09  23/11/09   VIGNESH  Curriculum - OnLookup()          Code added to get the Class Section & Curriculum
+        10  25/11/09   VIGNESH  Marks Obtained - OnValidate()    Code modified based on Class Section
+        11  13/1/10    KAVITHA  Field                            Added a new field Points
+        12  13/1/10    KAVITHA  Marks Obtained - OnValidate()    Code is written to get the Points .
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,111 @@
+OBJECT Table 72113 IF Form B Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF "Form B Id" = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Pay Revision No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Pay Revision No.",xRec."No. Series",0D,"Form B Id","No. Series");
+               END;
+
+               IF HRPayrollSetup.GET(USERID) THEN BEGIN
+                 "Location Code" := HRPayrollSetup."Location Code";
+                 "Salary Plan Code" := HRPayrollSetup."Salary Plan Code";
+               END;
+
+               "Processed Date" := TODAY;
+             END;
+
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 IFFormBLine.RESET;
+                 IFFormBLine.SETRANGE("Form B Id", "Form B Id");
+                 IF IFFormBLine.FINDFIRST THEN BEGIN
+                   IFFormBLine.LOCKTABLE;
+                   IFFormBLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=IF Form B Header;
+    LookupPageID=Page72153;
+    DrillDownPageID=Page72153;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Form B Id           ;Code20        ;OnValidate=BEGIN
+                                                                IF "Form B Id" <> xRec."Form B Id" THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Pay Revision No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Page B Id }
+    { 2   ;   ;Processed Date      ;Date          ;CaptionML=ENU=Processed Date;
+                                                   Editable=No }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code;
+                                                   Editable=No }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code;
+                                                   Editable=No }
+    { 5   ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+  }
+  KEYS
+  {
+    {    ;Form B Id                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+      LocationHRPayrollSetup@1000000004 : Record 72052;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      IFFormBLine@1000000002 : Record 72114;
+      PayElements@1000000003 : Record 72060;
+
+    PROCEDURE AssistEdit@2(OldIFFormBHeader@1000 : Record 72113) : Boolean;
+    VAR
+      IFFormBHeader@1001 : Record 72113;
+    BEGIN
+      WITH IFFormBHeader DO BEGIN
+        IFFormBHeader := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Pay Revision No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Pay Revision No.",OldIFFormBHeader."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Form B Id");
+          Rec := IFFormBHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

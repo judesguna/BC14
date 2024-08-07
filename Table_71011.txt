@@ -1,0 +1,63 @@
+OBJECT Table 71011 Application Optional Subjects
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Application Optional Subjects;
+    LookupPageID=Page71018;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Application No      ;Code20        ;CaptionML=ENU=Application No }
+    { 2   ;   ;Subject Group       ;Code20        ;TableRelation="Subject Group";
+                                                   CaptionML=ENU=Subject Group }
+    { 3   ;   ;Subject             ;Code20        ;TableRelation=Subject WHERE (Subject Group=FIELD(Subject Group));
+                                                   OnValidate=BEGIN
+                                                                // Start 01.KATHIR
+                                                                IF Subjectrec.GET(Subject) THEN
+                                                                  Description := Subjectrec.Description;
+                                                                // Stop 01.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Subject }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Application No,Subject Group,Subject    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Subjectrec@1102155000 : Record 71004;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01   29/09/09  KATHIR   Subject - OnValidate()        Code added to get the Subject description
+        02   19/10/09  VANDHANA OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

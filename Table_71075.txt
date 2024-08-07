@@ -1,0 +1,44 @@
+OBJECT Table 71075 Competition Type
+{
+  OBJECT-PROPERTIES
+  {
+    Date=12-02-18;
+    Time=11:52:50;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               "User ID" := USERID;
+             END;
+
+    CaptionML=ENU=Competition Type;
+    LookupPageID=Page71084;
+    DrillDownPageID=Page71084;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 3   ;   ;Entire Class        ;Boolean        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;IsExternalType      ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,59 @@
+OBJECT Table 71895 Portal Users
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:56:47;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    CaptionML=ENU=Portal Users;
+    LookupPageID=Page71897;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Login ID            ;Code20        ;CaptionML=ENU=Login ID }
+    { 2   ;   ;Password            ;Code20        ;CaptionML=ENU=Password }
+    { 3   ;   ;User Groups         ;Code20        ;TableRelation="User Groups";
+                                                   OnValidate=BEGIN
+                                                                IF "User Groups" = 'FACULTY' THEN
+                                                                BEGIN
+                                                                 IF Emp.GET("Login ID") THEN;
+                                                                 Name := Emp."First Name";
+                                                                 MODIFY;
+                                                                END;
+
+                                                                IF "User Groups" = 'STUDENT' THEN
+                                                                BEGIN
+                                                                  IF Stud.GET("Login ID") THEN;
+                                                                  Name := Stud.Name;
+                                                                  MODIFY;
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=User Groups;
+                                                   Editable=Yes }
+    { 10  ;   ;Name                ;Text80         }
+    { 11  ;   ;PwdReset            ;Boolean        }
+  }
+  KEYS
+  {
+    {    ;Login ID                                ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Emp@1102155000 : Record 5200;
+      Stud@1102155001 : Record 18;
+
+    BEGIN
+    END.
+  }
+}
+

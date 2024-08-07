@@ -1,0 +1,84 @@
+OBJECT Table 72088 Employee Loan Details
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Employee Loan Details;
+    LookupPageID=Page72120;
+    DrillDownPageID=Page72120;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  Name := Employee."First Name" + ' ' + Employee.Initials;
+                                                                  "Location Code" := Employee."Location Code";
+                                                                  "Salary Plan Code" := Employee."Salary Plan Code";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No }
+    { 4   ;   ;Loan Code           ;Code20        ;TableRelation="Pay Elements" WHERE (Location Code=FIELD(Location Code),
+                                                                                       Salary Plan Code=FIELD(Salary Plan Code),
+                                                                                       Loan Element=CONST(Yes));
+                                                   CaptionML=ENU=Loan Code }
+    { 5   ;   ;Salary Process Date ;Date          ;CaptionML=ENU=Salary Process Date }
+    { 6   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 7   ;   ;Name                ;Text50        ;CaptionML=ENU=Name }
+    { 8   ;   ;Loan Amount         ;Decimal       ;CaptionML=ENU=Loan Amount }
+    { 9   ;   ;Payment Due         ;Decimal       ;CaptionML=ENU=Payment Due }
+    { 10  ;   ;EMI Deducted        ;Decimal       ;CaptionML=ENU=EMI Deducted }
+    { 11  ;   ;EMI Amount          ;Decimal       ;CaptionML=ENU=EMI Amount }
+    { 12  ;   ;Interest            ;Decimal       ;CaptionML=ENU=Interest }
+    { 13  ;   ;Principal           ;Decimal       ;CaptionML=ENU=Principal }
+    { 14  ;   ;Balance Amount      ;Decimal       ;OnValidate=BEGIN
+                                                                {
+                                                                IF "Repayment Date" = 0 THEN
+                                                                  "Loan Closed" := TRUE;
+                                                                }
+                                                              END;
+
+                                                   CaptionML=ENU=Balance Amount }
+    { 15  ;   ;Repayment Date      ;Date          ;CaptionML=ENU=Repayment Date }
+    { 16  ;   ;Loan Closed         ;Boolean       ;CaptionML=ENU=Loan Closed }
+    { 17  ;   ;Loan Deduction Interval;DateFormula;CaptionML=ENU=Loan Deduction Interval }
+    { 18  ;   ;LoanId              ;Code20        ;CaptionML=ENU=LoanId }
+  }
+  KEYS
+  {
+    {    ;Employee No,Loan Code,LoanId,Line No.   ;Clustered=Yes }
+    {    ;Location Code,Salary Plan Code,Employee No,Loan Code,Loan Closed;
+                                                   SumIndexFields=EMI Amount }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Employee@1102159000 : Record 5200;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

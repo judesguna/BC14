@@ -1,0 +1,127 @@
+OBJECT Table 72104 Increment Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF "Pay Increment Id" = '' THEN BEGIN
+                 HRPayrollSetup.GET(USERID);
+                 LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                 LocationHRPayrollSetup.TESTFIELD("Pay Revision No.");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Pay Revision No.",xRec."No. Series",0D,"Pay Increment Id","No. Series");
+               END;
+
+               IF HRPayrollSetup.GET(USERID) THEN BEGIN
+                 "Location Code" := HRPayrollSetup."Location Code";
+                 "Salary Plan Code" := HRPayrollSetup."Salary Plan Code";
+               END;
+
+               "Pay Increment Date" := TODAY;
+             END;
+
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 IncrementLine.RESET;
+                 IncrementLine.SETRANGE("Pay Increment Id", "Pay Increment Id");
+                 IF IncrementLine.FINDFIRST THEN BEGIN
+                   IncrementLine.LOCKTABLE;
+                   IncrementLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Increment Header;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Pay Increment Id    ;Code20        ;OnValidate=BEGIN
+                                                                IF "Pay Increment Id" <> xRec."Pay Increment Id" THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Pay Revision No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Pay Increment Id }
+    { 2   ;   ;Pay Increment Date  ;Date          ;CaptionML=ENU=Pay Increment Date }
+    { 3   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 4   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 5   ;   ;Employee No         ;Code20        ;TableRelation=Employee;
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No") THEN BEGIN
+                                                                  Name := Employee."First Name";
+                                                                  "Scale of Pay" := Employee."Scale of Pay";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 7   ;   ;Increment Starting Date;Date       ;CaptionML=ENU=Increment Starting Date }
+    { 8   ;   ;Increment Date Interval;DateFormula;CaptionML=ENU=Increment Date Interval }
+    { 9   ;   ;Salary From-1       ;Decimal       ;CaptionML=ENU=Salary From-1 }
+    { 10  ;   ;Salary To-1         ;Decimal       ;CaptionML=ENU=Salary To-1 }
+    { 11  ;   ;Increment Amount-1  ;Decimal       ;CaptionML=ENU=Increment Amount-1 }
+    { 12  ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 13  ;   ;Scale of Pay        ;Text50        ;CaptionML=ENU=Scale of Pay;
+                                                   Editable=No }
+    { 14  ;   ;Salary From-2       ;Decimal       ;CaptionML=ENU=Salary From-2 }
+    { 15  ;   ;Salary To-2         ;Decimal       ;CaptionML=ENU=Salary To-2 }
+    { 16  ;   ;Increment Amount-2  ;Decimal       ;CaptionML=ENU=Increment Amount-2 }
+  }
+  KEYS
+  {
+    {    ;Pay Increment Id                        ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HRPayrollSetup@1000000000 : Record 72051;
+      LocationHRPayrollSetup@1000000004 : Record 72052;
+      NoSeriesMgt@1000000001 : Codeunit 396;
+      IncrementLine@1000000002 : Record 72105;
+      Employee@1000000003 : Record 5200;
+
+    PROCEDURE AssistEdit@2(OldIncrementHeader@1000 : Record 72104) : Boolean;
+    VAR
+      IncrementHeader@1001 : Record 72104;
+    BEGIN
+      WITH IncrementHeader DO BEGIN
+        IncrementHeader := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Pay Revision No.");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Pay Revision No.",OldIncrementHeader."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("Pay Increment Id");
+          Rec := IncrementHeader;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

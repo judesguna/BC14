@@ -1,0 +1,64 @@
+OBJECT Table 72068 Income Tax Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Income Tax Line;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Assessment Year     ;Code20        ;CaptionML=ENU=Assessment Year }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=Male,Female,Sr.Citizen;
+                                                   OptionString=Male,Female,Sr.Citizen }
+    { 5   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 6   ;   ;Income From         ;Decimal       ;CaptionML=ENU=Income From }
+    { 7   ;   ;Income To           ;Decimal       ;CaptionML=ENU=Income To }
+    { 8   ;   ;Tax %               ;Decimal       ;CaptionML=ENU=Tax %;
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 9   ;   ;Surcharge %         ;Decimal       ;CaptionML=ENU=Surcharge %;
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 10  ;   ;E-CESS %            ;Decimal       ;CaptionML=ENU=E-CESS %;
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 11  ;   ;SHE-CESS %          ;Decimal       ;CaptionML=ENU=SHE-CESS %;
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+  }
+  KEYS
+  {
+    {    ;Assessment Year,Location Code,Salary Plan Code,Gender,Line No.;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,102 @@
+OBJECT Table 71173 Faculty Class Plan Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               IF FacultyClassPlanHeader.GET("Document No.") THEN BEGIN
+                 "Class Code" := FacultyClassPlanHeader.Class;
+                 "Curriculam Code" := FacultyClassPlanHeader.Curriculum;
+                 "Subject Code" := FacultyClassPlanHeader."Subject Code";
+                 "Academic Year" := EducationVertical.GetAcademicYear;
+                 "User ID" := USERID;
+               END;
+             END;
+
+    CaptionML=ENU=Faculty Class Plan Line;
+    LookupPageID=Page71533;
+    DrillDownPageID=Page71533;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 2   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 3   ;   ;Class Code          ;Code20        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class Code }
+    { 4   ;   ;Curriculam Code     ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculam Code }
+    { 5   ;   ;Subject Code        ;Code20        ;TableRelation=Subject;
+                                                   CaptionML=ENU=Subject Code }
+    { 6   ;   ;Unit Code           ;Code20        ;TableRelation="Unit Master";
+                                                   OnLookup=BEGIN
+                                                              // Start 05.VIGNESH
+                                                              IF FacultyClassPlanHeader.GET("Document No.") THEN BEGIN
+                                                                ClassSyllabusLine.RESET;
+                                                                ClassSyllabusLine.SETRANGE("Class Code",FacultyClassPlanHeader.Class);
+                                                                ClassSyllabusLine.SETRANGE(Curriculam,FacultyClassPlanHeader.Curriculum);
+                                                                IF PAGE.RUNMODAL(0,ClassSyllabusLine) = ACTION::LookupOK THEN BEGIN
+                                                                  "Unit Code" := ClassSyllabusLine."Unit Code";
+                                                                  "Unit Name" := ClassSyllabusLine."Unit Name";
+                                                                  "Chapter Code" := ClassSyllabusLine."Chapter Code";
+                                                                  "Chapter Name" := ClassSyllabusLine."Chapter Name";
+                                                                END;
+                                                              END;
+                                                              // Stop 05.VIGNESH
+                                                            END;
+
+                                                   CaptionML=ENU=Unit Code }
+    { 7   ;   ;Chapter Code        ;Code20        ;TableRelation="Chapter Master";
+                                                   CaptionML=ENU=Chapter Code }
+    { 8   ;   ;Chapter Name        ;Text100       ;CaptionML=ENU=Chapter Name }
+    { 9   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 10  ;   ;Week                ;Integer       ;CaptionML=ENU=Week }
+    { 11  ;   ;Faculty Code        ;Code20        ;CaptionML=ENU=Faculty Code }
+    { 12  ;   ;Unit Name           ;Text100       ;CaptionML=ENU=Unit Name }
+    { 13  ;   ;Period              ;Integer       ;CaptionML=ENU=Period }
+    { 14  ;   ;No of Minuites      ;Integer       ;CaptionML=ENU=No of Minuites }
+    { 15  ;   ;Learning OutCome    ;Text30        ;CaptionML=ENU=Learning OutCome }
+    { 16  ;   ;Assesment           ;Text30        ;CaptionML=ENU=Assesment }
+    { 17  ;   ;Work Status         ;Option        ;CaptionML=ENU=Status;
+                                                   OptionCaptionML=ENU=" ,Completed,Not Completed";
+                                                   OptionString=[ ,Completed,Not Completed] }
+    { 18  ;   ;Scheduled Date      ;Date          ;CaptionML=ENU=Scheduled Date }
+    { 19  ;   ;Actual Date         ;Date          ;CaptionML=ENU=Actual Date }
+    { 20  ;   ;Section Code        ;Code20        ;TableRelation=Section;
+                                                   CaptionML=ENU=Section Code }
+    { 21  ;   ;Faculty Department  ;Code20        ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(Employee.No. WHERE (No.=FIELD(Faculty Code)));
+                                                   CaptionML=ENU=Faculty Department;
+                                                   Editable=No }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Document No.,Line No.                   ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      FacultyClassPlanHeader@1102155000 : Record 71172;
+      EducationVertical@1102155001 : Codeunit 71880;
+      ClassSyllabusLine@1102155002 : Record 71171;
+
+    BEGIN
+    {
+
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

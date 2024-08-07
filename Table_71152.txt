@@ -1,0 +1,40 @@
+OBJECT Table 71152 Period Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Period Line;
+    LookupPageID=Page71424;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code }
+    { 2   ;   ;Period Time         ;Time          ;CaptionML=ENU=Period Time }
+    { 3   ;   ;Line No.            ;Integer       ;CaptionML=ENU=Line No. }
+    { 4   ;   ;Period              ;Text30        ;CaptionML=ENU=Period }
+    { 5   ;   ;Interval Check      ;Boolean       ;CaptionML=ENU=Interval Check }
+    { 6   ;   ;Lab Start Hour      ;Boolean       ;CaptionML=ENU=Lab Start Hour }
+  }
+  KEYS
+  {
+    {    ;Code,Line No.                           ;Clustered=Yes }
+    {    ;Period Time                              }
+    {    ;Code,Lab Start Hour                      }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,309 @@
+OBJECT Table 71084 Participant Entry Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               {
+               // Start 01.VIGNESH
+               IF "Student No." = '' THEN
+                 DELETE;
+               "User ID" := USERID;
+               EducationSetup.GET;
+               EducationSetup.TESTFIELD("Academic Year");
+               "Academic Year" := EducationSetup."Academic Year";
+               IF ParticipantEntryHeader.GET("Document No.") THEN BEGIN
+                 ParticipantEntryHeader.TESTFIELD("No.");
+                 ParticipantEntryHeader.TESTFIELD("Competition Entry No.");
+                 ParticipantEntryHeader.TESTFIELD("Student Division");
+                 IF ParticipantEntryHeader."Event Type" <> ParticipantEntryHeader."Event Type"::Team THEN BEGIN
+                   ParticipantEntryHeader.TESTFIELD(House);
+                   ParticipantEntryLine.RESET;
+                   ParticipantEntryLine.SETRANGE("Document No.","Document No.");
+                   IF ParticipantEntryLine.FINDFIRST THEN
+                     ERROR(Text000);
+                 END;
+                 "Competition Type" := ParticipantEntryHeader."Competition Type";
+                 "Competition Name" := ParticipantEntryHeader."Competition Name";
+                 "Student Division" := ParticipantEntryHeader."Student Division";
+                 "Competition Entry No." := ParticipantEntryHeader."Competition Entry No.";
+                 "Event Type" := ParticipantEntryHeader."Event Type";
+                 "Team No." := ParticipantEntryHeader."Team No.";
+               END;
+               // Stop 01.VIGNESH
+                }
+             END;
+
+    CaptionML=ENU=Participant Entry Line;
+    LookupPageID=Page71102;
+    DrillDownPageID=Page71102;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document No.        ;Code20        ;CaptionML=ENU=Document No. }
+    { 3   ;   ;Student No.         ;Code20        ;OnValidate=BEGIN
+                                                                IF ParticipantEntryHeader.GET("Document No.") THEN BEGIN
+                                                                  IF ParticipantEntryHeader."Update Entry" THEN
+                                                                    ERROR(Text001);
+                                                                  ParticipantEntryHeader.TESTFIELD("Competition Entry No.");
+                                                                  ParticipantEntryHeader.TESTFIELD("Student Division");
+                                                                 // IF ParticipantEntryHeader."Event Type" <> ParticipantEntryHeader."Event Type"::Team THEN BEGIN
+                                                                    //ParticipantEntryHeader.TESTFIELD(ParticipantEntryHeader.House);
+                                                                   // ParticipantEntryLine.RESET;
+                                                                    //ParticipantEntryLine.SETRANGE("Document No.","Document No.");
+                                                                    //IF ParticipantEntryLine.FINDFIRST THEN
+                                                                      //ERROR(Text000);
+                                                                  //END;
+
+                                                                  CompetitionEntryLine.RESET;
+                                                                  CompetitionEntryLine.SETRANGE("Document No.",ParticipantEntryHeader."Competition Entry No.");
+                                                                  CompetitionEntryLine.SETRANGE("Student Division",ParticipantEntryHeader."Student Division");
+
+                                                                  IF CompetitionEntryLine.FINDFIRST THEN BEGIN
+                                                                    CompetitionEntryLine.TESTFIELD("Min Age");
+                                                                    CompetitionEntryLine.TESTFIELD("Max Age");
+                                                                    CompetitionEntryLine.TESTFIELD("Cut Off Date");
+                                                                    Student.RESET;
+                                                                    IF Student.GET("Student No.") THEN BEGIN
+                                                                      IF Student."Date Of Birth" <> 0D THEN BEGIN
+                                                                        LocalAge1 := CompetitionEntryLine."Cut Off Date" - Student."Date Of Birth";
+                                                                        TempAge1 := ROUND(LocalAge1 / 365,1,'<');
+                                                                        Age3 := LocalAge1 MOD 365;
+                                                                        Months2 := ROUND(Age3 / 30,1,'=');
+                                                                        Age := TempAge1;
+                                                                        Months := Months2;
+                                                                        Student.TESTFIELD(House);
+                                                                       // House :=Student.House;
+                                                                      END ELSE BEGIN
+                                                                        Age := 0;
+                                                                        Months := 0;
+                                                                      END;
+                                                                    END;
+                                                                  END;
+                                                                END;
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 02.VIGNESH
+                                                              //TESTFIELD(House);
+                                                              //TESTFIELD("Academic Year");
+                                                              EducationSetup.GET;
+                                                              EducationSetup.TESTFIELD("Academic Year");
+                                                              Student.CLEARMARKS;
+                                                              IF ParticipantEntryHeader.GET("Document No.") THEN;
+
+                                                              IF CompType.GET(ParticipantEntryHeader."Competition Type") THEN BEGIN
+                                                                IF CompType."Entire Class" = FALSE THEN
+                                                                 BEGIN
+                                                                    CompetitionEntryLine.RESET;
+                                                                    CompetitionEntryLine.SETRANGE("Document No.",ParticipantEntryHeader."Competition Entry No.");
+                                                                    CompetitionEntryLine.SETRANGE("Student Division",ParticipantEntryHeader."Student Division");
+                                                                    IF CompetitionEntryLine.FINDFIRST THEN
+                                                                    BEGIN
+                                                                      CompetitionEntryLine.TESTFIELD("Min Age");
+                                                                      CompetitionEntryLine.TESTFIELD("Max Age");
+                                                                      CompetitionEntryLine.TESTFIELD("Cut Off Date");
+                                                                      Student.CLEARMARKS;
+                                                                      Student.RESET;
+                                                                      Student.SETRANGE("Student Status",Student."Student Status"::Student);
+
+                                                                      //added by prakash
+                                                                      IF  ParticipantEntryHeader.Gender <> 3 THEN
+                                                                        Student.SETRANGE(Gender,ParticipantEntryHeader.Gender);
+
+                                                                      IF ParticipantEntryHeader.House <> '' THEN
+                                                                        Student.SETRANGE(House,ParticipantEntryHeader.House);
+                                                                      Student.SETRANGE("Academic Year",EducationSetup."Academic Year");
+                                                                      IF Student.FINDSET THEN
+                                                                        REPEAT
+                                                                            LocalAge := 0;
+                                                                            TempAge := 0;
+                                                                            Months1 := 0;
+                                                                              IF Student."Date Of Birth" <> 0D THEN
+                                                                              BEGIN
+                                                                                LocalAge := CompetitionEntryLine."Cut Off Date" - Student."Date Of Birth";
+                                                                                TempAge := ROUND(LocalAge / 365,1,'<');
+                                                                                Age2 := LocalAge MOD 365;
+                                                                                Months1 := ROUND(Age2 / 30,1,'=');
+                                                                                LocalAge := TempAge;
+                                                                              END;
+                                                                            IF (LocalAge >= CompetitionEntryLine."Min Age") AND (LocalAge <= CompetitionEntryLine."Max Age") THEN
+                                                                            BEGIN
+                                                                              IF (LocalAge = CompetitionEntryLine."Max Age") AND (Months1 < 0) THEN
+                                                                                Student.MARK(TRUE)
+                                                                              ELSE
+                                                                                IF LocalAge < CompetitionEntryLine."Max Age" THEN
+                                                                                  Student.MARK(TRUE);
+                                                                            END;
+                                                                          UNTIL Student.NEXT = 0;
+                                                                        Student.MARKEDONLY(TRUE);
+                                                                        IF PAGE.RUNMODAL(0,Student) = ACTION::LookupOK THEN
+                                                                        BEGIN
+                                                                          "Student No." := Student."No.";
+                                                                          "Student Name" := Student.Name;
+                                                                          Student.TESTFIELD(House);
+                                                                          House := Student.House;
+                                                                          Gender := Student.Gender;
+                                                                          "Competition Entry No." := ParticipantEntryHeader."Competition Entry No.";
+                                                                          "Team No." := ParticipantEntryHeader."Team No.";
+                                                                          "Student Division" := ParticipantEntryHeader."Student Division";
+                                                                          "Event Type" := ParticipantEntryHeader."Event Type";
+                                                                          "Event Code" := ParticipantEntryHeader."Event Code";
+                                                                          VALIDATE("Student No.");
+                                                                        END;
+                                                                      END;
+                                                                        END ELSE
+                                                                        BEGIN
+                                                                              Student.RESET;
+                                                                              Student.SETRANGE(Student.Class,ParticipantEntryHeader.Class);
+                                                                              Student.SETRANGE(Student.Section,ParticipantEntryHeader.Section);
+                                                                              IF PAGE.RUNMODAL(0,Student) = ACTION::LookupOK THEN
+                                                                              BEGIN
+                                                                                "Student No." := Student."No.";
+                                                                                "Student Name" := Student.Name;
+                                                                                Student.TESTFIELD(House);
+                                                                                House := Student.House;
+                                                                                Gender := Student.Gender;
+                                                                              END;
+                                                                        END;
+
+                                                              END;
+                                                            END;
+
+                                                   CaptionML=ENU=Student No. }
+    { 4   ;   ;Student Name        ;Text50        ;CaptionML=ENU=Student Name }
+    { 5   ;   ;Age                 ;Decimal       ;CaptionML=ENU=Age;
+                                                   DecimalPlaces=0:0 }
+    { 6   ;   ;House               ;Code20        ;TableRelation=House;
+                                                   CaptionML=ENU=House }
+    { 7   ;   ;Participant Type    ;Option        ;OnValidate=BEGIN
+                                                                // Start 03.VIGNESH
+                                                                ParticipantEntryHeader.GET("Document No.");
+                                                                IF ParticipantEntryHeader."Update Entry" THEN
+                                                                  ERROR(Text001);
+
+                                                                //IF ParticipantEntryHeader."Event Type" <> ParticipantEntryHeader."Event Type"::Team THEN
+                                                                //  ERROR(Text002);
+                                                                IF ParticipantEntryHeader."Event Type" = ParticipantEntryHeader."Event Type"::Team THEN BEGIN
+                                                                  IF CompetitionEntryLine.GET(ParticipantEntryHeader."Competition Entry No.",ParticipantEntryHeader."Student Division") THEN BEGIN
+                                                                    CompetitionEntryLine.TESTFIELD("Team Size");
+                                                                    ParticipantEntryLine.RESET;
+                                                                    ParticipantEntryLine.SETRANGE("Document No.","Document No.");
+                                                                    IF "Participant Type" = "Participant Type"::Main THEN BEGIN
+                                                                      ParticipantEntryLine.SETRANGE("Participant Type",ParticipantEntryLine."Participant Type"::Main);
+                                                                      IF CompetitionEntryLine."Team Size" <= ParticipantEntryLine.COUNT THEN
+                                                                        ERROR(Text003,CompetitionEntryLine."Team Size");
+                                                                    END ELSE
+                                                                      IF "Participant Type" = "Participant Type"::Substitute THEN BEGIN
+                                                                        ParticipantEntryLine.SETRANGE("Participant Type",ParticipantEntryLine."Participant Type"::Substitute);
+                                                                        IF CompetitionEntryLine.Substitute <= ParticipantEntryLine.COUNT THEN
+                                                                          ERROR(Text004,CompetitionEntryLine.Substitute);
+                                                                      END;
+                                                                  END;
+                                                                END;
+                                                                // Stop 03.VIGNESH
+                                                                IF "Participant Type" <> 0 THEN BEGIN
+                                                                  IF ParticipantEntryHeader.GET("Document No.")THEN;
+                                                                    "Team No." := ParticipantEntryHeader."Team No.";
+                                                                END
+                                                                  ELSE "Team No." := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Participant Type;
+                                                   OptionCaptionML=ENU=" ,Main,Substitute";
+                                                   OptionString=[ ,Main,Substitute] }
+    { 8   ;   ;Competition Type    ;Code20        ;TableRelation="Competition Type";
+                                                   CaptionML=ENU=Competition Type;
+                                                   Editable=Yes }
+    { 9   ;   ;Competition Name    ;Text50        ;CaptionML=ENU=Competition Name;
+                                                   Editable=Yes }
+    { 10  ;   ;Student Division    ;Code20        ;TableRelation="Student Division";
+                                                   CaptionML=ENU=Student Division;
+                                                   Editable=Yes }
+    { 11  ;   ;Position            ;Option        ;CaptionML=ENU=Position;
+                                                   OptionCaptionML=ENU=,1st Place,2nd Place,3rd Place,4th place,5th place,6th place,Participation;
+                                                   OptionString=,1st Place,2nd Place,3rd Place,4th place,5th place,6th place,Participation }
+    { 12  ;   ;Points              ;Decimal       ;CaptionML=ENU=Points;
+                                                   Editable=Yes }
+    { 13  ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 14  ;   ;Competition Entry No.;Code20       ;CaptionML=ENU=Competition Entry No. }
+    { 15  ;   ;Months              ;Decimal       ;CaptionML=ENU=Months;
+                                                   DecimalPlaces=0:0 }
+    { 17  ;   ;Event Type          ;Option        ;CaptionML=ENU=Event Type;
+                                                   OptionCaptionML=ENU=" ,Individual,Team";
+                                                   OptionString=[ ,Individual,Team];
+                                                   Editable=Yes }
+    { 18  ;   ;Team No.            ;Code20        ;CaptionML=ENU=Team No. }
+    { 19  ;   ;Update Results      ;Boolean       ;CaptionML=ENU=Update Results }
+    { 20  ;   ;Class               ;Code10        ;TableRelation=Class }
+    { 21  ;   ;Event Code          ;Code20        ;TableRelation="Event Master" }
+    { 50000;  ;Details NUM         ;Decimal        }
+    { 50001;  ;Details TXT         ;Text140        }
+    { 50002;  ;Update Entry        ;Boolean       ;CaptionML=ENU=Update Entry }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70122;  ;Gender              ;Option        ;OptionCaptionML=ENU=" ,Male,Female,Both";
+                                                   OptionString=[ ,Male,Female,Both] }
+    { 70123;  ;Section             ;Code10        ;TableRelation=Section }
+  }
+  KEYS
+  {
+    {    ;Document No.,Student No.                ;Clustered=Yes }
+    {    ;House,Academic Year,Update Results      ;SumIndexFields=Points }
+    {    ;Competition Entry No.,Student Division,Student No. }
+    {    ;Competition Entry No.,Student Division,Team No. }
+    {    ;Student No.,Points                       }
+    {    ;Team No.                                ;SumIndexFields=Points }
+    {    ;Document No.,Event Code,Student Division,Student No. }
+    {    ;Event Code,Student Division,Student No.  }
+    {    ;House,Academic Year,Event Code          ;SumIndexFields=Points }
+    {    ;Participant Type,Team No.,Competition Entry No.;
+                                                   SumIndexFields=Points }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationSetup@1102155000 : Record 71884;
+      ParticipantEntryHeader@1102155001 : Record 71083;
+      Student@1102155002 : Record 71046;
+      ParticipantEntryLine@1102155003 : Record 71084;
+      CompetitionEntryLine@1102155004 : Record 71082;
+      LocalAge@1102155005 : Decimal;
+      TempAge@1102155006 : Decimal;
+      LocalAge1@1102155008 : Decimal;
+      TempAge1@1102155007 : Decimal;
+      Age2@1102155009 : Decimal;
+      Months1@1102155010 : Decimal;
+      Age3@1102155012 : Decimal;
+      Months2@1102155011 : Decimal;
+      CoCurricularPointsSetup@1102155013 : Record 71077;
+      Text000@1102155014 : TextConst 'ENU=You can enter only one student for an individual.';
+      Text001@1102155015 : TextConst 'ENU=You cannot modify the enttry, entry is updated.';
+      Text002@1102155016 : TextConst 'ENU=Only for the Team Event, participant type is  required.';
+      Text003@1102155017 : TextConst 'ENU=Only %1 students can be added in main list';
+      Text004@1102155018 : TextConst 'ENU=Only %1 students can be added in substitute list.';
+      CompType@1102159000 : Record 71075;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                      Code added to enter the User id,Competition name,type & division
+      02   15.12.09  VIGNESH  Student No. - OnLookup()        Code added to validate & look up the students based on age
+      03   15.12.09  VIGNESH  Participant Type - OnValidate() Code added for validating Particioant type
+      04   15.12.09  VIGNESH  Position - OnValidate()         Code added to get the points based on position
+      05   15.12.09  VIGNESH  Update Results - OnValidate()   Code added for validating Update Results
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,75 @@
+OBJECT Table 72067 Income Tax Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnDelete=BEGIN
+               IF CONFIRM('Are Sure to Delete the Records <Yes/No> Delete All Lines..!!') THEN BEGIN
+                 IncomeTaxLine.RESET;
+                 IncomeTaxLine.SETRANGE("Assessment Year", "Assessment Year");
+                 IncomeTaxLine.SETRANGE("Location Code", "Location Code");
+                 IncomeTaxLine.SETRANGE("Salary Plan Code","Salary Plan Code");
+                 IF IncomeTaxLine.FINDFIRST THEN BEGIN
+                   IncomeTaxLine.LOCKTABLE;
+                   IncomeTaxLine.DELETEALL;
+                 END;
+               END;
+             END;
+
+    CaptionML=ENU=Income Tax Header;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Assessment Year     ;Code20        ;TableRelation="Payroll Year";
+                                                   CaptionML=ENU=Assessment Year }
+    { 2   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 3   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 4   ;   ;Tax Deduction Limit ;Decimal       ;CaptionML=ENU=Tax Deduction Limit }
+    { 5   ;   ;Medical Claim Limit ;Decimal       ;CaptionML=ENU=Medical Claim Limit }
+    { 6   ;   ;Physically Handicapped Limit;Decimal;
+                                                   CaptionML=ENU=Physically Handicapped Limit }
+    { 7   ;   ;Housing Loan Interest Limit;Decimal;CaptionML=ENU=Housing Loan Interest Limit }
+    { 8   ;   ;Metro %             ;Decimal       ;CaptionML=ENU=Metro %;
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 9   ;   ;Non Metro %         ;Decimal       ;CaptionML=ENU=Non Metro %;
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 10  ;   ;Excess of Rent Paid ;Decimal       ;CaptionML=ENU=Excess of Rent Paid }
+    { 11  ;   ;Max. Conveyance     ;Decimal       ;CaptionML=ENU=Max. Conveyance }
+  }
+  KEYS
+  {
+    {    ;Assessment Year,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      IncomeTaxLine@1000000000 : Record 72068;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

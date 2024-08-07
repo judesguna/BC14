@@ -1,0 +1,53 @@
+OBJECT Table 72019 Interviewer
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Interviewer No;
+    CaptionML=ENU=Interviewer;
+    LookupPageID=Page72027;
+    DrillDownPageID=Page72027;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Interviewer No      ;Code20        ;CaptionML=ENU=Interviewer No }
+    { 2   ;   ;Interview Round Code;Code10        ;CaptionML=ENU=Interview Round Code }
+    { 3   ;   ;Employee No         ;Code20        ;CaptionML=ENU=Employee No }
+    { 4   ;   ;Employee Name       ;Text30        ;CaptionML=ENU=Employee Name }
+    { 5   ;   ;Designation Code    ;Code10        ;CaptionML=ENU=Designation Code }
+    { 6   ;   ;Designation Description;Text30     ;CaptionML=ENU=Designation Description }
+    { 7   ;   ;Department Code     ;Code10        ;CaptionML=ENU=Department Code }
+    { 8   ;   ;Department Description;Text30      ;CaptionML=ENU=Department Description }
+    { 9   ;   ;Feedback            ;Text30        ;CaptionML=ENU=Feedback }
+    { 10  ;   ;Rating %            ;Decimal       ;CaptionML=ENU=Rating % }
+  }
+  KEYS
+  {
+    {    ;Interviewer No,Interview Round Code,Employee No;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,150 @@
+OBJECT Table 72069 Leave Master
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Leave Code,Description;
+    CaptionML=ENU=Leave Master;
+    LookupPageID=Page72096;
+    DrillDownPageID=Page72096;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Leave Code          ;Code20        ;CaptionML=ENU=Leave Code }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 5   ;   ;Regular             ;Boolean       ;CaptionML=ENU=Regular }
+    { 6   ;   ;Total Leaves in a Year Regular;Decimal;
+                                                   CaptionML=ENU=Total Leaves in a Year Regular;
+                                                   Editable=No }
+    { 7   ;   ;Credit Interval Regular;DateFormula;OnValidate=BEGIN
+                                                                "Calculate Leave Days Year Reg";
+                                                              END;
+
+                                                   CaptionML=ENU=Credit Interval Regular }
+    { 8   ;   ;Leave in a Credit Int. Regular;Decimal;
+                                                   OnValidate=BEGIN
+                                                                "Calculate Leave Days Year Reg";
+                                                              END;
+
+                                                   CaptionML=ENU=Leave in a Credit Int. Regular }
+    { 9   ;   ;Probationary        ;Boolean       ;CaptionML=ENU=Probationary }
+    { 10  ;   ;Total Leaves in a Year Prob.;Decimal;
+                                                   CaptionML=ENU=Total Leaves in a Year Prob.;
+                                                   Editable=No }
+    { 11  ;   ;Credit Interval Prob.;DateFormula  ;OnValidate=BEGIN
+                                                                "Calculate Leave Days Year Pro"
+                                                              END;
+
+                                                   CaptionML=ENU=Credit Interval Prob. }
+    { 12  ;   ;Leave in a Credit Int. Prob.;Decimal;
+                                                   OnValidate=BEGIN
+                                                                "Calculate Leave Days Year Pro";
+                                                              END;
+
+                                                   CaptionML=ENU=Leave in a Credit Int. Prob. }
+    { 13  ;   ;Encash Leave        ;Boolean       ;CaptionML=ENU=Encash Leave }
+    { 14  ;   ;Maximum Encash Leave;Decimal       ;CaptionML=ENU=Maximum Encash Leave }
+    { 15  ;   ;Carry Forward       ;Boolean       ;CaptionML=ENU=Carry Forward }
+    { 16  ;   ;Paid Leave          ;Boolean       ;OnValidate=BEGIN
+                                                                "UnPaid Leave" := FALSE;
+                                                              END;
+
+                                                   CaptionML=ENU=Paid Leave }
+    { 17  ;   ;UnPaid Leave        ;Boolean       ;OnValidate=BEGIN
+                                                                "Paid Leave" := FALSE;
+                                                              END;
+
+                                                   CaptionML=ENU=UnPaid Leave }
+    { 18  ;   ;Create Leave Balance;Boolean       ;CaptionML=ENU=Create Leave Balance }
+    { 19  ;   ;Full Day            ;Boolean       ;CaptionML=ENU=Full Day }
+    { 20  ;   ;Mark As Full Day First Half;Option ;CaptionML=ENU=Mark As Full Day First Half;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,,,On-Duty";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved] }
+    { 21  ;   ;Mark As Full Day Secod Half;Option ;CaptionML=ENU=Mark As Full Day Secod Half;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,,,On-Duty";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved] }
+    { 22  ;   ;First Half Day      ;Boolean       ;CaptionML=ENU=First Half Day }
+    { 23  ;   ;I'st Mark As First Half Day;Option ;CaptionML=ENU=I'st Mark As First Half Day;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,,,On-Duty";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved] }
+    { 24  ;   ;I'st Mark As Second Half Day;Option;CaptionML=ENU=I'st Mark As Second Half Day;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,,,On-Duty";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved] }
+    { 25  ;   ;Second Half Day     ;Boolean       ;CaptionML=ENU=Second Half Day }
+    { 26  ;   ;II'nd Mark As First Half Day;Option;CaptionML=ENU=II'nd Mark As First Half Day;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,,,On-Duty";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved] }
+    { 27  ;   ;II'nd Mark As Second Half Day;Option;
+                                                   CaptionML=ENU=II'nd Mark As Second Half Day;
+                                                   OptionCaptionML=ENU=" ,Present,Absent,Leave,,,On-Duty";
+                                                   OptionString=[ ,Present,Absent,Leave,Weekly Off,Holiday,On-Duty,Not Joined,Relieved] }
+  }
+  KEYS
+  {
+    {    ;Leave Code,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      NoofMonths@1000000002 : Integer;
+      TempDate@1000000001 : Date;
+      TempDate1@1000000000 : Date;
+
+    PROCEDURE "Calculate Leave Days Year Reg"@1000000000();
+    BEGIN
+      IF FORMAT("Credit Interval Regular") <> '' THEN BEGIN
+        NoofMonths := 0;
+        TempDate := WORKDATE;
+        TempDate1 := WORKDATE;
+        TempDate := CALCDATE("Credit Interval Regular",TempDate);
+        REPEAT
+          TempDate1 := CALCDATE('+1M',TempDate1);
+          NoofMonths += 1;
+        UNTIL TempDate1 >= TempDate;
+        "Total Leaves in a Year Regular" := "Leave in a Credit Int. Regular" * 12 / NoofMonths;
+      END;
+    END;
+
+    PROCEDURE "Calculate Leave Days Year Pro"@1000000002();
+    BEGIN
+      IF FORMAT("Credit Interval Prob.") <> '' THEN BEGIN
+        NoofMonths := 0;
+        TempDate := WORKDATE;
+        TempDate1 := WORKDATE;
+        TempDate := CALCDATE("Credit Interval Prob.",TempDate);
+        REPEAT
+          TempDate1 := CALCDATE('+1M',TempDate1);
+          NoofMonths += 1;
+        UNTIL TempDate1 >= TempDate;
+        "Total Leaves in a Year Prob." := "Leave in a Credit Int. Prob." * 12 / NoofMonths;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

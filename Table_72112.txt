@@ -1,0 +1,138 @@
+OBJECT Table 72112 Gate Pass
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               HRPayrollSetup.GET(USERID);
+               LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+               IF "Out Pass No." = '' THEN BEGIN
+                 LocationHRPayrollSetup.TESTFIELD("Employee Gate Pass No");
+                 NoSeriesMgt.InitSeries(LocationHRPayrollSetup."Employee Gate Pass No",xRec."No. Series",0D,"Out Pass No.","No. Series");
+               END;
+
+               "Out Pass Date" := TODAY;
+               "Out Date" := TODAY;
+               "Out Time" := TIME;
+               "In Date" := TODAY;
+               "In Time" := TIME;
+               "User ID" := USERID;
+               "Creator Date" := TODAY;
+             END;
+
+    CaptionML=ENU=Gate Pass;
+    LookupPageID=Page72148;
+    DrillDownPageID=Page72148;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Out Pass No.        ;Code20        ;OnValidate=BEGIN
+                                                                IF "Out Pass No." <> xRec."Out Pass No." THEN BEGIN
+                                                                  HRPayrollSetup.GET(USERID);
+                                                                  LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+                                                                  NoSeriesMgt.TestManual(LocationHRPayrollSetup."Employee Gate Pass No");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Out Pass No. }
+    { 2   ;   ;Out Pass Date       ;Date          ;CaptionML=ENU=Out Pass Date;
+                                                   Editable=No }
+    { 3   ;   ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 4   ;   ;Gate Pass Type      ;Option        ;CaptionML=ENU=Gate Pass Type;
+                                                   OptionCaptionML=ENU=Permission,On-Duty;
+                                                   OptionString=Permission,On-Duty }
+    { 5   ;   ;Employee No.        ;Code10        ;TableRelation=Employee WHERE (Status=FILTER(Active));
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Employee No.") THEN BEGIN
+                                                                  Name := Employee."First Name";
+                                                                  Designation := Employee."Designation Code";
+                                                                END
+                                                                ELSE BEGIN
+                                                                  Name := '';
+                                                                  Designation := '';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Employee No. }
+    { 6   ;   ;Name                ;Text50        ;CaptionML=ENU=Name;
+                                                   Editable=No }
+    { 7   ;   ;Designation         ;Text50        ;CaptionML=ENU=Designation;
+                                                   Editable=No }
+    { 8   ;   ;Reason              ;Text50        ;CaptionML=ENU=Reason }
+    { 9   ;   ;Out Date            ;Date          ;CaptionML=ENU=Out Date }
+    { 10  ;   ;Out Time            ;Time          ;CaptionML=ENU=Out Time }
+    { 11  ;   ;In Date             ;Date          ;CaptionML=ENU=In Date }
+    { 12  ;   ;In Time             ;Time          ;CaptionML=ENU=In Time }
+    { 13  ;   ;Sanction In-Charge  ;Code20        ;TableRelation=Employee WHERE (Status=FILTER(Active));
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Sanction In-Charge") THEN
+                                                                  "In-Charge Name" := Employee."First Name"
+                                                                ELSE
+                                                                  "In-Charge Name" := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Sanction In-Charge }
+    { 14  ;   ;In-Charge Name      ;Text50        ;CaptionML=ENU=In-Charge Name;
+                                                   Editable=No }
+    { 15  ;   ;Authorized Person   ;Code20        ;TableRelation=Employee WHERE (Status=FILTER(Active));
+                                                   OnValidate=BEGIN
+                                                                IF Employee.GET("Authorized Person") THEN
+                                                                  "Authorized Name" := Employee."First Name"
+                                                                ELSE
+                                                                  "Authorized Name" := '';
+                                                              END;
+
+                                                   CaptionML=ENU=Authorized Person }
+    { 16  ;   ;Authorized Name     ;Text50        ;CaptionML=ENU=Authorized Name;
+                                                   Editable=No }
+    { 17  ;   ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 18  ;   ;Creator Date        ;Date          ;CaptionML=ENU=Creator Date }
+  }
+  KEYS
+  {
+    {    ;Out Pass No.                            ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      HumanResourcesSetup@1000000005 : Record 5218;
+      NoSeriesMgt@1000000004 : Codeunit 396;
+      Employee@1000000003 : Record 5200;
+      HRPayrollSetup@1102155000 : Record 72051;
+      LocationHRPayrollSetup@1102155001 : Record 72052;
+
+    PROCEDURE AssistEdit@2(OldGatePass@1000 : Record 72112) : Boolean;
+    VAR
+      GatePass@1001 : Record 72112;
+    BEGIN
+      WITH GatePass DO BEGIN
+        GatePass := Rec;
+        HRPayrollSetup.GET(USERID);
+        LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+        LocationHRPayrollSetup.TESTFIELD("Employee Gate Pass No");
+        IF NoSeriesMgt.SelectSeries(LocationHRPayrollSetup."Employee Gate Pass No",OldGatePass."No. Series","No. Series") THEN BEGIN
+          HRPayrollSetup.GET(USERID);
+          LocationHRPayrollSetup.GET(HRPayrollSetup."Location Code");
+          LocationHRPayrollSetup.TESTFIELD("Employee Gate Pass No");
+          NoSeriesMgt.SetSeries("Out Pass No.");
+          Rec := GatePass;
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

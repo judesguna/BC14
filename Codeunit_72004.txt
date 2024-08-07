@@ -1,0 +1,214 @@
+OBJECT Codeunit 72004 Leave Creation
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=12:42:38;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            HRPayrollSetup.GET(USERID);
+
+            LocationCode := HRPayrollSetup."Location Code";
+            SalaryPlanCode := HRPayrollSetup."Salary Plan Code";
+            YearCode := HRPayrollSetup."Salary Year Code";
+
+            PayrollYear.RESET;
+            PayrollYear.SETRANGE("Location Code", LocationCode);
+            PayrollYear.SETRANGE("Salary Plan Code", SalaryPlanCode);
+            PayrollYear.SETRANGE("Year Code", YearCode);
+            PayrollYear.SETRANGE("Year Type", PayrollYear."Year Type"::"Leave Year");
+            PayrollYear.SETRANGE(Closed, FALSE);
+
+            IF PayrollYear.COUNT > 1 THEN
+               ERROR('Closed the Last Leave Year and proceed..!!');
+
+            IF PayrollYear.FIND('-') THEN BEGIN
+               MESSAGE('Leave Year \\Start Date => %1 \\End Date => %2' ,PayrollYear."Year Start Date",PayrollYear."Year End Date");
+
+               IF NOT CONFIRM('Do you want Leave Records for the Year',FALSE) THEN
+                  EXIT;
+
+               StartDateTime := CURRENTDATETIME;
+
+               Employee1.RESET;
+               Employee1.SETRANGE("Location Code", LocationCode);
+               Employee1.SETRANGE("Salary Plan Code", SalaryPlanCode);
+               Employee1.SETRANGE(Status, Employee1.Status::Active);
+               Employee1.SETRANGE("Leave Generated", FALSE);
+               IF Employee1.FINDFIRST THEN BEGIN
+                  REPEAT
+
+                    "Create Leave Entitlement"(PayrollYear);
+                    "Leave Balance Update"();
+
+                  UNTIL Employee1.NEXT = 0;
+               END;
+
+               EndDateTime := CURRENTDATETIME;
+               ElaspedTime := EndDateTime - StartDateTime;
+
+               MESSAGE('Leave Records Creation Completed \\ Starting Date & Time => %1 \\ Ending Date & Time => %2 \\ Time Elasped => %3',
+                        StartDateTime, EndDateTime, ElaspedTime);
+
+               PayrollYear.Created := TRUE;
+               PayrollYear.MODIFY;
+            END
+            ELSE
+               ERROR('Leave Records Already Generated..!!');
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Win001@1000000005 : TextConst 'ENU="Table Name :  #1######################## \\ Processing Date :  #2########\\ Status => @3@@@@@@@@@@@@@@@@@@@@@@@@@@@@"';
+      HRPayrollSetup@1000000008 : Record 72051;
+      PayrollYear@1000000000 : Record 72054;
+      EmployeeLeaveAttachment@1000000001 : Record 72079;
+      Employee1@1102155000 : Record 5200;
+      CUGeneralFunctions@1000000012 : Codeunit 72008;
+      StartDateTime@1000000007 : DateTime;
+      EndDateTime@1000000006 : DateTime;
+      ElaspedTime@1000000004 : Duration;
+      ProcessStartDate@1000000003 : Date;
+      ProcessEndDate@1000000002 : Date;
+      LocationCode@1000000009 : Code[20];
+      SalaryPlanCode@1000000010 : Code[20];
+      YearCode@1000000011 : Code[20];
+
+    PROCEDURE "Create Leave Entitlement"@1000000000(PayrollYear@1000000006 : Record 72054) Status : Boolean;
+    VAR
+      DialogWindow@1000000004 : Dialog;
+      CurrentRecord@1000000003 : Integer;
+      RecordCount@1000000002 : Integer;
+      RecordCnt@1000000007 : Integer;
+      LeaveMaster@1000000005 : Record 72069;
+      LeaveEntitlement@1000000001 : Record 72084;
+      Employee@1000000000 : Record 5200;
+    BEGIN
+      EmployeeLeaveAttachment.RESET;
+      EmployeeLeaveAttachment.SETRANGE("Location Code", LocationCode);
+      EmployeeLeaveAttachment.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      EmployeeLeaveAttachment.SETRANGE("Employee No", Employee1."No.");
+      IF NOT EmployeeLeaveAttachment.FIND('-') THEN
+         EXIT;
+
+      EmployeeLeaveAttachment.RESET;
+      EmployeeLeaveAttachment.SETRANGE("Location Code", LocationCode);
+      EmployeeLeaveAttachment.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      EmployeeLeaveAttachment.SETRANGE("Employee No", Employee1."No.");
+      IF EmployeeLeaveAttachment.FIND('-') THEN
+         RecordCount := EmployeeLeaveAttachment.COUNT;
+         CUGeneralFunctions.OpenWindow('Leave Records Creation\\','Progress');
+         REPEAT
+             IF LeaveMaster.GET(EmployeeLeaveAttachment."Leave Code",LocationCode,SalaryPlanCode) THEN
+                LeaveMaster.TESTFIELD("Credit Interval Regular");
+
+             LeaveEntitlement.INIT;
+             LeaveEntitlement."Location Code" := LocationCode;
+             LeaveEntitlement."Salary Plan Code" := SalaryPlanCode;
+             LeaveEntitlement."Leave Year Code" := PayrollYear."Year Code";
+             LeaveEntitlement."Employee No" := Employee1."No.";
+             LeaveEntitlement.Name := Employee1."First Name";
+             LeaveEntitlement.Probationary := Employee1.Probationary;
+             LeaveEntitlement."Leave Code" := LeaveMaster."Leave Code";
+
+             IF LeaveEntitlement.INSERT THEN;
+
+             "Create Leave Credited"(PayrollYear,LeaveMaster,Employee);
+
+             Employee1."Leave Generated" := TRUE;
+             Employee1.MODIFY;
+
+             CUGeneralFunctions.UpdateWindow(Employee1."No.",RecordCount);
+
+         UNTIL EmployeeLeaveAttachment.NEXT = 0;
+
+      MESSAGE('Leave Record Created Successfully');
+
+      CUGeneralFunctions.CloseWindow();
+
+      Status := TRUE;
+    END;
+
+    PROCEDURE "Create Leave Credited"@1000000001(PayrollYear@1000000002 : Record 72054;LeaveMaster@1000000000 : Record 72069;Employee@1000000003 : Record 5200);
+    VAR
+      LeaveCredited@1000000001 : Record 72085;
+      LeaveCredited1@1000000004 : Record 72085;
+    BEGIN
+      REPEAT
+           LeaveCredited1.SETRANGE("Location Code",   LocationCode);
+           LeaveCredited1.SETRANGE("Salary Plan Code",SalaryPlanCode);
+           LeaveCredited1.SETRANGE("Employee No",     Employee1."No.");
+           LeaveCredited1.SETRANGE("Leave Code",      LeaveMaster."Leave Code");
+           LeaveCredited1.SETRANGE("Leave Year Code", PayrollYear."Year Code");
+           IF LeaveCredited1.FIND('-') THEN
+              LeaveCredited1.DELETEALL;
+
+           LeaveCredited.INIT;
+           LeaveCredited."Location Code"    := LocationCode;
+           LeaveCredited."Salary Plan Code" := SalaryPlanCode;
+           LeaveCredited."Employee No"      := Employee1."No.";
+           LeaveCredited."Leave Code"       := LeaveMaster."Leave Code";
+           LeaveCredited."Leave Year Code"  := PayrollYear."Year Code";
+           LeaveCredited."Leave Start Date" := PayrollYear."Year Start Date";
+
+           IF Employee1.Probationary = FALSE THEN
+              LeaveCredited."Leave End Date"   := CALCDATE(FORMAT(LeaveMaster."Credit Interval Prob.")+'-1D',
+                                                  LeaveCredited."Leave Start Date");
+
+           IF Employee1.Probationary = TRUE THEN
+              LeaveCredited."Leave End Date"   := CALCDATE(FORMAT(LeaveMaster."Credit Interval Regular")+'-1D',
+                                                  LeaveCredited."Leave Start Date");
+           IF Employee1.Probationary = FALSE THEN
+              LeaveCredited."No. of Leaves"  := LeaveMaster."Total Leaves in a Year Regular"
+           ELSE
+              LeaveCredited."No. of Leaves"  := LeaveMaster."Total Leaves in a Year Prob.";
+
+           IF LeaveMaster."Create Leave Balance" THEN BEGIN
+             IF LeaveCredited."Leave Start Date" < Employee1."Employment Date" THEN
+                LeaveCredited."No. of Leaves"  := 0;
+           END;
+
+           IF LeaveCredited.INSERT THEN;
+
+           PayrollYear."Year Start Date" := CALCDATE(LeaveMaster."Credit Interval Regular",PayrollYear."Year Start Date");
+
+      UNTIL PayrollYear."Year Start Date" >= PayrollYear."Year End Date";
+    END;
+
+    PROCEDURE "Leave Balance Update"@1102155000();
+    VAR
+      LeaveEntitlement1@1102155000 : Record 72084;
+    BEGIN
+      LeaveEntitlement1.RESET;
+      LeaveEntitlement1.SETRANGE("Location Code", LocationCode);
+      LeaveEntitlement1.SETRANGE("Salary Plan Code", SalaryPlanCode);
+      LeaveEntitlement1.SETRANGE("Leave Year Code", YearCode);
+      LeaveEntitlement1.SETRANGE("Employee No", Employee1."No.");
+      IF LeaveEntitlement1.FINDFIRST THEN BEGIN
+         REPEAT
+           LeaveEntitlement1.VALIDATE("Leave Opening Balance");
+           LeaveEntitlement1.MODIFY;
+         UNTIL LeaveEntitlement1.NEXT = 0;
+      END;
+    END;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Codeunit Created for PAYROLL Module
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

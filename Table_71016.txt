@@ -1,0 +1,93 @@
+OBJECT Table 71016 Class Section Subjects
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Class Section Subjects;
+    LookupPageID=Page71031;
+    DrillDownPageID=Page71031;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class               ;Code10        ;TableRelation=Class.Code;
+                                                   CaptionML=ENU=Class }
+    { 2   ;   ;Section             ;Code20        ;CaptionML=ENU=Section }
+    { 3   ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculum }
+    { 4   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 5   ;   ;Subject             ;Code10        ;TableRelation=Subject;
+                                                   OnValidate=BEGIN
+                                                                // Start 01.VIGNESH
+                                                                IF RecSubject.GET(Subject) THEN BEGIN
+                                                                  Description := RecSubject.Description;
+                                                                  Type := RecSubject.Type;
+                                                                  "Subject Group" := RecSubject."Subject Group";
+                                                                  "II Lang Type"  := RecSubject."II Lang Type";
+
+                                                                END ELSE BEGIN
+                                                                  Description := '';
+                                                                  "Subject Group" := '';
+                                                                  "II Lang Type"  := 0;
+                                                                END;
+                                                                // Stop 01.VIGNESH
+
+                                                                IF ClassSection.GET("Class Code") THEN BEGIN
+                                                                  Class := ClassSection.Class;
+                                                                  Section := ClassSection.Section;
+                                                                  Curriculum := ClassSection.Curriculum;
+                                                                  "Academic Year" := ClassSection."Academic Year";
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=ENU=Subject }
+    { 6   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 7   ;   ;Type                ;Option        ;CaptionML=ENU=Type;
+                                                   OptionCaptionML=ENU=Scholastic,Non-Scholastic;
+                                                   OptionString=Scholastic,Non-Scholastic }
+    { 8   ;   ;Subject Group       ;Code20        ;TableRelation="Subject Group";
+                                                   CaptionML=ENU=Subject Group }
+    { 9   ;   ;Maximum Mark        ;Decimal       ;CaptionML=ENU=Maximum Mark;
+                                                   BlankZero=Yes }
+    { 10  ;   ;Pass Mark           ;Decimal       ;CaptionML=ENU=Pass Mark;
+                                                   BlankZero=Yes }
+    { 11  ;   ;Group Code old      ;Code10        ;CaptionML=ENU=Group Code }
+    { 12  ;   ;Subject Teacher     ;Code10        ;TableRelation=Employee;
+                                                   CaptionML=ENU=Subject Teacher }
+    { 13  ;   ;Class Code          ;Code20        ;CaptionML=ENU=Class Code }
+    { 20  ;   ;Group Code          ;Code20        ;TableRelation="Class Group" }
+    { 50  ;   ;II Lang Type        ;Option        ;OptionCaptionML=ENU=" ,Tamil,Hindi,Telugu,Malayalam,Kannada,French,Thai";
+                                                   OptionString=[ ,Tamil,Hindi,Telugu,Malayalam,Kannada,French,Thai] }
+    { 51  ;   ;Class IX and  X Group;Option       ;OptionCaptionML=ENU=" ,Group1,Group2,Group3,Group4,Group5,Group6";
+                                                   OptionString=[ ,Group1,Group2,Group3,Group4,Group5,Group6] }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class Code,Group Code,Subject           ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      RecSubject@1102155000 : Record 71004;
+      ClassSection@1102155001 : Record 71015;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  26.11.09  VIGNESH   Subject - OnValidate()   Code added to get the Subject description type and Group
+    }
+    END.
+  }
+}
+

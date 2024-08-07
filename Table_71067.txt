@@ -1,0 +1,46 @@
+OBJECT Table 71067 Formative Assesment
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               "Academic Year" := EducationVertical.GetAcademicYear;
+               "User ID" := USERID;
+             END;
+
+    CaptionML=ENU=Formative Assesment;
+    LookupPageID=Page33009227;
+    DrillDownPageID=Page33009227;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 3   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationVertical@1102155000 : Codeunit 71880;
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,128 @@
+OBJECT Table 71085 Competition Result Individual
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:44:07;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               CoCurricularSetup.GET;
+               IF "No.Series" = '' THEN BEGIN
+                 CoCurricularSetup.TESTFIELD("Result Individual Entry No.");
+                 NoSeriesMgt.InitSeries(CoCurricularSetup."Result Individual Entry No.",xRec."No.Series",0D,"No.","No.Series");
+               END;
+
+               "User ID" := USERID;
+               EducationSetup.GET;
+               EducationSetup.TESTFIELD("Academic Year");
+               "Academic Year" := EducationSetup."Academic Year";
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=Competition Result Individual;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  CoCurricularSetup.GET;
+                                                                  CoCurricularSetup.TESTFIELD("Result Individual Entry No.");
+                                                                  NoSeriesMgt.TestManual(CoCurricularSetup."Result Individual Entry No.");
+                                                                  "No.Series" := '';
+                                                                END;
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Competition Entry No.;Code20       ;TableRelation="Competition Entry Header" WHERE (Academic Year=FIELD(Academic Year),
+                                                                                                   Event Type=FILTER(Individual));
+                                                   OnValidate=BEGIN
+                                                                // Start 04.VIGNESH
+                                                                IF CompetitionEntryHeader.GET("Competition Entry No.") THEN BEGIN
+                                                                  "Competition Name" := CompetitionEntryHeader."Competition Name";
+                                                                  "Competition Type" := CompetitionEntryHeader."Competition Type";
+                                                                  "Event Type" := CompetitionEntryHeader."Event Type";
+                                                                  "Student Division" := '';
+                                                                  "Competition Date" := CompetitionEntryHeader."Competition Date";
+                                                                  "Competition Status" := CompetitionEntryHeader."Competition Status";
+                                                                END ELSE BEGIN
+                                                                  "Competition Name" := '';
+                                                                  "Competition Type" := '';
+                                                                  "Event Type" := 0;
+                                                                  "Student Division" := '';
+                                                                END;
+                                                                // Stop 04.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Competition Entry No. }
+    { 3   ;   ;Competition Name    ;Text50        ;CaptionML=ENU=Competition Name;
+                                                   Editable=No }
+    { 4   ;   ;Student Division    ;Code20        ;TableRelation="Competition Entry Line"."Student Division" WHERE (Document No.=FIELD(Competition Entry No.));
+                                                   CaptionML=ENU=Student Division }
+    { 6   ;   ;Academic Year       ;Code20        ;CaptionML=ENU=Academic Year }
+    { 7   ;   ;No.Series           ;Code20        ;CaptionML=ENU=No.Series }
+    { 8   ;   ;Competition Type    ;Code20        ;TableRelation="Competition Type";
+                                                   CaptionML=ENU=Competition Type;
+                                                   Editable=No }
+    { 9   ;   ;Competition Date    ;Date          ;CaptionML=ENU=Competition Date }
+    { 10  ;   ;Competition Status  ;Option        ;CaptionML=ENU=Competition Status;
+                                                   OptionCaptionML=ENU=" ,Up Coming,On Going,Completed";
+                                                   OptionString=[ ,Up Coming,On Going,Completed] }
+    { 11  ;   ;Event Type          ;Option        ;CaptionML=ENU=Event Type;
+                                                   OptionCaptionML=ENU=" ,Individual,Team";
+                                                   OptionString=[ ,Individual,Team];
+                                                   Editable=No }
+    { 12  ;   ;Update Results      ;Boolean       ;CaptionML=ENU=Update Results }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationSetup@1102155004 : Record 71884;
+      CoCurricularSetup@1102155003 : Record 71080;
+      NoSeriesMgt@1102155002 : Codeunit 396;
+      RecResult@1102155000 : Record 71085;
+      CompetitionEntryHeader@1102155001 : Record 71081;
+
+    PROCEDURE Assistedit@1102155003(OldResult@1102155000 : Record 71085) : Boolean;
+    BEGIN
+      // Start 03.VIGNESH
+      WITH RecResult DO BEGIN
+        RecResult := Rec;
+        CoCurricularSetup.GET;
+        CoCurricularSetup.TESTFIELD("Result Individual Entry No.");
+        IF NoSeriesMgt.SelectSeries(CoCurricularSetup."Result Individual Entry No.",OldResult."No.Series","No.Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := RecResult;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 03.VIGNESH
+    END;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                            Code added to enter the User id,academic Year & No. Series
+      02   15.12.09  VIGNESH  No. - OnValidate()                    Code added tfor generatring No. Series
+      03   15.12.09  VIGNESH  Assistedit()                          Function called for generating No. Series
+    }
+    END.
+  }
+}
+

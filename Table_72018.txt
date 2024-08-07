@@ -1,0 +1,69 @@
+OBJECT Table 72018 HR Pay Elements
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Interview No;
+    CaptionML=ENU=HR Pay Elements;
+    LookupPageID=Page72026;
+    DrillDownPageID=Page72026;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Interview No        ;Code20        ;CaptionML=ENU=Interview No }
+    { 2   ;   ;Pay Element Code    ;Code20        ;TableRelation="Pay Elements";
+                                                   OnValidate=BEGIN
+                                                                PayElements.RESET;
+                                                                PayElements.SETRANGE("Pay Element Code","Pay Element Code");
+                                                                IF PayElements.FINDFIRST THEN
+                                                                  REPEAT
+                                                                    Description := PayElements.Description;
+                                                                  UNTIL PayElements.NEXT = 0;
+                                                              END;
+
+                                                   CaptionML=ENU=Pay Element Code;
+                                                   NotBlank=Yes }
+    { 3   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 4   ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement }
+    { 5   ;   ;Fixed / Percent     ;Option        ;CaptionML=ENU=Fixed / Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent }
+    { 6   ;   ;Amount Calculation Type;Option     ;CaptionML=ENU=Amount Calculation Type;
+                                                   OptionCaptionML=ENU=Pay Day,Full Amount;
+                                                   OptionString=Pay Day,Full Amount }
+    { 7   ;   ;Amount / Percent (%);Decimal       ;CaptionML=ENU=Amount / Percent (%) }
+    { 8   ;   ;Total Amount        ;Decimal       ;CaptionML=ENU=Total Amount }
+  }
+  KEYS
+  {
+    {    ;Interview No,Pay Element Code           ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      PayElements@1000000000 : Record 72060;
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

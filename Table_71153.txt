@@ -1,0 +1,52 @@
+OBJECT Table 71153 Time Table Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:44:34;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 02. VANDHANA
+             END;
+
+    CaptionML=ENU=Time Table Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 3   ;   ;Time Table Theory Code;Code20      ;CaptionML=ENU=Time Table Theory Code }
+    { 4   ;   ;Time Table Lab Code ;Code20        ;CaptionML=ENU=Time Table Lab Code }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+        No   Date        Sign       Trigger          Description
+      ------------------------------------------------------------------------------------------
+        01  17/09/09    VIGNESH                     Table Created by Vignesh
+        02  19/10/09    VANDHANA    OnInsert        Code to assign User ID.
+    }
+    END.
+  }
+}
+

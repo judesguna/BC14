@@ -1,0 +1,188 @@
+OBJECT Codeunit 71044 Fee Management
+{
+  OBJECT-PROPERTIES
+  {
+    Date=02-02-18;
+    Time=18:42:50;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Text000@1102155000 : TextConst 'ENU=Fee Copied';
+
+    PROCEDURE FeeProcess@1102155000(StudNo@1102155000 : Code[20];FeeCode1@1102155001 : Code[10];Amount@1102155002 : Decimal);
+    VAR
+      FeeSetup@1102155003 : Record 71072;
+      GenJournalTemplate@1102155004 : Record 80;
+      GenJournalLine@1102155005 : Record 81;
+      NoSeries@1102155006 : Codeunit 396;
+      GenJournalBatch@1102155007 : Record 232;
+      Genjourrec@1102155008 : Record 81;
+      FeeCode@1102155009 : Record 71905;
+      Student@1102155010 : Record 71046;
+      "TempDocNo."@1102155011 : Code[20];
+      CheckBool@1102155012 : Boolean;
+    BEGIN
+      // Start 01.KATHIR
+      CLEAR(NoSeries);
+      FeeSetup.GET;
+      FeeSetup.TESTFIELD("Journal Template Name");
+      FeeSetup.TESTFIELD("Journal Batch Name");
+      FeeCode.GET(FeeCode1);
+      Student.GET(StudNo);
+      "TempDocNo." := NoSeries.GetNextNo(FeeSetup."Fee Number",0D,TRUE);
+      GenJournalLine.RESET;
+      GenJournalLine.SETRANGE("Journal Template Name",FeeSetup."Journal Template Name");
+      GenJournalLine.SETRANGE("Journal Batch Name",FeeSetup."Journal Batch Name");
+      IF GenJournalLine.FINDLAST THEN
+        GenJournalLine."Line No." := GenJournalLine."Line No." + 10000
+      ELSE
+        GenJournalLine."Line No." := 10000;
+
+      GenJournalLine.INIT;
+      GenJournalLine."Journal Template Name" := FeeSetup."Journal Template Name";
+      GenJournalLine."Journal Batch Name" := FeeSetup."Journal Batch Name";
+      GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
+      IF Amount > 0 THEN
+        GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice
+      ELSE
+        IF Amount < 0 THEN
+          GenJournalLine."Document Type" := GenJournalLine."Document Type"::Payment;
+      GenJournalLine."Account No." := StudNo;
+      GenJournalLine.VALIDATE("Account No.");
+      GenJournalLine."Bal. Account Type" := GenJournalLine."Bal. Account Type"::"G/L Account";
+      GenJournalLine."Bal. Account No." := FeeCode."G/L Account";
+      GenJournalLine.Description := FeeCode.Description;
+      GenJournalLine."Posting Date" := TODAY;
+      GenJournalLine."Debit Amount" := Amount;
+      GenJournalLine.VALIDATE("Debit Amount");
+      GenJournalLine."Document No." := "TempDocNo.";
+      GenJournalLine.Class := Student.Class;
+      GenJournalLine.Section := Student.Section;
+      GenJournalLine."Academic Year" := Student."Academic Year";
+      GenJournalLine."Fee Code" := FeeCode1;
+      GenJournalLine.INSERT(TRUE);
+      // Stop 01.KATHIR
+    END;
+
+    PROCEDURE CheckDuplication@1000000000("StudNo."@1000000004 : Code[20];FeeCode@1000000003 : Code[20];Class@1000000002 : Code[20];Sec@1000000001 : Code[10];Accyear@1000000000 : Code[20]) : Boolean;
+    VAR
+      CustLedgerEntry@1000000005 : Record 21;
+    BEGIN
+      //Start 02.KATHIR
+      CustLedgerEntry.RESET;
+      CustLedgerEntry.SETCURRENTKEY("Customer No.","Fee Code",Class,Section,"Academic Year");
+      CustLedgerEntry.SETRANGE("Customer No.","StudNo.");
+      CustLedgerEntry.SETRANGE("Fee Code",FeeCode);
+      CustLedgerEntry.SETRANGE(Class,Class);
+      CustLedgerEntry.SETRANGE(Section,Sec);
+      CustLedgerEntry.SETRANGE("Academic Year",Accyear);
+      IF CustLedgerEntry.ISEMPTY THEN
+        EXIT(TRUE)
+      ELSE
+        EXIT(FALSE)
+      // Stop 02.KATHIR
+    END;
+
+    PROCEDURE CopyFees@1102155001(feecode@1102155002 : Code[20];ClassFeeNo@1102155003 : Code[20]);
+    VAR
+      ClassFeeLine@1102155000 : Record 71071;
+      ClassFeeLine1@1102155001 : Record 71071;
+    BEGIN
+      // Start 01 VANDHANA
+      ClassFeeLine.RESET;
+      ClassFeeLine.SETRANGE("Document No.",feecode);
+      IF ClassFeeLine.FINDSET THEN
+        REPEAT
+          ClassFeeLine1.INIT;
+          ClassFeeLine1.TRANSFERFIELDS(ClassFeeLine);
+          ClassFeeLine1."Document No." := ClassFeeNo;
+          ClassFeeLine1.INSERT;
+        UNTIL ClassFeeLine.NEXT = 0;
+      MESSAGE(Text000);
+      // Stop 01 VANDHANA
+    END;
+
+    PROCEDURE "Post Sales"@1102155002("getStudentNo."@1102155000 : Code[20];getFeeCode@1102155001 : Code[20];getAmount@1102155002 : Decimal) : Code[20];
+    VAR
+      SalesHeader@1102155004 : Record 36;
+      SalesLine@1102155003 : Record 37;
+      SalesPost@1102155007 : Codeunit 80;
+      SalesInvoiceHeader@1102155006 : Record 112;
+      FeeComponents@1102155005 : Record 71905;
+      Student@1102155009 : Record 71046;
+      EducationSetup@1102155010 : Record 71884;
+      SalesHeader1@1102155011 : Record 36;
+    BEGIN
+      // Start 04.VIGNESH
+      FeeComponents.GET(getFeeCode);
+      FeeComponents.TESTFIELD("G/L Account");
+      Student.GET("getStudentNo.");
+      EducationSetup.GET;
+      SalesHeader.RESET;
+      SalesHeader.INIT;
+      SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
+      SalesHeader."Sell-to Customer No." := "getStudentNo.";
+      SalesHeader."Posting Date" := TODAY;
+      SalesHeader."Shipment Date" := TODAY;
+      SalesHeader."Document Date" := TODAY;
+      SalesHeader.VALIDATE("Sell-to Customer No.");
+      SalesHeader."Payment Method Code" := 'CASH';
+      SalesHeader."Payment Terms Code" := '0d';
+      SalesHeader.VALIDATE("Payment Terms Code");
+      SalesHeader.Ship := TRUE;
+      SalesHeader.Invoice := TRUE;
+      SalesHeader."Fee Code" := getFeeCode;
+      SalesHeader.Section := Student.Section;
+      SalesHeader."Academic Year" := EducationSetup."Academic Year";
+      SalesHeader.Class := Student.Class;
+      SalesHeader.INSERT(TRUE);
+
+      SalesLine.INIT;
+      SalesLine."Document Type" := SalesLine."Document Type"::Order;
+      SalesLine."Document No." := SalesHeader."No.";
+      SalesLine."Line No." += 10000;
+      SalesLine.Type := SalesLine.Type::"G/L Account";
+      SalesLine.VALIDATE(Type);
+      SalesLine."No." := FeeComponents."G/L Account";
+      SalesLine.VALIDATE("No.");
+      SalesLine.Quantity := 1;
+      SalesLine.VALIDATE(Quantity);
+      SalesLine."Unit Price" := getAmount;
+      SalesLine.VALIDATE("Unit Price");
+      SalesLine.INSERT(TRUE);
+
+      IF SalesHeader1.GET(SalesHeader."Document Type"::Order,SalesHeader."No.") THEN BEGIN
+        CLEAR(SalesPost);
+        SalesPost.SetPostingDate(FALSE,FALSE,SalesHeader1."Posting Date");
+        SalesPost.RUN(SalesHeader1);
+
+        SalesInvoiceHeader.RESET;
+        SalesInvoiceHeader.SETRANGE("Order No.",SalesHeader."No.");
+        IF SalesInvoiceHeader.FINDFIRST THEN
+          EXIT(SalesInvoiceHeader."No.");
+      END;
+      // Stop 04.VIGNESH
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger            Description
+      -----------------------------------------------------------------------------------------------
+        01  24/09/09   KATHIR   FeeProcess()       Function Added to Create Journal for Fees and also for batch post
+        02  25/09/09   KATHIR   CheckDuplication() Function created to check the duplication entry in Cust. ledger Entry
+        03  10/10/09  VANDHANA  CopyFees()         Function added to copy feeLines from one fee to another.
+        04  14/10/19  VIGNESH   Post Sales()       Function Creted to post the Fee through Sales Order
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,58 @@
+OBJECT Table 72000 HR Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Primary Key;
+    CaptionML=ENU=HR Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Indenting SNo       ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Indenting SNo }
+    { 3   ;   ;ResumeDB SNo        ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=ResumeDB SNo }
+    { 4   ;   ;Appraisal SNo       ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Appraisal SNo }
+    { 5   ;   ;File Directory      ;Code150       ;CaptionML=ENU=File Directory }
+    { 6   ;   ;Appraisal           ;DateFormula   ;CaptionML=ENU=Appraisal }
+    { 7   ;   ;Send to HR Mail     ;Text30        ;CaptionML=ENU=Send to HR Mail }
+    { 8   ;   ;Send to HR Mail CC  ;Text30        ;CaptionML=ENU=Send to HR Mail CC }
+    { 9   ;   ;Training SNo        ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Training SNo }
+    { 10  ;   ;Interview SNo       ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Interview SNo }
+    { 11  ;   ;Selection SNo       ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Selection SNo }
+    { 12  ;   ;MsWordPath          ;Text150       ;CaptionML=ENU=MsWordPath }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   SENTHIL                       New Tables Added for HR Module.
+    }
+    END.
+  }
+}
+

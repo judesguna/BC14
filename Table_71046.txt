@@ -1,0 +1,401 @@
+OBJECT Table 71046 Student
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:37:12;
+    Modified=Yes;
+    Version List=EDU3.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    OnInsert=BEGIN
+               // Start 01.KATHIR
+               AdmissionSetup.GET;
+               IF "No. Series" = '' THEN BEGIN
+                 AdmissionSetup.TESTFIELD("Student No.");
+                 NoSeriesMgt.InitSeries(AdmissionSetup."Student No.", xRec."No. Series",0D,"No.","No. Series");
+               END;
+               // Stop 01.KATHIR
+               // Start 10. VANDHANA
+               "User ID" := USERID;
+               // Stop 10. VANDHANA
+             END;
+
+    CaptionML=ENU=Student;
+    LookupPageID=Page71047;
+    DrillDownPageID=Page71047;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;OnValidate=BEGIN
+                                                                // Start 09.KATHIR
+                                                                IF "No." <> xRec."No." THEN BEGIN
+                                                                  AdmissionSetup.GET;
+                                                                  NoSeriesMgt.TestManual(AdmissionSetup."Student No.");
+                                                                  "No. Series" := '';
+                                                                END;
+                                                                // Start 09.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=No. }
+    { 2   ;   ;Name                ;Text30        ;OnValidate=VAR
+                                                                ContBusRel@1001 : Record 5054;
+                                                                Cust@1000 : Record 18;
+                                                                Vend@1002 : Record 23;
+                                                              BEGIN
+                                                              END;
+
+                                                   CaptionML=ENU=Name;
+                                                   Editable=Yes }
+    { 3   ;   ;Gender              ;Option        ;CaptionML=ENU=Gender;
+                                                   OptionCaptionML=ENU=" ,Male,Female";
+                                                   OptionString=[ ,Male,Female] }
+    { 9   ;   ;Date Of Birth       ;Date          ;OnValidate=BEGIN
+                                                                // Start 02.KATHIR
+                                                                IF "Date Of Birth" <> 0D THEN BEGIN
+                                                                  Age := TODAY - "Date Of Birth";
+                                                                  TempAge := ROUND(Age / 365,1,'=');
+                                                                  Age2 := Age MOD 365;
+                                                                  Months := ROUND(Age2 / 30,1,'=');
+                                                                  Age := TempAge - 1;
+                                                                END ELSE BEGIN
+                                                                  CLEAR(Age);
+                                                                  CLEAR(Months);
+                                                                END;
+                                                                // Stop 02.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Date Of Birth }
+    { 10  ;   ;Father's Name       ;Text100       ;CaptionML=ENU=Father's Name }
+    { 11  ;   ;Mother's Name       ;Text100       ;CaptionML=ENU=Mother's Name }
+    { 12  ;   ;Citizenship         ;Code20        ;TableRelation=Citizenship;
+                                                   CaptionML=ENU=Citizenship }
+    { 13  ;   ;Academic Year       ;Code10        ;CaptionML=ENU=Academic Year;
+                                                   Editable=Yes }
+    { 15  ;   ;Class               ;Code10        ;CaptionML=ENU=Class;
+                                                   Editable=Yes }
+    { 16  ;   ;Hostel Acommodation ;Boolean       ;CaptionML=ENU=Hostel Acommodation }
+    { 17  ;   ;Previous School     ;Text150       ;CaptionML=ENU=Previous School }
+    { 18  ;   ;Medium of Instruction;Code10       ;TableRelation="Medium of Instruction";
+                                                   CaptionML=ENU=Medium of Instruction }
+    { 19  ;   ;Presently Residing with;Code10     ;TableRelation=Relative;
+                                                   CaptionML=ENU=Presently Residing with }
+    { 20  ;   ;Curriculum          ;Code10        ;CaptionML=ENU=Curriculum;
+                                                   Editable=Yes }
+    { 21  ;   ;Previous Class      ;Code10        ;TableRelation=Class;
+                                                   CaptionML=ENU=Previous Class }
+    { 22  ;   ;Previous Curriculum ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Previous Curriculum }
+    { 23  ;   ;Address To          ;Code20        ;TableRelation=Relative;
+                                                   CaptionML=ENU=Address To }
+    { 24  ;   ;Addressee           ;Text100       ;CaptionML=ENU=Addressee }
+    { 25  ;   ;Address1            ;Text100       ;CaptionML=ENU=Address1 }
+    { 26  ;   ;Address2            ;Text100       ;CaptionML=ENU=Address2 }
+    { 27  ;   ;City                ;Text30        ;OnValidate=BEGIN
+                                                                // Start 03.KATHIR
+                                                                //Postcode.ValidateCity(City,"Post Code");
+                                                                // Stop 03.KATHIR
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 04.KATHIR
+                                                              //Postcode.LookUpCity(City,"Post Code",TRUE);
+                                                              // Stop 04.KATHIR
+                                                            END;
+
+                                                   CaptionML=ENU=City }
+    { 28  ;   ;Post Code           ;Code10        ;TableRelation="Post Code";
+                                                   OnValidate=BEGIN
+                                                                // Start 05.KATHIR
+                                                                //Postcode.ValidatePostCode(City,"Post Code");
+                                                                // Stop 05.KATHIR
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 06 .KATHIR
+                                                              //Postcode.LookUpPostCode(City,"Post Code",TRUE);
+                                                              // Stop 06.KATHIR
+                                                            END;
+
+                                                   CaptionML=ENU=Post Code }
+    { 29  ;   ;Country             ;Code20        ;TableRelation=Country/Region;
+                                                   CaptionML=ENU=Country }
+    { 30  ;   ;E-Mail Address      ;Text100       ;CaptionML=ENU=E-Mail Address }
+    { 31  ;   ;Mobile Number       ;Text30        ;CaptionML=ENU=Mobile Number }
+    { 32  ;   ;Phone Number        ;Text30        ;CaptionML=ENU=Phone Number }
+    { 33  ;   ;State               ;Code20        ;CaptionML=ENU=State }
+    { 37  ;   ;Visa Exp Date       ;Date          ;CaptionML=ENU=Visa Exp Date }
+    { 38  ;   ;Passport No.        ;Text20        ;CaptionML=ENU=Passport No. }
+    { 39  ;   ;Passport Exp Date   ;Date          ;CaptionML=ENU=Passport Exp Date }
+    { 40  ;   ;Visa No.            ;Text20        ;CaptionML=ENU=Visa No. }
+    { 49  ;   ;Food Habits         ;Option        ;CaptionML=ENU=Food Habits;
+                                                   OptionCaptionML=ENU=" ,Veg,Non Veg";
+                                                   OptionString=[ ,Veg,Non Veg] }
+    { 50  ;   ;Applicant Image     ;BLOB          ;CaptionML=ENU=Applicant Image }
+    { 51  ;   ;Father Image        ;BLOB          ;CaptionML=ENU=Father Image }
+    { 52  ;   ;Mother Image        ;BLOB          ;CaptionML=ENU=Mother Image }
+    { 53  ;   ;Guardian Image      ;BLOB          ;CaptionML=ENU=Guardian Image }
+    { 54  ;   ;Mother's Qualification;Text30      ;CaptionML=ENU=Mother's Qualification }
+    { 55  ;   ;Mother's Occupation ;Text30        ;CaptionML=ENU=Mother's Occupation }
+    { 56  ;   ;Guardian Name       ;Text100       ;CaptionML=ENU=Guardian Name }
+    { 60  ;   ;Promotion Granted   ;Boolean       ;CaptionML=ENU=Promotion Granted }
+    { 70  ;   ;Father's Occupation ;Text30        ;CaptionML=ENU=Father's Occupation }
+    { 71  ;   ;Mother's Annual Income;Decimal     ;CaptionML=ENU=Mother's Annual Income }
+    { 72  ;   ;Guardian Qualification;Text30      ;CaptionML=ENU=Guardian Qualification }
+    { 73  ;   ;Guardian Occupation ;Text30        ;CaptionML=ENU=Guardian Occupation }
+    { 74  ;   ;Guardian Annual Income;Decimal     ;CaptionML=ENU=Guardian Annual Income }
+    { 76  ;   ;Enquiry No.         ;Code10        ;TableRelation=Enquiry;
+                                                   OnValidate=BEGIN
+                                                                // Start 07.KATHIR
+                                                                IF Enquiry.GET("Enquiry No.") THEN BEGIN
+                                                                  TRANSFERFIELDS(Enquiry);
+                                                                  VALIDATE("Date Of Birth");
+                                                                  VALIDATE(Class);
+                                                                  "No." := xRec."No.";
+                                                                END;
+                                                                // Stop 07.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Enquiry No. }
+    { 77  ;   ;Religion            ;Code20        ;TableRelation=Religion.Code;
+                                                   CaptionML=ENU=Religion }
+    { 78  ;   ;Father's Qualification;Text30      ;CaptionML=ENU=Father's Qualification }
+    { 79  ;   ;Caste               ;Code20        ;CaptionML=ENU=Caste }
+    { 81  ;   ;Age                 ;Integer       ;CaptionML=ENU=Age;
+                                                   BlankZero=Yes;
+                                                   Editable=No }
+    { 82  ;   ;Months              ;Integer       ;CaptionML=ENU=Months;
+                                                   BlankZero=Yes;
+                                                   Editable=No }
+    { 96  ;   ;Father's Annual Income;Decimal     ;CaptionML=ENU=Father's Annual Income }
+    { 97  ;   ;Exam Code           ;Code10        ;TableRelation="Exam Code";
+                                                   CaptionML=ENU=Exam Code }
+    { 98  ;   ;Community           ;Code10        ;TableRelation=Community;
+                                                   CaptionML=ENU=Community }
+    { 99  ;   ;Mother Tongue       ;Code10        ;TableRelation="Mother Tongue";
+                                                   CaptionML=ENU=Mother Tongue }
+    { 100 ;   ;New Student         ;Boolean       ;CaptionML=ENU=New Student;
+                                                   Editable=Yes }
+    { 1000;   ;Section             ;Code10        ;CaptionML=ENU=Section;
+                                                   Editable=Yes }
+    { 1001;   ;Student Status      ;Option        ;OnValidate=BEGIN
+                                                                //mani - Start
+                                                                IF "Student Status"= "Student Status":: Inactive THEN BEGIN
+                                                                  Customer.GET("No.");
+                                                                  Customer.Blocked := Customer.Blocked::All;
+                                                                  Customer.MODIFY;
+                                                                END;
+
+                                                                IF "Student Status"= "Student Status":: Student THEN BEGIN
+                                                                  Customer.GET("No.");
+                                                                  Customer.Blocked := Customer.Blocked::" ";
+                                                                  Customer.MODIFY;
+                                                                END;
+                                                                //Mani - Stop
+
+                                                                //Muthu
+                                                                IF "Student Status" <> "Student Status":: Student THEN BEGIN
+                                                                  IF RecPortalUsers.GET("No.") THEN
+                                                                    RecPortalUsers.DELETE;
+
+                                                                  IF RecPortalUsers.GET("No."+'P') THEN
+                                                                    RecPortalUsers.DELETE;
+
+                                                                END;
+                                                                //Muthu
+                                                              END;
+
+                                                   CaptionML=ENU=Student Status;
+                                                   OptionCaptionML=ENU=" ,Student,Inactive,Alumni";
+                                                   OptionString=[ ,Student,Inactive,Alumni] }
+    { 1002;   ;Class Code          ;Code20        ;TableRelation="Class Section";
+                                                   CaptionML=ENU=Class Code }
+    { 2000;   ;Address 3           ;Text100       ;CaptionML=ENU=Address 3 }
+    { 2001;   ;House               ;Code20        ;TableRelation=House;
+                                                   CaptionML=ENU=House }
+    { 2002;   ;Points              ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Participant Entry Line".Points WHERE (Student No.=FIELD(No.),
+                                                                                                          Academic Year=FIELD(Academic Year),
+                                                                                                          Update Results=FILTER(Yes)));
+                                                   CaptionML=ENU=Points;
+                                                   Editable=No }
+    { 10001;  ;Fee Classification  ;Code10        ;TableRelation="Fee Classification";
+                                                   CaptionML=ENU=Fee Classification }
+    { 10002;  ;Quota               ;Code10        ;TableRelation=Quota;
+                                                   CaptionML=ENU=Quota }
+    { 10003;  ;Physically Challanged;Boolean      ;CaptionML=ENU=Physically Challanged }
+    { 10004;  ;Staff Child         ;Boolean       ;CaptionML=ENU=Staff Child }
+    { 10005;  ;Staff Code          ;Code20        ;OnLookup=BEGIN
+                                                              Emp.RESET;
+                                                              IF Emp.FINDFIRST THEN
+                                                               IF PAGE.RUNMODAL(50058,Emp) = ACTION::LookupOK THEN BEGIN
+                                                                "Staff Code" := Emp."No.";
+                                                               END;
+                                                            END;
+
+                                                   CaptionML=ENU=Staff Code }
+    { 20000;  ;Application No.     ;Code20        ;CaptionML=ENU=Application No. }
+    { 20001;  ;Date Joined         ;Date          ;CaptionML=ENU=Date Joined }
+    { 20002;  ;Room No.            ;Code20        ;CaptionML=ENU=Room No.;
+                                                   Editable=No }
+    { 20003;  ;Hostel Code         ;Code20        ;CaptionML=ENU=Hostel Code;
+                                                   Editable=Yes }
+    { 20004;  ;Hostel Alloted      ;Boolean       ;CaptionML=ENU=Hostel Alloted }
+    { 20005;  ;Hostel Vacated      ;Boolean       ;CaptionML=ENU=Hostel Vacated }
+    { 20006;  ;Room Type           ;Code20        ;CaptionML=ENU=Room Type;
+                                                   Editable=No }
+    { 20007;  ;Mess                ;Code20        ;CaptionML=ENU=Mess;
+                                                   Editable=No }
+    { 20009;  ;CGPA                ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Average("Marks Line".Points WHERE (Academic Year=FIELD(Academic Year),
+                                                                                                  Class=FIELD(Class),
+                                                                                                  Section=FIELD(Section),
+                                                                                                  Curriculum=FIELD(Curriculum),
+                                                                                                  Student No.=FIELD(No.)));
+                                                   CaptionML=ENU=CGPA;
+                                                   Editable=No }
+    { 20010;  ;CGPA Grade          ;Code10        ;CaptionML=ENU=CGPA Grade }
+    { 20011;  ;Latest Rank         ;Integer       ;CaptionML=ENU=Latest Rank }
+    { 20012;  ;Latest GPA          ;Decimal       ;CaptionML=ENU=Latest GPA }
+    { 20013;  ;Latest Grade        ;Code20        ;CaptionML=ENU=Latest Grade }
+    { 20014;  ;Student Image       ;Text100       ;CaptionML=ENU=Student Image }
+    { 20015;  ;Name 2              ;Text50         }
+    { 20016;  ;Blood Group         ;Code20         }
+    { 20017;  ;Medical History     ;Text100        }
+    { 30000;  ;No. Series          ;Code20        ;CaptionML=ENU=No. Series }
+    { 60000;  ;Height              ;Decimal       ;CaptionML=ENU=Height;
+                                                   BlankZero=Yes }
+    { 60001;  ;Weight              ;Decimal       ;CaptionML=ENU=Weight;
+                                                   BlankZero=Yes }
+    { 60002;  ;Division            ;Code20        ;FieldClass=FlowField;
+                                                   CalcFormula=Lookup(KeyStages."Divison Code" WHERE (Code=FIELD(Class)));
+                                                   CaptionML=ENU=Division;
+                                                   Editable=No }
+    { 60003;  ;Date of Leaving     ;Date          ;CaptionML=ENU=Date of Leaving }
+    { 60004;  ;Acad. Year          ;Code10        ;OnValidate=BEGIN
+                                                                "Academic Year" := "Acad. Year";
+                                                              END;
+                                                               }
+    { 70000;  ;Second Language     ;Option        ;OptionCaptionML=ENU=" ,Tamil,Hindi,Telugu,Malayalam,Kannada,French,Thai";
+                                                   OptionString=[ ,Tamil,Hindi,Telugu,Malayalam,Kannada,French,Thai] }
+    { 70001;  ;Thai Student        ;Boolean        }
+    { 70008;  ;Group               ;Option        ;OptionCaptionML=ENU=" ,Group A,Group B,Group C,Group D,Group E,Group F";
+                                                   OptionString=[ ,Group A,Group B,Group C,Group D,Group E,Group F] }
+    { 70009;  ;Tour Code           ;Code20        ;TableRelation="Dimension Value".Code WHERE (Dimension Code=FILTER(TOUR)) }
+    { 70010;  ;Computer Opt. Course;Code20        ;TableRelation="Dimension Value".Code WHERE (Dimension Code=FILTER(OPCOURSE)) }
+    { 70015;  ;Subject Group       ;Code20        ;TableRelation="Class Group" }
+    { 70016;  ;Certificate1        ;Text100        }
+    { 70017;  ;Certificate2        ;Text100        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+    { 70785;  ;Family Code         ;Code20        ;TableRelation="Family Code";
+                                                   CaptionML=ENU=Family Code }
+    { 70786;  ;Campus_1            ;Option        ;OnValidate=BEGIN
+                                                                IF Campus_1 = Campus_1::MontFord THEN
+                                                                  Campus := 'MF';
+                                                                IF Campus_1 = Campus_1::"West Brooke" THEN
+                                                                  Campus := 'WB';
+                                                                IF Campus_1 = 0 THEN
+                                                                  Campus := ' ';
+                                                              END;
+
+                                                   CaptionML=ENU=Campus;
+                                                   OptionCaptionML=ENU=" ,MontFord,West Brooke";
+                                                   OptionString=[ ,MontFord,West Brooke] }
+    { 70787;  ;Portfolio           ;Code50        ;TableRelation="Piece Rate Header" }
+    { 70788;  ;Campus              ;Code10         }
+    { 80000;  ;Orig Academic Year  ;Code10         }
+    { 80001;  ;Orig Class Code     ;Code20         }
+    { 80002;  ;Extra Tuition       ;Boolean        }
+    { 80003;  ;Father's DOB        ;Date           }
+    { 80004;  ;Mother's DOB        ;Date           }
+    { 80005;  ;Student email       ;Text30         }
+    { 80010;  ;Academic Points     ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Academic Points".Points WHERE (Student No.=FIELD(No.),
+                                                                                                   Academic Year=FIELD(Academic Year)));
+                                                   Editable=No }
+    { 80011;  ;Appraisal Point     ;Decimal       ;Editable=No }
+    { 80012;  ;Old Class Code      ;Code20         }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Class,Curriculum,Academic Year           }
+    {    ;Class,Section,Curriculum,Academic Year   }
+    {    ;Academic Year,Student Status             }
+    {    ;House                                    }
+    {    ;Class Code                               }
+    {    ;Gender,Name                              }
+    {    ;Gender,Class,Section                     }
+    {    ;Name                                     }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Postcode@1102155000 : Record 225;
+      EduVertical@1102155004 : Codeunit 71880;
+      AdmissionSetup@1102155003 : Record 71000;
+      NoSeriesMgt@1102155002 : Codeunit 396;
+      Enquiry@1102155001 : Record 71001;
+      RecApp@1102155005 : Record 71002;
+      Age2@1102155007 : Decimal;
+      TempAge@1102155006 : Decimal;
+      AdmSetup@1102155008 : Record 71000;
+      Classrec@1102155009 : Record 71041;
+      Student@1102155010 : Record 71046;
+      ClassSectionLook@1102155011 : Record 71015;
+      ClassCardLook@1102155012 : Record 71006;
+      Emp@1102159000 : Record 5200;
+      Customer@1102159001 : Record 18;
+      RecPortalUsers@1000000000 : Record 71895;
+
+    PROCEDURE Assistedit@1102155001(OldStudent@1102155000 : Record 71046) : Boolean;
+    BEGIN
+      // Start 08.KATHIR
+      WITH OldStudent DO BEGIN
+        OldStudent := Rec;
+        AdmissionSetup.GET;
+        AdmissionSetup.TESTFIELD("Student No.");
+        IF NoSeriesMgt.SelectSeries(AdmissionSetup."Student No.",OldStudent."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := OldStudent;
+          EXIT(TRUE);
+        END;
+      END;
+      // Stop 08.KATHIR
+    END;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+      01  26/09/09   KATHIR   OnInsert()                          Code added to generate number series
+      02  26/09/09   KATHIR   DateOfBirth-OnValidate()            Code added to Calculate the Age
+      03  26/09/09   KATHIR   City - OnValidate()                 Code added to Validate CIty
+      04  26/06/09   KATHIR   City - OnLookup()                   Code added to Lookup City
+      05  26/09/09   KATHIR   Post Code - OnValidate()            Code added to Validate PostCode
+      06  26/09/09   KATHIR   Post Code - Onlookup()              Code added to Lookup Post Code
+      07  26/09/09   KATHIR   Enquiry No. - OnValidate()          Code added to Transfer all fields from enquiry to application
+      08  26/09/09   KATHIR   Assistedit()                        Code added to generate number series
+      09  26/09/09   KATHIR   No. - OnValidate()                  Code added to generate number series
+      10  19/10/09   VANDHANA OnInsert                            Code to assign User ID.
+      11  16/11/09   VIGNESH                                      New fields Dimensions & Date of Leaving is added
+      12  23/11/09   VIGNESH  Class - OnValidate()                Code added to get the Class Section & Curriculum
+      13  23/11/09   VIGNESH  Class - OnLookup()                  Code added to get the Class Section & Curriculum
+      14  23/11/09   VIGNESH  Curriculum - OnValidate()           Code added to get the Class Section & Curriculum
+      15  23/11/09   VIGNESH  Curriculum - OnLookup()             Code added to get the Class Section & Curriculum
+      16  23/11/09   VIGNESH  Section - OnValidate()              Code added to get the Class Section & Curriculum
+      17  23/11/09   VIGNESH  Section - OnLookup()                Code added to get the Class Section & Curriculum
+      18  14/12/19   VIGNESH                                      New Fields "Room Type" and "Mess" is added for Hostel & Mess Mng
+      19  13/1/10    KAVITHA                                      Added new fields CGPA and CGPA Grade .
+      20  20/1/10    Ankesh                                       Added new fields Latest GPA and Latest Grade And Latest Rank.
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,60 @@
+OBJECT Table 71004 Subject
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27-01-18;
+    Time=14:26:14;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=Subject;
+    LookupPageID=Page71006;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=ENU=Code;
+                                                   NotBlank=Yes }
+    { 2   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 3   ;   ;Type                ;Option        ;CaptionML=ENU=Type;
+                                                   OptionCaptionML=ENU=Scholastic,Non-Scholastic;
+                                                   OptionString=Scholastic,Non-Scholastic }
+    { 4   ;   ;Subject Group       ;Code20        ;TableRelation="Subject Group";
+                                                   CaptionML=ENU=Subject Group }
+    { 5   ;   ;Compulsory          ;Boolean        }
+    { 6   ;   ;Period Length       ;Integer        }
+    { 50  ;   ;II Lang Type        ;Option        ;OptionCaptionML=ENU=" ,Tamil,Hindi,Telugu,Malayalam,Kannada,French,Thai";
+                                                   OptionString=[ ,Tamil,Hindi,Telugu,Malayalam,Kannada,French,Thai] }
+    { 51  ;   ;Subject Order       ;Decimal        }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

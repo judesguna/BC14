@@ -1,0 +1,61 @@
+OBJECT Table 71897 User Groups
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05-08-24;
+    Time=16:58:35;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    CaptionML=ENU=User Group;
+    LookupPageID=Page71902;
+  }
+  FIELDS
+  {
+    { 1   ;   ;User Group          ;Code20        ;CaptionML=ENU=User Group }
+    { 2   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 3   ;   ;SID                 ;Text120       ;CaptionML=ENU=SID }
+    { 4   ;   ;Windows Login       ;Text150       ;CaptionML=ENU=Windows Login }
+    { 5   ;   ;User ID             ;Code50        ;TableRelation=User."User Name";
+                                                   OnValidate=VAR
+                                                                UserMgt@1000 : Codeunit 418;
+                                                              BEGIN
+                                                                UserMgt.ValidateUserID("User ID");
+                                                              END;
+
+                                                   OnLookup=VAR
+                                                              UserMgt@1000 : Codeunit 418;
+                                                            BEGIN
+                                                              UserMgt.LookupUserID("User ID");
+                                                            END;
+
+                                                   ValidateTableRelation=No;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[ENU=User ID;
+                                                              ENN=User ID];
+                                                   NotBlank=Yes }
+  }
+  KEYS
+  {
+    {    ;User Group                              ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+
+      No   Date      Sign     Trigger                  Description
+      -----------------------------------------------------------------------------------------------
+      01  19.10.09   GUNA    SID-ONVALIDATE         TO COPY LOGIN NAME
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,103 @@
+OBJECT Table 71015 Class Section
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    OnInsert=BEGIN
+               // Start 01.VIGNESH
+               "User ID" := USERID;
+               {
+               "Education Setup".GET;
+               "Education Setup".TESTFIELD("Academic Year");
+               "Academic Year" := "Education Setup"."Academic Year";
+               }
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=Class Section;
+    LookupPageID=Page71027;
+    DrillDownPageID=Page71027;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Class               ;Code20        ;TableRelation=Class;
+                                                   CaptionML=ENU=Class;
+                                                   SQL Data Type=Integer }
+    { 2   ;   ;Section             ;Code10        ;TableRelation=Section;
+                                                   CaptionML=ENU=Section }
+    { 3   ;   ;Curriculum          ;Code10        ;TableRelation=Curriculum;
+                                                   CaptionML=ENU=Curriculum }
+    { 4   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 5   ;   ;Class Code          ;Code20        ;CaptionML=ENU=Class Code }
+    { 22  ;   ;Capacity            ;Decimal       ;CaptionML=ENU=Capacity;
+                                                   DecimalPlaces=0:0 }
+    { 23  ;   ;Present Strength    ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count(Student WHERE (Class Code=FIELD(Class Code),
+                                                                                    Student Status=FILTER(Student)));
+                                                   CaptionML=ENU=Present Strength;
+                                                   Editable=No }
+    { 24  ;   ;Marks System        ;Option        ;CaptionML=ENU=Marks System;
+                                                   OptionCaptionML=ENU=Marks,Grade;
+                                                   OptionString=Marks,Grade }
+    { 25  ;   ;Promotion Percentage;Decimal       ;CaptionML=ENU=Promotion Percentage }
+    { 26  ;   ;Promoted            ;Boolean       ;CaptionML=ENU=Promoted }
+    { 29  ;   ;Consolidated Grades ;Option        ;CaptionML=ENU=Consolidated Grades;
+                                                   OptionCaptionML=ENU=" ,Points,Marks";
+                                                   OptionString=[ ,Points,Marks] }
+    { 30  ;   ;Class Teacher       ;Code20        ;OnLookup=BEGIN
+
+                                                              IF PAGE.RUNMODAL(50058,Emp) = ACTION::LookupOK THEN BEGIN
+                                                                "Class Teacher" := Emp."No.";
+                                                              END;
+                                                            END;
+
+                                                   CaptionML=ENU=Class Teacher }
+    { 31  ;   ;Home Work Duration  ;Decimal       ;CaptionML=ENU=Home Work Duration }
+    { 40  ;   ;Max Group 2 Count   ;Integer       ;BlankZero=Yes;
+                                                   Description=For class 9 and 10 }
+    { 41  ;   ;Max Group 3 Count   ;Integer       ;BlankZero=Yes;
+                                                   Description=For class 9 and 10 }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Class Code,Class                        ;Clustered=Yes }
+    {    ;Class,Curriculum,Academic Year          ;SumIndexFields=Capacity }
+    {    ;Class                                    }
+    {    ;Class,Section,Curriculum,Academic Year   }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EducationSetup@1102155000 : Record 71884;
+      Emp@1102159000 : Record 5200;
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01  21.11.09  VIGNESH   OnInsert()              Code added to get the Userid
+      02  22.11.09  VIGNESH   LookupSection()         Function Added to lookup the section as well as to select the Class & Curriculum
+      03  22.11.09  VIGNESH   Lookupclass()           Function Added to lookup the Class as well as to select the Section & Curriculum
+      04  22.11.09  VIGNESH   LookupCuriculum()       Function Added to lookup the Curriculum as well as to select the Class & Section
+      05  22.11.09  VIGNESH   ValidateClass()         Function Added to validate the Class as well as to select the Section & Curriculum
+      06  22.11.09  VIGNESH   ValidateCurriculum()    Function Added to validate the Curriculum as well as to select the Class & Section
+      07  22.11.09  VIGNESH   ValidateSection()       Function Added to validate the section as well as to select the Class & Curriculum
+      08  16.04.10  GUNA                              New Field added "Home Work Duration"
+    }
+    END.
+  }
+}
+

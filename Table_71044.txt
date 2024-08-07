@@ -1,0 +1,66 @@
+OBJECT Table 71044 KeyStages
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU1.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 01. VANDHANA
+
+               "User ID" := USERID;
+
+               // Stop 01. VANDHANA
+             END;
+
+    CaptionML=ENU=KeyStages;
+    LookupPageID=Page71044;
+    DrillDownPageID=Page71044;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Divison Code        ;Code20        ;TableRelation=Divsion."Division Code";
+                                                   CaptionML=ENU=Divison Code }
+    { 2   ;   ;Code                ;Code10        ;TableRelation=Class;
+                                                   OnValidate=BEGIN
+                                                                // Start 02.VIGNESH
+                                                                IF Class.GET(Code) THEN
+                                                                  Description := Class.Description
+                                                                ELSE
+                                                                  Description := '';
+
+                                                                // Stop 02.VIGNESH
+                                                              END;
+
+                                                   CaptionML=ENU=Code }
+    { 3   ;   ;Description         ;Text30        ;CaptionML=ENU=Description }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Divison Code,Code                       ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      Class@1102155000 : Record 71041;
+
+    BEGIN
+    {
+
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  19/10/09  VANDHANA  OnInsert                     Code to assign User ID.
+    }
+    END.
+  }
+}
+

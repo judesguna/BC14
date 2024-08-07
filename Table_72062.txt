@@ -1,0 +1,63 @@
+OBJECT Table 72062 Grades Elements
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Effective Date,Grade Code;
+    CaptionML=ENU=Grades Elements;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Effective Date      ;Date          ;CaptionML=ENU=Effective Date }
+    { 4   ;   ;Grade Code          ;Code20        ;CaptionML=ENU=Grade Code }
+    { 5   ;   ;Pay Element Code    ;Code20        ;CaptionML=ENU=Pay Element Code }
+    { 6   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 7   ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement }
+    { 8   ;   ;Fixed / Percent     ;Option        ;CaptionML=ENU=Fixed / Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent }
+    { 9   ;   ;Amount Calculation Type;Option     ;CaptionML=ENU=Amount Calculation Type;
+                                                   OptionCaptionML=ENU=Pay Day,Full Amount;
+                                                   OptionString=Pay Day,Full Amount }
+    { 10  ;   ;Base Pay Elements   ;Text250       ;CaptionML=ENU=Base Pay Elements }
+    { 11  ;   ;Percent (%)         ;Decimal       ;CaptionML=ENU=Percent (%) }
+    { 12  ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount }
+    { 13  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order }
+  }
+  KEYS
+  {
+    {    ;Pay Element Code,Grade Code,Effective Date,Salary Plan Code,Location Code;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+      -----------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

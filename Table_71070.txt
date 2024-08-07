@@ -1,0 +1,141 @@
+OBJECT Table 71070 Class Fee Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30-07-14;
+    Time=11:25:27;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+               // Start 02.KATHIR
+               FeeSetup.GET;
+               IF "No. Series" = '' THEN BEGIN
+                 FeeSetup.TESTFIELD("Class Fee No.");
+                 NoSeriesMgt.InitSeries(FeeSetup."Class Fee No.", xRec."No. Series" ,0D,"No.","No. Series");
+               END;
+               // Stop 02.KATHIR
+               // Start 01.KATHIR
+               "Academic Year" := EduVert.GetAcademicYear;
+               // Stop 01.KATHIR
+               // Start 05. VANDHANA
+               "User ID" := USERID;
+               // Stop 05. VANDHANA
+             END;
+
+    CaptionML=ENU=Class Fee Header;
+    LookupPageID=Page71078;
+  }
+  FIELDS
+  {
+    { 1   ;   ;No.                 ;Code20        ;CaptionML=ENU=No. }
+    { 2   ;   ;Class               ;Code20        ;TableRelation="Class Card".Class;
+                                                   OnValidate=BEGIN
+                                                                // Start 06.VIGNESH
+                                                                ClassCardLook.ValidateClass(Class,Curriculum,"Academic Year");
+                                                                // Stop 06.VIGNESH
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 07.VIGNESH
+                                                              ClassCardLook.LookUpClass(Class,Curriculum,"Academic Year");
+                                                              // Stop 07.VIGNESH
+                                                            END;
+
+                                                   CaptionML=ENU=Class }
+    { 4   ;   ;Fee Classification Code;Code20     ;TableRelation="Fee Classification";
+                                                   OnValidate=BEGIN
+                                                                // Start 04.KATHIR
+                                                                ClassFeeHead.RESET;
+                                                                ClassFeeHead.SETCURRENTKEY(Class,Curriculum,"Academic Year","Fee Classification Code");
+                                                                ClassFeeHead.SETRANGE(Class,Class);
+                                                                ClassFeeHead.SETRANGE(Curriculum,Curriculum);
+                                                                ClassFeeHead.SETRANGE("Academic Year","Academic Year");
+                                                                ClassFeeHead.SETRANGE("Fee Classification Code","Fee Classification Code");
+                                                                IF ClassFeeHead.FINDFIRST THEN
+                                                                  ERROR(Text000);
+
+                                                                // Start 04.KATHIR
+                                                              END;
+
+                                                   CaptionML=ENU=Fee Classification Code }
+    { 5   ;   ;Academic Year       ;Code10        ;TableRelation="Academic Year";
+                                                   CaptionML=ENU=Academic Year }
+    { 6   ;   ;Curriculum          ;Code10        ;TableRelation="Class Card".Curriculum;
+                                                   OnValidate=BEGIN
+                                                                // Start 08.VIGNESH
+                                                                ClassCardLook.ValidateCurriculum(Class,Curriculum,"Academic Year");
+                                                                // Stop 08.VIGNESH
+                                                              END;
+
+                                                   OnLookup=BEGIN
+                                                              // Start 09.VIGNESH
+                                                              ClassCardLook.LookUpCurriculum(Class,Curriculum,"Academic Year");
+                                                              // Stop 09.VIGNESH
+                                                            END;
+
+                                                   CaptionML=ENU=Curriculum }
+    { 7   ;   ;Class Group         ;Code10        ;TableRelation="Class Group";
+                                                   CaptionML=ENU=Class Group }
+    { 8   ;   ;No. Series          ;Code10        ;CaptionML=ENU=No. Series }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;No.                                     ;Clustered=Yes }
+    {    ;Class,Curriculum,Academic Year,Fee Classification Code }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      EduVert@1102155000 : Codeunit 71880;
+      NoSeriesMgt@1102155001 : Codeunit 396;
+      FeeHead@1102155002 : Record 71070;
+      FeeSetup@1102155003 : Record 71072;
+      ClassFeeHead@1102155004 : Record 71070;
+      Text000@1102155005 : TextConst 'ENU="Fees Already Generated for Current Class "';
+      ClassCardLook@1102155006 : Record 71006;
+
+    PROCEDURE AssistEdit@1102155000(OldFee@1102155001 : Record 71070) : Boolean;
+    BEGIN
+      // Start 03.KATHIR
+      WITH FeeHead DO BEGIN
+        FeeHead := Rec;
+        FeeSetup.GET;
+        FeeSetup.TESTFIELD("Class Fee No.");
+        IF NoSeriesMgt.SelectSeries(FeeSetup."Class Fee No.",OldFee."No. Series","No. Series") THEN BEGIN
+          NoSeriesMgt.SetSeries("No.");
+          Rec := FeeHead;
+          EXIT(TRUE);
+        END;
+      END;
+
+      // Stop 03.KATHIR
+    END;
+
+    BEGIN
+    {
+         No  Date    Sign      Trigger                                 Description
+      -----------------------------------------------------------------------------------------------
+        01  22/09/09 KATHIR    OnInsert()                              Code added to get Current academic year
+        02  22/09/09 KATHIR    OnInsert()                              Code Added to generate number series
+        03  22/02/09 KATHIR    AssistEdit()                            Code Added to generate number series
+        04  23/09/09 KATHIR    Fee Classification Code - OnValidate()  Code Added to Check Fees Generated for Particular Class,Section
+                                                                       Curriculum,Academic Year
+        05  19/10/09 VANDHANA  OnInsert                                Code to assign User ID.
+        06  23/11/09 VIGNESH  Class - OnLookup()                       Code added to get the Look up value for Class & Curriculum
+        07  23/11/09 VIGNESH  Curriculum Intrested - OnLookup()        Code added to get the Look up value for Class & Curriculum
+        08  23/11/09 VIGNESH  Class - OnLookup()                      Code added to get the Look up value for Class&Curriculum last attend
+        09  23/11/09 VIGNESH  Curriculum Followed - OnLookup()        Code added to get the Look up value for Class&Curriculum last attend
+        10  24/11/09 VIGNESH  Fee Classification Code - OnValidate()  Code commented Filter based on section
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,39 @@
+OBJECT Table 71020 Subject Detail Exam Schedule
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=HPS;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Exam Schedule No.   ;Code20         }
+    { 2   ;   ;Subject Code        ;Code20         }
+    { 3   ;   ;Date                ;Date           }
+    { 4   ;   ;Class Code          ;Code20         }
+    { 5   ;   ;Exam Slot           ;Code20        ;TableRelation=Table33009196 }
+    { 6   ;   ;Type                ;Option        ;CaptionML=ENU=Type;
+                                                   OptionCaptionML=ENU=Scholastic,Non-Scholastic;
+                                                   OptionString=Scholastic,Non-Scholastic }
+  }
+  KEYS
+  {
+    {    ;Exam Schedule No.,Subject Code          ;Clustered=Yes }
+    {    ;Type                                     }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

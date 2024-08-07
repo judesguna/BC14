@@ -1,0 +1,94 @@
+OBJECT Table 72055 Payroll Month & Year
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Salary Year Code,Salary Cyclic Code,Salary Start Date,Salary End Date;
+    CaptionML=ENU=Payroll Month & Year;
+    LookupPageID=Page72069;
+    DrillDownPageID=Page72069;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Salary Year Code    ;Code20        ;TableRelation="Payroll Year";
+                                                   CaptionML=ENU=Salary Year Code }
+    { 4   ;   ;Salary Cyclic Code  ;Code20        ;CaptionML=ENU=Salary Cyclic Code }
+    { 5   ;   ;Salary Start Date   ;Date          ;CaptionML=ENU=Salary Start Date }
+    { 6   ;   ;Salary End Date     ;Date          ;CaptionML=ENU=Salary End Date }
+    { 7   ;   ;Salary Month        ;Integer       ;CaptionML=ENU=Salary Month }
+    { 8   ;   ;Salary Year         ;Integer       ;CaptionML=ENU=Salary Year }
+    { 9   ;   ;Attendance Generated;Boolean       ;CaptionML=ENU=Attendance Generated }
+    { 10  ;   ;Salary Processed    ;Boolean       ;CaptionML=ENU=Salary Processed }
+    { 11  ;   ;No of Employee Processed;Integer   ;CaptionML=ENU=No of Employee Processed }
+    { 12  ;   ;Salary Posted       ;Boolean       ;CaptionML=ENU=Salary Posted }
+    { 13  ;   ;No of Employee Posted;Integer      ;CaptionML=ENU=No of Employee Posted }
+    { 14  ;   ;Closed              ;Boolean       ;CaptionML=ENU=Closed }
+    { 15  ;   ;Income Tax Salary Posted;Boolean   ;CaptionML=ENU=Income Tax Salary Posted }
+    { 16  ;   ;VDA Starting Points ;Integer       ;OnValidate=BEGIN
+                                                                VALIDATE("VDA Ending Points");
+                                                              END;
+
+                                                   CaptionML=ENU=VDA Starting Points }
+    { 17  ;   ;VDA Ending Points   ;Integer       ;OnValidate=BEGIN
+                                                                "Total Points" := "VDA Ending Points" - "VDA Starting Points";
+
+                                                                IF "Total Points" < 0 THEN
+                                                                  "Total Points" := 0;
+
+                                                                VALIDATE("Points Rate");
+                                                              END;
+
+                                                   CaptionML=ENU=VDA Ending Points }
+    { 18  ;   ;Total Points        ;Integer       ;CaptionML=ENU=Total Points;
+                                                   Editable=No }
+    { 19  ;   ;Points Rate         ;Decimal       ;OnValidate=BEGIN
+                                                                "Total VDA Amount" := "Total Points" * "Points Rate";
+                                                              END;
+
+                                                   CaptionML=ENU=Points Rate }
+    { 20  ;   ;Total VDA Amount    ;Decimal       ;CaptionML=ENU=Total VDA Amount;
+                                                   Editable=No }
+    { 21  ;   ;Staff VDA Amount    ;Decimal       ;CaptionML=ENU=Staff VDA Amount }
+    { 22  ;   ;Workmen VDA Amount  ;Decimal       ;CaptionML=ENU=Workmen VDA Amount }
+    { 23  ;   ;VDA Minimum Daily Wages Range;Decimal;
+                                                   CaptionML=ENU=VDA Minimum Daily Wages Range }
+    { 24  ;   ;VDA Differance Amount;Decimal      ;CaptionML=ENU=VDA Differance Amount }
+    { 25  ;   ;PF Challan Date     ;Date          ;CaptionML=ENU=PF Challan Date }
+    { 26  ;   ;ESI Challan Date    ;Date          ;CaptionML=ENU=ESI Challan Date }
+    { 27  ;   ;Challan Bank Name   ;Text50        ;CaptionML=ENU=Challan Bank Name }
+  }
+  KEYS
+  {
+    {    ;Location Code,Salary Plan Code,Salary Cyclic Code,Salary Start Date,Salary End Date;
+                                                   Clustered=Yes }
+    {    ;Location Code,Salary Plan Code,Salary Start Date,Salary End Date }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

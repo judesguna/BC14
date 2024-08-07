@@ -1,0 +1,391 @@
+OBJECT Codeunit 71040 Academics
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=EDU3.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Student@1102155000 : Record 71046;
+      FacultyClassPlanHeader@1102155001 : Record 71172;
+      Text001@1102155002 : TextConst 'ENU=Home Work Duration exceeded';
+      Text002@1102155003 : TextConst 'ENU=Home Work Approved';
+      Text000@1102155004 : TextConst 'ENU=Student Subject Updated';
+      Text003@1102155005 : TextConst 'ENU=Students has not allocated for the Class %1';
+      Text004@1102155006 : TextConst 'ENU=Subject Group need to be captured for the Student %1';
+      Text005@1102155007 : TextConst 'ENU=Subject need to filled in for the Group %1';
+      Text006@1102155008 : TextConst 'ENU=Grade Updated to all Classes';
+      Text007@1102155009 : TextConst 'ENU=Subjects for this Class %1 and Curriculim %2 is not done''';
+      Text008@1102155010 : TextConst 'ENU=Secticons are anot allocated for this class %1 and curriculum %2';
+      Text009@1102155011 : TextConst 'ENU=Copy Subjects Completed';
+      Text010@1102155012 : TextConst 'ENU=Already the Plan Has been Appoved';
+      Text011@1102155013 : TextConst 'ENU=Already the Plan Has been Rejected';
+      Text012@1102155014 : TextConst 'ENU=The Plan Has not been Applied';
+      Text013@1102155015 : TextConst 'ENU=Please give the comments for the rejection';
+      Text014@1102155016 : TextConst 'ENU=Optional Subjects needs to be captured for the Student %1';
+      VarCnt@1102159000 : Integer;
+      VarVal@1102159001 : Integer;
+      VarCnt1@1102159002 : Integer;
+      VarVal1@1102159003 : Integer;
+
+    PROCEDURE "Insert Student Subjects"@1102155000(ClassCode@1102155000 : Code[20]);
+    VAR
+      StudentSubjects@1102155003 : Record 71049;
+      ClassSubjects@1102155007 : Record 71048;
+      StudentSubjects1@1102155008 : Record 71049;
+      ClassSectionSubjects@1102155009 : Record 71016;
+    BEGIN
+      // Start 01.VIGNESH
+      Student.RESET;
+      Student.SETRANGE("Class Code",ClassCode);
+      IF Student.FINDSET THEN BEGIN
+        REPEAT
+          StudentSubjects.RESET;
+          StudentSubjects.SETRANGE("Student No.",Student."No.");
+          StudentSubjects.SETRANGE("Class Code",ClassCode);
+          StudentSubjects.DELETEALL;
+
+          ClassSectionSubjects.RESET;
+          ClassSectionSubjects.SETRANGE("Class Code",ClassCode);
+          ClassSectionSubjects.SETRANGE("Subject Group",'MAJOR');
+          ClassSectionSubjects.SETRANGE(ClassSectionSubjects."Group Code",Student."Subject Group");
+          IF ClassSectionSubjects.FINDSET THEN
+            REPEAT
+              IF NOT StudentSubjects1.GET(Student."No.",Student."Academic Year",ClassSectionSubjects.Subject) THEN BEGIN
+                StudentSubjects.INIT;
+                StudentSubjects."Student No." := Student."No.";
+                StudentSubjects."Academic Year" := Student."Academic Year";
+                StudentSubjects.Subject := ClassSectionSubjects.Subject;
+                StudentSubjects."Subject Group" := ClassSectionSubjects."Subject Group";
+                StudentSubjects.Class := ClassSectionSubjects.Class;
+                StudentSubjects.Section := ClassSectionSubjects.Section;
+                StudentSubjects.Curriculum := ClassSectionSubjects.Curriculum;
+                StudentSubjects.Description := ClassSectionSubjects.Description;
+                StudentSubjects."Student Gender" := Student.Gender;
+                StudentSubjects."Class Code" := ClassCode;
+                StudentSubjects.INSERT;
+              END;
+            UNTIL ClassSectionSubjects.NEXT = 0;
+
+            //Coding Added by kathir - for II Language - Start
+
+            ClassSectionSubjects.RESET;
+            ClassSectionSubjects.SETRANGE("Class Code",ClassCode);
+            ClassSectionSubjects.SETRANGE("Subject Group",'SEC LANG');
+            ClassSectionSubjects.SETRANGE(ClassSectionSubjects."II Lang Type",Student."Second Language");
+            IF ClassSectionSubjects.FINDSET THEN
+              REPEAT
+                IF NOT StudentSubjects1.GET(Student."No.",Student."Academic Year",ClassSectionSubjects.Subject) THEN BEGIN
+                  StudentSubjects.INIT;
+                  StudentSubjects."Student No." := Student."No.";
+                  StudentSubjects."Academic Year" := Student."Academic Year";
+                  StudentSubjects.Subject := ClassSectionSubjects.Subject;
+                  StudentSubjects."Subject Group" := ClassSectionSubjects."Subject Group";
+                  StudentSubjects.Class := ClassSectionSubjects.Class;
+                  StudentSubjects.Section := ClassSectionSubjects.Section;
+                  StudentSubjects.Curriculum := ClassSectionSubjects.Curriculum;
+                  StudentSubjects.Description := ClassSectionSubjects.Description;
+                  StudentSubjects."Student Gender" := Student.Gender;
+                  StudentSubjects."Class Code" := ClassCode;
+                  StudentSubjects.INSERT;
+                END;
+              UNTIL ClassSectionSubjects.NEXT = 0;
+
+           //Coding Added by kathir - for II Language - Stop
+        UNTIL Student.NEXT = 0;
+      END ELSE
+        ERROR(Text003,ClassCode);
+      MESSAGE(Text000);
+      // Stop 01.VIGNESH
+    END;
+
+    PROCEDURE "Copy Grades"@1102155004();
+    VAR
+      Class@1102155000 : Record 71041;
+      Curriculum@1102155001 : Record 71042;
+      Grade@1102155002 : Record 71889;
+      EducationVertical@1102155003 : Codeunit 71880;
+      AcadYr@1102155004 : Code[10];
+      ClassGrade@1102155005 : Record 71054;
+    BEGIN
+       // Start 04.KATHIR
+      AcadYr := EducationVertical.GetAcademicYear;
+      IF Class.FINDSET THEN
+        REPEAT
+          IF Curriculum.FINDSET THEN
+            REPEAT
+              IF Grade.FINDSET THEN
+                REPEAT
+                  IF NOT ClassGrade.GET(Class.Code,Curriculum.Code,AcadYr,Grade.Code) THEN BEGIN
+                    ClassGrade.INIT;
+                    ClassGrade.Class := Class.Code;
+                    ClassGrade.Curriculum := Curriculum.Code;
+                    ClassGrade."Academic Year" := AcadYr;
+                    ClassGrade."Grade Code" := Grade.Code;
+                    ClassGrade.Description := Grade.Description;
+                    // Start 05.VIGNESH
+                    ClassGrade.Points := Grade.Points;
+                    // Stop 05.VIGNESH
+                    ClassGrade."Max Percentage" := Grade."Max Percentage";
+                    ClassGrade."Min Percentage" := Grade."Min Percentage";
+                    ClassGrade.INSERT;
+                  END;
+                UNTIL Grade.NEXT = 0;
+            UNTIL Curriculum.NEXT = 0;
+        UNTIL Class.NEXT = 0;
+      MESSAGE(Text006);
+       // Stop 04.KATHIR
+    END;
+
+    PROCEDURE "Copy Subjects"@1102155003(getClass@1102155000 : Code[20];getCurriculum@1102155001 : Code[20];getAcademicYear@1102155002 : Code[20]);
+    VAR
+      ClassCard@1102155003 : Record 71006;
+      ClassSubjects@1102155004 : Record 71048;
+      ClassSection@1102155005 : Record 71015;
+      ClassSectionSubjects@1102155006 : Record 71016;
+      ClassSubjects1@1102155007 : Record 71048;
+    BEGIN
+      // Start 07.VIGNESH
+      ClassCard.RESET;
+      ClassCard.SETRANGE(Class,getClass);
+      ClassCard.SETRANGE(Curriculum,getCurriculum);
+      ClassCard.SETRANGE("Academic Year",getAcademicYear);
+      IF ClassCard.FINDFIRST THEN BEGIN
+        ClassSubjects.RESET;
+        ClassSubjects.SETRANGE(Class,getClass);
+        ClassSubjects.SETRANGE(Curriculum,getCurriculum);
+        ClassSubjects.SETRANGE("Academic Year",getAcademicYear);
+        IF ClassSubjects.ISEMPTY THEN
+          ERROR(Text007,getClass,getCurriculum)
+        ELSE
+          IF ClassSubjects.FINDFIRST THEN BEGIN
+            ClassSection.RESET;
+            ClassSection.SETRANGE(Class,getClass);
+            ClassSection.SETRANGE(Curriculum,getCurriculum);
+            ClassSection.SETRANGE("Academic Year",getAcademicYear);
+            IF ClassSection.ISEMPTY THEN
+              ERROR(Text008,getClass,getCurriculum)
+            ELSE
+              IF ClassSection.FINDSET THEN
+                REPEAT
+                  ClassSubjects1.RESET;
+                  ClassSubjects1.SETRANGE(Class,getClass);
+                  ClassSubjects1.SETRANGE(Curriculum,getCurriculum);
+                  ClassSubjects1.SETRANGE("Academic Year",getAcademicYear);
+                  IF ClassSubjects1.FINDSET THEN
+                    REPEAT
+                      ClassSectionSubjects.TRANSFERFIELDS(ClassSubjects1);
+                      ClassSectionSubjects.Section := ClassSection.Section;
+                      ClassSectionSubjects."Class Code" :=
+                      ClassSubjects1.Class + '-' + ClassSection.Section + '-' + ClassSubjects1.Curriculum + '-' + ClassSubjects1.
+                        "Academic Year";
+                      ClassSectionSubjects.INSERT;
+                    UNTIL ClassSubjects1.NEXT = 0;
+                UNTIL ClassSection.NEXT = 0;
+          END;
+        MESSAGE(Text009);
+      END;
+      // Stop 07.VIGNESH
+    END;
+
+    PROCEDURE UpdateStudentCPGAGrade@1102155008(Student@1102155000 : Record 71046);
+    VAR
+      ClassGrade@1102155001 : Record 71054;
+      Point@1102155002 : Decimal;
+    BEGIN
+      // Start 08.Ankesh
+      ClassGrade.RESET;
+      ClassGrade.SETCURRENTKEY(Class,Points);
+      ClassGrade.SETRANGE(Class,Student.Class);
+      Student.CALCFIELDS(CGPA);
+      Point := ROUND(Student.CGPA,1,'=');
+      ClassGrade.SETRANGE(Points,Point);
+      REPEAT
+        IF ClassGrade.Class <> '' THEN BEGIN
+          Student."CGPA Grade" := ClassGrade."Grade Code";
+          Student.MODIFY;
+        END;
+      UNTIL ClassGrade.NEXT = 0;
+      // Stop 08.Ankesh
+    END;
+
+    PROCEDURE GetStudents@1102155009(HomeworkNo@1102155000 : Code[20]);
+    VAR
+      HomeWork@1102155001 : Record 71063;
+      HomeworkLine@1102155002 : Record 71064;
+    BEGIN
+       // Start 01.KATHIR
+      HomeWork.GET(HomeworkNo);
+      HomeWork.TESTFIELD(Class);
+      HomeWork.TESTFIELD(Section);
+      HomeWork.TESTFIELD("Academic Year");
+      HomeWork.TESTFIELD(Curriculum);
+      HomeWork.TESTFIELD("Subject Code");
+      HomeWork.TESTFIELD("Time Required");
+      Student.RESET;
+      Student.SETRANGE(Class,HomeWork.Class);
+      Student.SETRANGE(Section,HomeWork.Section);
+      Student.SETRANGE(Curriculum,HomeWork.Curriculum);
+      Student.SETRANGE("Academic Year",HomeWork."Academic Year");
+      IF Student.FINDSET THEN
+        REPEAT
+          HomeworkLine."Homework No." := HomeworkNo;
+          HomeworkLine."Student No." := Student."No.";
+          HomeworkLine."Student Name" := Student.Name;
+          HomeworkLine.INSERT;
+        UNTIL Student.NEXT = 0;
+      // Stop 01.KATHIR
+    END;
+
+    PROCEDURE ApproveHomework@1102155010(HomeworkNo@1102155000 : Code[20]);
+    VAR
+      HomeWork@1102155001 : Record 71063;
+      HomeworkLine@1102155002 : Record 71064;
+      ClassSection@1102155003 : Record 71015;
+      HomeworkRec@1102155004 : Record 71063;
+      TotalTime@1102155005 : Decimal;
+    BEGIN
+      CLEAR(TotalTime);
+      HomeWork.GET(HomeworkNo);
+      HomeWork.TESTFIELD("Class Code");
+      HomeWork.TESTFIELD("Subject Code");
+      HomeWork.TESTFIELD("Time Required");
+      HomeWork.TESTFIELD("Created Date");
+      ClassSection.GET(HomeWork."Class Code");
+      HomeworkRec.SETRANGE("Class Code",HomeWork."Class Code");
+      HomeworkRec.SETRANGE("Created Date",HomeWork."Created Date");
+      HomeworkRec.SETRANGE("Homework Status",HomeworkRec."Homework Status"::"1");
+      IF HomeworkRec.FINDSET THEN
+        REPEAT
+          TotalTime := HomeworkRec."Time Required" + TotalTime;
+        UNTIL HomeworkRec.NEXT = 0;
+
+      IF (TotalTime + HomeWork."Time Required") > ClassSection."Home Work Duration" THEN
+        ERROR(Text001)
+      ELSE BEGIN
+        HomeWork."Homework Status" := HomeWork."Homework Status"::"1";
+        HomeWork.MODIFY;
+      END;
+    END;
+
+    PROCEDURE ApplicationSanctionOrCancel@1102155011(Check@1102155000 : Boolean;"No."@1102155001 : Code[10]);
+    VAR
+      LeaveAppRec@1102155002 : Record 71089;
+    BEGIN
+      // Start 09.Ankesh
+      LeaveAppRec.RESET;
+      IF LeaveAppRec.GET("No.") THEN
+        IF Check THEN BEGIN
+          LeaveAppRec."Leave Status" := LeaveAppRec."Leave Status"::Requested;
+          LeaveAppRec.MODIFY;
+        END ELSE BEGIN
+          LeaveAppRec."Leave Status" := LeaveAppRec."Leave Status"::Sanctioned;
+          LeaveAppRec.MODIFY;
+        END;
+      // Stop 09. Ankesh
+    END;
+
+    PROCEDURE "Insert Student Opt Subjects"@1102159000("StudentNo."@1102159000 : Code[20];ClassCode@1102159001 : Code[20]);
+    VAR
+      StudOptionalSub@1102159002 : Record 71051;
+      StudentSubjects@1102159003 : Record 71049;
+      ClassSection@1102159004 : Record 71015;
+      StudentRec@1102159005 : Record 71046;
+      StudentSubjects1@1102159006 : Record 71049;
+    BEGIN
+      // Function Added by kathir for St judes
+      StudentRec.GET("StudentNo.");
+      ClassSection.RESET;
+      ClassSection.SETRANGE(ClassSection."Class Code",ClassCode);
+      IF ClassSection.FINDFIRST THEN;
+      VarCnt  := 0;
+      VarVal  := 0;
+      VarVal1 := 0;
+      VarCnt1 := 0;
+      IF (StudentRec.Class = '9') OR  (StudentRec.Class = '10') THEN
+      BEGIN
+          StudOptionalSub.RESET;
+          StudOptionalSub.SETCURRENTKEY(Group);
+          StudOptionalSub.SETRANGE(StudOptionalSub."Student No","StudentNo.");
+          StudOptionalSub.SETRANGE(StudOptionalSub."Class Code",ClassCode);
+          IF StudOptionalSub.FINDFIRST THEN
+          REPEAT
+            IF StudOptionalSub."Class 9 10 Group Code" = StudOptionalSub."Class 9 10 Group Code"::"Group 2" THEN
+            BEGIN
+             IF StudOptionalSub.Group <> 0 THEN
+               BEGIN
+                IF VarVal <> StudOptionalSub.Group THEN
+                  VarCnt += 1;
+                  VarVal := StudOptionalSub.Group;
+                END
+                ELSE
+                  VarCnt += 1;
+             END;
+             IF StudOptionalSub."Class 9 10 Group Code" = StudOptionalSub."Class 9 10 Group Code"::"Group 3" THEN
+             BEGIN
+               IF StudOptionalSub.Group <> 0 THEN
+               BEGIN
+                IF VarVal1 <> StudOptionalSub.Group THEN
+                  VarCnt1 += 1;
+                VarVal1 := StudOptionalSub.Group;
+                END
+                ELSE
+                  VarCnt1 += 1;
+
+             END;
+             IF VarCnt > ClassSection."Max Group 2 Count" THEN
+               ERROR('%1 Can choose only %2 Optional Subjects in Group 2',StudentRec.Name,ClassSection."Max Group 2 Count");
+             IF VarCnt1 > ClassSection."Max Group 3 Count" THEN
+               ERROR('%1 Can choose only %2 Optional Subjects in Group 3',StudentRec.Name,ClassSection."Max Group 2 Count");
+
+             IF NOT StudentSubjects1.GET(StudentRec."No.",StudentRec."Academic Year",StudOptionalSub.Subject) THEN BEGIN
+                  StudentSubjects.INIT;
+                  StudentSubjects."Student No." := StudentRec."No.";
+                  StudentSubjects."Academic Year" := StudentRec."Academic Year";
+                  StudentSubjects.Subject := StudOptionalSub.Subject;
+                  StudentSubjects."Subject Group" := StudOptionalSub."Subject Group";
+                  StudentSubjects.Class := ClassSection.Class;
+                  StudentSubjects.Section := ClassSection.Section;
+                  StudentSubjects.Curriculum := ClassSection.Curriculum;
+                  StudentSubjects.Description := StudOptionalSub.Description;
+                  StudentSubjects."Student Gender" := StudentRec.Gender;
+                  StudentSubjects."Class Code" := ClassCode;
+                  StudentSubjects.INSERT;
+                END;
+          UNTIL StudOptionalSub.NEXT = 0;
+          MESSAGE('Optional Subjects Updated Successfully');
+      END;
+
+
+
+      //MESSAGE('%1   %2',VarCnt,VarCnt1);
+    END;
+
+    BEGIN
+    {
+        No   Date      Sign     Trigger                       Description
+      -----------------------------------------------------------------------------------------------
+        01  29/09/09   KATHIR   Insert Student Subjects()     Function added to Insert student academic Subjects
+        02  29/09/09   KATHIR   Check Student Opt Subjects()  Function added to Validate Optional subjects for the student
+        03  30/09/09   KATHIR   Insert Stud Opt Subjects()    Function added to Insert Student optional Subjects
+        04  01/10/09   KATHIR   Copy Grades()                 Function added to copy Grade Master to all Classes and Curriculum
+        05  16/10/09   VIGNESH  Copy Grades()                 code modifiy to all the points field
+        06  23/11/09   VIGNESH  Insert Student Subjects()     Section Feild is removed from Parmeters
+        07  25/11/09   VIGNESH  Copy Subjects                  Code added to copy the subjects for all sections
+        08  18/01/10   Ankesh   UpdateStudentCPGAGrade()      Code to update CPGA grade.
+        09  29/06/10   Ankesh   ApplicationSanctionOrCancel() Code to change the status of the student leave application
+    }
+    END.
+  }
+}
+

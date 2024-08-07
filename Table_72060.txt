@@ -1,0 +1,118 @@
+OBJECT Table 72060 Pay Elements
+{
+  OBJECT-PROPERTIES
+  {
+    Date=31-07-14;
+    Time=02:33:54;
+    Modified=Yes;
+    Version List=FRHRPR4.00.03.06;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Location Code,Salary Plan Code,Pay Element Code,Description;
+    CaptionML=ENU=Pay Elements;
+    LookupPageID=Page72076;
+    DrillDownPageID=Page72076;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Location Code       ;Code20        ;TableRelation="Location HR & Payroll Setup";
+                                                   CaptionML=ENU=Location Code }
+    { 2   ;   ;Salary Plan Code    ;Code20        ;TableRelation="Salary Plan";
+                                                   CaptionML=ENU=Salary Plan Code }
+    { 3   ;   ;Pay Element Code    ;Code20        ;CaptionML=ENU=Pay Element Code;
+                                                   NotBlank=Yes }
+    { 4   ;   ;Description         ;Text50        ;CaptionML=ENU=Description }
+    { 5   ;   ;Pay Slip Printing Caption;Code20   ;CaptionML=ENU=Pay Slip Printing Caption }
+    { 6   ;   ;Paid Category       ;Option        ;InitValue=Monthly;
+                                                   CaptionML=ENU=Paid Category;
+                                                   OptionCaptionML=ENU=Monthly,Yearly,Daily;
+                                                   OptionString=Monthly,Yearly,Daily }
+    { 7   ;   ;Pay Type            ;Option        ;CaptionML=ENU=Pay Type;
+                                                   OptionCaptionML=ENU=Addition,Deduction,Reimbursement;
+                                                   OptionString=Addition,Deduction,Reimbursement }
+    { 8   ;   ;Fixed/Percent       ;Option        ;CaptionML=ENU=Fixed/Percent;
+                                                   OptionCaptionML=ENU=Fixed,Percent;
+                                                   OptionString=Fixed,Percent }
+    { 9   ;   ;Base Pay Elements   ;Text250       ;TableRelation="Pay Elements" WHERE (Paid Category=CONST(Monthly),
+                                                                                       Pay Type=CONST(Addition));
+                                                   ValidateTableRelation=No;
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Base Pay Elements }
+    { 10  ;   ;Base Amount ( For % );Decimal      ;CaptionML=ENU=Base Amount ( For % );
+                                                   Editable=No }
+    { 11  ;   ;Percent (%)         ;Decimal       ;CaptionML=ENU=Percent (%);
+                                                   MinValue=0;
+                                                   MaxValue=100 }
+    { 12  ;   ;Amount              ;Decimal       ;CaptionML=ENU=Amount }
+    { 13  ;   ;Amount Calculation Type;Option     ;CaptionML=ENU=Amount Calculation Type;
+                                                   OptionCaptionML=ENU=Pay Day,Full Amount;
+                                                   OptionString=Pay Day,Full Amount }
+    { 14  ;   ;Sorting Order       ;Integer       ;CaptionML=ENU=Sorting Order }
+    { 15  ;   ;Regular Element     ;Boolean       ;CaptionML=ENU=Regular Element }
+    { 16  ;   ;Variable Element    ;Boolean       ;CaptionML=ENU=Variable Element }
+    { 17  ;   ;Loan Element        ;Boolean       ;CaptionML=ENU=Loan Element }
+    { 18  ;   ;Eligible for ESI Earnings;Boolean  ;CaptionML=ENU=Eligible for ESI Earnings }
+    { 19  ;   ;Eligible for PF     ;Boolean       ;CaptionML=ENU=Eligible for PF }
+    { 20  ;   ;Eligible for PT     ;Boolean       ;CaptionML=ENU=Eligible for PT }
+    { 21  ;   ;Eligible for OT     ;Boolean       ;CaptionML=ENU=Eligible for OT }
+    { 22  ;   ;Eligible for Bonus  ;Boolean       ;CaptionML=ENU=Eligible for Bonus }
+    { 23  ;   ;Eligible for Leave Encashment;Boolean;
+                                                   CaptionML=ENU=Eligible for Leave Encashment }
+    { 24  ;   ;Eligible for Gratuity;Boolean      ;CaptionML=ENU=Eligible for Gratuity }
+    { 25  ;   ;Eligible for Income Tax;Boolean    ;CaptionML=ENU=Eligible for Income Tax }
+    { 26  ;   ;Included In Pay Slip;Boolean       ;CaptionML=ENU=Included In Pay Slip }
+    { 27  ;   ;Excluded In Pay Slip;Boolean       ;CaptionML=ENU=Excluded In Pay Slip }
+    { 28  ;   ;All Grade           ;Boolean       ;CaptionML=ENU=All Grade }
+    { 29  ;   ;Predefined Code     ;Boolean       ;CaptionML=ENU=Predefined Code;
+                                                   Editable=No }
+    { 30  ;   ;Pay Prod. Posting Group;Code20     ;TableRelation="Payroll Product Posting Group" WHERE (Location Code=FIELD(Location Code),
+                                                                                                        Salary Plan Code=FIELD(Salary Plan Code));
+                                                   CaptionML=ENU=Pay Prod. Posting Group }
+    { 31  ;   ;GL Code             ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=ENU=GL Code }
+    { 32  ;   ;Income Tax Link Code;Option        ;CaptionML=ENU=Income Tax Link Code;
+                                                   OptionCaptionML=ENU=" ,E-01,E-02,E-03,E-04,E-05,E-06,E-07,E-08,E-09,E-10,E-11,E-12,E-13,E-14,E-15,E-16,E-17,E-18,E-19,E-20,E-21,E-22,D-01,D-02,D-03";
+                                                   OptionString=[ ,E-01,E-02,E-03,E-04,E-05,E-06,E-07,E-08,E-09,E-10,E-11,E-12,E-13,E-14,E-15,E-16,E-17,E-18,E-19,E-20,E-21,E-22,D-01,D-02,D-03] }
+    { 33  ;   ;Select              ;Boolean       ;CaptionML=ENU=Select }
+    { 34  ;   ;Eligible for Credit Days;Boolean   ;CaptionML=ENU=Eligible for Credit Days }
+    { 35  ;   ;Eligible for ESI Limit Amount;Boolean;
+                                                   CaptionML=ENU=Eligible for ESI Limit Amount }
+    { 36  ;   ;Fixed Pay Element   ;Boolean       ;CaptionML=ENU=Fixed Pay Element }
+    { 37  ;   ;Payment Type        ;Option        ;CaptionML=ENU=Payment Type;
+                                                   OptionCaptionML=ENU=Full Payment,First Payment,Second Payment;
+                                                   OptionString=Full Payment,First Payment,Second Payment }
+    { 38  ;   ;Gross Amount Pay Elements;Boolean  ;CaptionML=ENU=Gross Amount Pay Elements }
+    { 39  ;   ;Daily Wages Pay Elements;Boolean   ;CaptionML=ENU=Daily Wages Pay Elements }
+    { 40  ;   ;No of Day for DA    ;Decimal       ;CaptionML=ENU=No of Day for DA;
+                                                   MinValue=0;
+                                                   MaxValue=31 }
+    { 41  ;   ;Eligible for Layoff ;Boolean       ;CaptionML=ENU=Eligible for Layoff }
+    { 42  ;   ;Eligible for Extra Allowances;Boolean;
+                                                   CaptionML=ENU=Eligible for Extra Allowances }
+  }
+  KEYS
+  {
+    {    ;Pay Element Code,Location Code,Salary Plan Code;
+                                                   Clustered=Yes }
+    {    ;Sorting Order,Pay Element Code           }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -----------------------------------------------------------------------------------------------
+      Firstware Sofware Solutions : Project Name : HR & PAYROLL
+      -----------------------------------------------------------------------------------------------
+      No.  Date          Developer     Spec/CU/CR      Description
+      -----------------------------------------------------------------------------------------------
+      1    04.APR.2009   RAJAH.A                       New Tables Added for Payroll Module.
+    }
+    END.
+  }
+}
+

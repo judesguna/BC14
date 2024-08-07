@@ -1,0 +1,56 @@
+OBJECT Table 71080 Co-Curricular Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=21-01-18;
+    Time=12:00:00;
+    Modified=Yes;
+    Version List=EDU1.0,SJ6.01;
+  }
+  PROPERTIES
+  {
+    OnModify=BEGIN
+               // Start 01.VIGNESH
+               "User ID" := USERID;
+               // Stop 01.VIGNESH
+             END;
+
+    CaptionML=ENU=Co-Curricular Setup;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;CaptionML=ENU=Primary Key }
+    { 2   ;   ;Competition Entry No.;Code20       ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Competition Entry No. }
+    { 3   ;   ;Participant Entry No.;Code20       ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Participant Entry No. }
+    { 4   ;   ;Result Individual Entry No.;Code20 ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Result Individual Entry No. }
+    { 5   ;   ;Result Team Entry No.;Code20       ;TableRelation="No. Series";
+                                                   CaptionML=ENU=Result Team Entry No. }
+    { 50000;  ;Last Used Team No   ;Code20         }
+    { 70120;  ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 70121;  ;Portal ID           ;Code20        ;CaptionML=ENU=Portal ID }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      No   Date      Sign     Trigger                     Description
+      -----------------------------------------------------------------------------------------------
+      01   15.12.09  VIGNESH  OnInsert()                 Code added to enter the User id
+      SJ6.01 21/01/18 GB
+        Autogenerate team no
+    }
+    END.
+  }
+}
+
